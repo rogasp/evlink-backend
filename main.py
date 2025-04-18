@@ -1,16 +1,22 @@
-# This is a sample Python script.
+# main.py
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from fastapi import FastAPI
+from app.api import router as api_router
+from app.webhook import router as webhook_router
 
+app = FastAPI(
+    title="EV Link Backend",
+    version="0.1.0",
+    description="A secure proxy between Home Assistant and Enode."
+)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+# API endpoints for Home Assistant
+app.include_router(api_router, prefix="/api")
 
+# Webhook endpoint for Enode
+app.include_router(webhook_router)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# Simple health check
+@app.get("/ping")
+async def ping():
+    return {"message": "pong"}

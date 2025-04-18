@@ -1,0 +1,5 @@
+# requirements.txt
+fastapi
+httpx
+python-dotenv
+uvicorn
