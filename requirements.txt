@@ -1,5 +1,9 @@
 # requirements.txt
 fastapi
-httpx
+httpx[http2]>=0.23
 python-dotenv
 uvicorn
+pytest
+pytest-mock
+pytest-asyncio
+asgi-lifespan

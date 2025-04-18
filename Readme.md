@@ -48,6 +48,7 @@ evlink-backend/
 ├── .gitignore
 ├── LICENSE                   # MIT License
 ├── README.md
+├── Makefile                  # Developer command shortcuts
 └── docs/                     # Design and architecture docs
     ├── architecture.md
     ├── api-spec.md
@@ -56,34 +57,36 @@ evlink-backend/
 
 ---
 
-## Getting Started
+## Quickstart
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/rogasp/evlink-backend.git
-   cd evlink-backend
-   ```
+```bash
+# 1. Clone the repository
+$ git clone https://github.com/rogasp/evlink-backend.git
+$ cd evlink-backend
 
-2. Set up the virtual environment:
-   ```bash
-   python3.12 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+# 2. Create your .env file (see .env.example or below)
+$ cp .env.example .env
 
-3. Add environment variables in `.env`:
-   ```env
-   ENODE_CLIENT_ID=xxx
-   ENODE_CLIENT_SECRET=yyy
-   ENODE_BASE_URL=https://enode-api.sandbox.enode.io
-   ENODE_AUTH_URL=https://oauth.sandbox.enode.io/oauth2/token
-   REDIRECT_URI=http://localhost:8000/callback
-   ```
+# 3. Initialize the environment (venv + install + DB)
+$ make init
 
-4. Run the app:
-   ```bash
-   uvicorn main:app --reload
-   ```
+# 4. Run the backend locally
+$ make run
+
+# 5. Send a test webhook to verify it works
+$ make test
+```
+
+---
+
+## .env format
+```env
+ENODE_CLIENT_ID=your_client_id_here
+ENODE_CLIENT_SECRET=your_client_secret_here
+ENODE_BASE_URL=https://enode-api.sandbox.enode.io
+ENODE_AUTH_URL=https://oauth.sandbox.enode.io/oauth2/token
+REDIRECT_URI=http://localhost:8000/callback
+```
 
 ---
 

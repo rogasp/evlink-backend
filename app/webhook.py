@@ -1,10 +1,9 @@
-# app/webhook.py
-
 from fastapi import APIRouter, Request, Header, HTTPException
 from app.storage import cache_vehicle_data
 import json
 
 router = APIRouter()
+
 
 @router.post("/webhook/enode")
 async def receive_webhook(request: Request, authorization: str = Header(None)):

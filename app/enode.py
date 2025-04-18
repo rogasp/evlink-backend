@@ -1,5 +1,3 @@
-# app/enode.py
-
 import os
 import httpx
 from dotenv import load_dotenv
@@ -10,12 +8,12 @@ ENODE_BASE_URL = os.getenv("ENODE_BASE_URL")
 ENODE_AUTH_URL = os.getenv("ENODE_AUTH_URL")
 CLIENT_ID = os.getenv("ENODE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("ENODE_CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 _token_cache = {"access_token": None, "expires_at": 0}
 
 
 async def get_access_token():
-    # Basic in-memory token cache (replace with DB/cache later)
     import time
     if _token_cache["access_token"] and _token_cache["expires_at"] > time.time():
         return _token_cache["access_token"]
@@ -55,3 +53,45 @@ async def get_vehicle_data(vehicle_id: str) -> dict:
                 "odometer": data.get("odometer", {}).get("distance")
             }
         return {}
+
+
+async def create_link_session(user_id: str, vendor: str = ""):
+    token = await get_access_token()
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "vendorType": "vehicle",
+        "language": "en-US",
+        "scopes": [
+            "vehicle:read:data",
+            "vehicle:read:location",
+            "vehicle:control:charging"
+        ],
+        "colorScheme": "system",
+        "redirectUri": REDIRECT_URI + "?token={{linkToken}}"
+
+    }
+    if vendor:
+        payload["vendor"] = vendor
+
+    url = f"{ENODE_BASE_URL}/users/{user_id}/link"
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()
+
+async def get_link_result(link_token: str) -> dict:
+    token = await get_access_token()
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    payload = {"linkToken": link_token}
+
+    url = f"{ENODE_BASE_URL}/links/token"
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()

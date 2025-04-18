@@ -1,8 +1,7 @@
-# main.py
-
 from fastapi import FastAPI
 from app.api import router as api_router
 from app.webhook import router as webhook_router
+from app.storage import init_db
 
 app = FastAPI(
     title="EV Link Backend",
@@ -10,13 +9,10 @@ app = FastAPI(
     description="A secure proxy between Home Assistant and Enode."
 )
 
-# API endpoints for Home Assistant
+init_db()
 app.include_router(api_router, prefix="/api")
-
-# Webhook endpoint for Enode
 app.include_router(webhook_router)
 
-# Simple health check
 @app.get("/ping")
 async def ping():
     return {"message": "pong"}
