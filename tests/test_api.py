@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from main import app
+from app.main import app
 from app.storage import get_cached_vehicle
 import json
 

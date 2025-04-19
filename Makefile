@@ -56,3 +56,9 @@ list-endpoints:
 
 export-endpoints:
 	PYTHONPATH=. python3 scripts/export_endpoints.py
+
+test:
+	pytest
+
+test-access:
+	pytest tests/test_access_control.py

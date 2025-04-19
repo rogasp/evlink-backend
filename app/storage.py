@@ -53,6 +53,22 @@ def init_db():
                          NULL
                      )
                      """)
+        conn.execute("""
+                     CREATE TABLE IF NOT EXISTS users
+                     (
+                         user_id
+                         TEXT
+                         PRIMARY
+                         KEY,
+                         email
+                         TEXT,
+                         created_at
+                         TIMESTAMP
+                         DEFAULT
+                         CURRENT_TIMESTAMP
+                     )
+                     """)
+
         conn.commit()
     print("✅ Databasen initierad")
 
@@ -148,3 +164,20 @@ def list_all_api_keys():
     with sqlite3.connect(DB_PATH) as conn:
         rows = conn.execute("SELECT user_id, api_key FROM api_keys").fetchall()
         return [{"user_id": row[0], "api_key": row[1]} for row in rows]
+
+
+def create_user(user_id: str, email: str = None):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO users (user_id, email) VALUES (?, ?)",
+            (user_id, email),
+        )
+        conn.commit()
+
+def get_user(user_id: str):
+    with sqlite3.connect(DB_PATH) as conn:
+        row = conn.execute(
+            "SELECT user_id, email, created_at FROM users WHERE user_id = ?",
+            (user_id,)
+        ).fetchone()
+        return {"user_id": row[0], "email": row[1], "created_at": row[2]} if row else None

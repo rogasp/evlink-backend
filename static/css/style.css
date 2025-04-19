@@ -1,0 +1,31 @@
+body {
+  font-family: sans-serif;
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+h1 {
+  text-align: center;
+}
+
+form, section {
+  margin-top: 2rem;
+}
+
+input, select, button {
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+pre {
+  background: #eee;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+}

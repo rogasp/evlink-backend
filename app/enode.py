@@ -3,7 +3,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 from app.storage import get_cached_vehicle, cache_vehicle_data, is_recent
-from datetime import datetime
+from datetime import datetime, UTC
 
 load_dotenv()
 
@@ -125,7 +125,7 @@ async def subscribe_to_webhooks():
             "user:vehicle:updated"
         ]
     }
-    print(payload)
+
     url = f"{ENODE_BASE_URL}/webhooks"
 
     async with httpx.AsyncClient() as client:
@@ -155,9 +155,26 @@ async def get_vehicle_status(vehicle_id: str, max_age_minutes: int = 5, force: b
     # ⬇ Hämta från Enode oavsett (om force=True eller cache saknas/gammal)
     fresh = await get_vehicle_data(vehicle_id)
     if fresh:
-        updated_at = fresh.get("updatedAt") or fresh.get("lastSeen") or datetime.utcnow().isoformat()
+        updated_at = fresh.get("updatedAt") or fresh.get("lastSeen") or datetime.now(UTC).isoformat()
         cache_vehicle_data(vehicle_id, json.dumps(fresh), updated_at)
         return fresh
 
     raise ValueError("Kunde inte hämta fordon från cache eller Enode")
 
+async def get_user_vehicles(user_id: str) -> list:
+    access_token = await get_access_token()
+    url = f"{ENODE_BASE_URL}/users/{user_id}/vehicles"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json().get("data", [])
+
+async def get_linked_vendor_details(user_id: str) -> list:
+    access_token = await get_access_token()
+    url = f"{ENODE_BASE_URL}/users/{user_id}"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json().get("linkedVendors", [])

@@ -1,7 +1,7 @@
 # scripts/export_endpoints.py
 
 from fastapi.routing import APIRoute
-from main import app
+from app.main import app
 
 # Manuell access-nivåtaggning
 ACCESS_MAP = {
@@ -17,6 +17,7 @@ ACCESS_MAP = {
     "/api/token": "🛠️ Dev Only",
     "/api/webhook/subscribe": "🛠️ Dev Only",
     "/webhook": "🔓 Public",
+    "/api/user/{user_id}": "🔐 API Key Required",
 }
 
 # Skriv till fil

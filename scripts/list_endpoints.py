@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 from fastapi.routing import APIRoute
-from main import app
+from app.main import app
 
 # Lägg till projektroten i sys.path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
