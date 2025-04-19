@@ -1,19 +1,45 @@
-from fastapi import APIRouter, Request, Header, HTTPException
-from app.storage import cache_vehicle_data
-import json
+from fastapi import APIRouter, Request, HTTPException
+from app.storage import save_webhook_event
 
 router = APIRouter()
 
-
-@router.post("/webhook/enode")
-async def receive_webhook(request: Request, authorization: str = Header(None)):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
+@router.post("/webhook")
+async def handle_webhook(request: Request):
     payload = await request.json()
-    vehicle_id = payload.get("vehicleId")
-    if not vehicle_id:
-        raise HTTPException(status_code=400, detail="Missing vehicleId")
 
-    cache_vehicle_data(vehicle_id, json.dumps(payload), payload.get("updated_at", ""))
+    # 🧠 Spara hela webhook-payloaden för spårbarhet
+    save_webhook_event(payload)
+
+    # 🔄 Hantera lista med events
+    if isinstance(payload, list):
+        for event in payload:
+            event_type = event.get("event") or event.get("eventType")
+            data = event.get("data")
+
+            print(f"[WEBHOOK] Event: {event_type}")
+
+            if event_type == "system:heartbeat":
+                print("💓 Heartbeat mottagen")
+                continue
+
+            if event_type in ["user:vehicle:discovered", "user:vehicle:updated"]:
+                if data:
+                    save_vehicle_data(data)
+
+        return {"status": "ok", "handled": len(payload)}
+
+    # 🔄 Om payload är ett enskilt objekt (fallback)
+    event_type = payload.get("event") or payload.get("eventType")
+    data = payload.get("data")
+
+    print(f"[WEBHOOK] Event: {event_type}")
+
+    if event_type == "system:heartbeat":
+        print("💓 Heartbeat mottagen")
+        return {"status": "ok", "heartbeat": True}
+
+    if event_type in ["user:vehicle:discovered", "user:vehicle:updated"]:
+        if data:
+            save_vehicle_data(data)
+
     return {"status": "ok"}

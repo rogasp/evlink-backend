@@ -1,7 +1,9 @@
+import sqlite3
+
 import httpx
 from fastapi import APIRouter, HTTPException, Query, Request, Body
-from app.enode import get_vehicle_data, create_link_session, get_link_result
-from app.storage import get_all_cached_vehicles, save_linked_vendor
+from app.enode import get_vehicle_data, create_link_session, get_link_result, subscribe_to_webhooks, get_access_token, get_vehicle_status
+from app.storage import get_all_cached_vehicles, save_linked_vendor, DB_PATH, clear_webhook_events
 import json
 
 router = APIRouter()
@@ -29,6 +31,11 @@ async def link_vendor(user_id: str, vendor: str = Query(default="")):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/events")
+def list_webhook_events():
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.execute("SELECT created_at, json FROM webhook_events ORDER BY created_at DESC")
+        return [{"created_at": row[0], "data": json.loads(row[1])} for row in cursor.fetchall()]
 
 
 @router.post("/confirm-link")
@@ -53,3 +60,36 @@ async def confirm_link(payload: dict = Body(...)):
 
     except httpx.HTTPError as e:
         raise HTTPException(status_code=500, detail=f"Failed to verify link token: {str(e)}")
+
+@router.post("/webhook/subscribe")
+async def webhook_subscribe():
+    try:
+        result = await subscribe_to_webhooks()
+        return {"status": "success", "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/token")
+async def get_token():
+    try:
+        access_token = await get_access_token()
+        return {"access_token": access_token}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/events")
+def delete_all_events():
+    clear_webhook_events()
+    return {"status": "ok", "message": "All webhook events deleted"}
+
+@router.get("/vehicle/{vehicle_id}/status")
+async def api_vehicle_status(
+    vehicle_id: str,
+    force: bool = Query(default=False, description="Tvinga ny hämtning från Enode")
+):
+    try:
+        vehicle = await get_vehicle_status(vehicle_id, force=force)
+        return vehicle
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

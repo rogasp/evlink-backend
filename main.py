@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from app.api import router as api_router
-from app.webhook import router as webhook_router
 from app.storage import init_db
 from fastapi.staticfiles import StaticFiles
 import os
 from fastapi.responses import RedirectResponse
+from app.webhook import router as webhook_router  # 👈 denna rad
 
 
 app = FastAPI(
@@ -15,6 +15,7 @@ app = FastAPI(
 
 init_db()
 app.include_router(api_router, prefix="/api")
+app.include_router(webhook_router)  # 👈 registrerar webhook utan prefix
 app.include_router(webhook_router)
 
 # Serve static files from /static
