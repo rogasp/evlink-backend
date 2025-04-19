@@ -1,5 +1,5 @@
 import httpx
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Body
 from app.enode import get_vehicle_data, create_link_session, get_link_result
 from app.storage import get_all_cached_vehicles, save_linked_vendor
 import json
@@ -22,13 +22,18 @@ def list_cached_vehicles():
 async def link_vendor(user_id: str, vendor: str = Query(default="")):
     try:
         link = await create_link_session(user_id, vendor)
-        return {"linkUrl": link.get("linkUrl")}
+        return {
+            "linkUrl": link.get("linkUrl"),
+            "linkToken": link.get("linkToken")  # 👈 måste med!
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/link/callback")
-async def link_callback(request: Request):
-    link_token = request.query_params.get("token")
+
+
+@router.post("/confirm-link")
+async def confirm_link(payload: dict = Body(...)):
+    link_token = payload.get("token")
     if not link_token:
         raise HTTPException(status_code=400, detail="Missing link token")
 

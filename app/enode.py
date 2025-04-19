@@ -9,6 +9,7 @@ ENODE_AUTH_URL = os.getenv("ENODE_AUTH_URL")
 CLIENT_ID = os.getenv("ENODE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("ENODE_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
+USE_MOCK = os.getenv("MOCK_LINK_RESULT", "false").lower() == "true"
 
 _token_cache = {"access_token": None, "expires_at": 0}
 
@@ -70,7 +71,7 @@ async def create_link_session(user_id: str, vendor: str = ""):
             "vehicle:control:charging"
         ],
         "colorScheme": "system",
-        "redirectUri": REDIRECT_URI + "?token={{linkToken}}"
+        "redirectUri": REDIRECT_URI
 
     }
     if vendor:
@@ -82,7 +83,17 @@ async def create_link_session(user_id: str, vendor: str = ""):
         response.raise_for_status()
         return response.json()
 
+
 async def get_link_result(link_token: str) -> dict:
+    if USE_MOCK:
+        print("[MOCK] get_link_result active")
+        return {
+            "userId": "rogasp",
+            "vendor": "XPENG"
+        }
+
+    # real API call
+
     token = await get_access_token()
     headers = {
         "Authorization": f"Bearer {token}",

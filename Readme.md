@@ -90,6 +90,20 @@ REDIRECT_URI=http://localhost:8000/callback
 
 ---
 
+## 🌐 Frontend-länkning (HTML + JS)
+
+Projektet innehåller ett enkelt frontendflöde för att demonstrera hur Enode-länkning fungerar:
+
+- `link.html`: Startar länkflödet med Enode
+- `callback.html`: Tar emot redirect från Enode
+- JavaScript hanterar sessionStorage + popup-kommunikation
+
+📄 Se dokumentation:
+- [`docs/frontend-flow.md`](docs/frontend-flow.md)
+- [`docs/link-flow.md`](docs/link-flow.md)
+
+---
+
 ## License
 
 This project is licensed under the MIT License.

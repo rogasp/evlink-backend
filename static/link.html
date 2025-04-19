@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Länka fordon</title>
+</head>
+<body>
+  <h2>🔗 Länka ditt fordon via Enode</h2>
+  <button id="linkBtn">Länka fordon</button>
+
+  <script>
+    document.getElementById("linkBtn").addEventListener("click", async () => {
+      const userId = "rogasp";
+      const vendor = "XPENG";
+
+      try {
+        const response = await fetch(`/api/user/${userId}/link?vendor=${vendor}`);
+        const data = await response.json();
+
+        if (data.linkToken && data.linkUrl) {
+          // 1️⃣ Spara token i sessionStorage (delas med popup)
+          sessionStorage.setItem("linkToken", data.linkToken);
+
+          // 2️⃣ Öppna Enode i popup
+          window.open(data.linkUrl, "_blank", "width=600,height=800");
+        } else {
+          alert("❌ Kunde inte hämta länkdata");
+        }
+      } catch (err) {
+        alert("❌ Fel vid anrop: " + err);
+      }
+    });
+
+    // 3️⃣ Ta emot token tillbaka från callback.html
+    window.addEventListener("message", async (event) => {
+      const token = event.data;
+      if (!token || typeof token !== "string") return;
+
+      console.log("✅ Mottog token från popup:", token);
+
+      try {
+        const res = await fetch("/api/confirm-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          alert("✅ Länkning klar för " + result.vendor);
+        } else {
+          alert("❌ Fel: " + result.detail);
+        }
+      } catch (err) {
+        alert("⚠️ Tekniskt fel: " + err);
+      }
+    });
+  </script>
+</body>
+</html>
