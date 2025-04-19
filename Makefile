@@ -22,6 +22,10 @@ token:
 	@echo "🔐 Hämtar access token..."
 	@curl -s http://localhost:8000/api/token | jq
 
+create-apikey:
+	@read -p "Enter user ID: " user_id && \
+	python -c "from app.storage import create_api_key_for_user; print('🔑 API key:', create_api_key_for_user('$$user_id'))"
+
 subscribe-webhook:
 	@echo "📬 Registrerar webhook hos Enode..."
 	@curl -s -X POST http://localhost:8000/api/webhook/subscribe | jq
@@ -46,3 +50,9 @@ mock-event:
 				}
 			}
 		}]' | jq
+
+list-endpoints:
+	PYTHONPATH=. python3 scripts/list_endpoints.py
+
+export-endpoints:
+	PYTHONPATH=. python3 scripts/export_endpoints.py

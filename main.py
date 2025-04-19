@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+
+from app import devtools
 from app.api import router as api_router
 from app.storage import init_db
 from fastapi.staticfiles import StaticFiles
@@ -15,6 +17,7 @@ app = FastAPI(
 
 init_db()
 app.include_router(api_router, prefix="/api")
+app.include_router(devtools.router, prefix="/api")
 app.include_router(webhook_router)  # 👈 registrerar webhook utan prefix
 app.include_router(webhook_router)
 
@@ -25,6 +28,4 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.getcwd(), "static")),
 async def root():
     return RedirectResponse(url="/static/link.html")
 
-@app.get("/ping")
-async def ping():
-    return {"message": "pong"}
+

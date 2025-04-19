@@ -2,6 +2,8 @@ import sqlite3
 from pathlib import Path
 import json
 from datetime import datetime, timezone, timedelta
+import secrets
+
 
 
 # 📍 Databasens sökväg
@@ -38,6 +40,19 @@ def init_db():
                 PRIMARY KEY (user_id, vendor)
             )
         """)
+        conn.execute("""
+                     CREATE TABLE IF NOT EXISTS api_keys
+                     (
+                         user_id
+                         TEXT
+                         PRIMARY
+                         KEY,
+                         api_key
+                         TEXT
+                         NOT
+                         NULL
+                     )
+                     """)
         conn.commit()
     print("✅ Databasen initierad")
 
@@ -112,3 +127,24 @@ def is_recent(timestamp: str, max_age_minutes: int = 5) -> bool:
     except Exception as e:
         print(f"⚠️  Kunde inte tolka timestamp: {timestamp} – {e}")
         return False
+
+def create_api_key_for_user(user_id: str) -> str:
+    api_key = secrets.token_hex(32)
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO api_keys (user_id, api_key) VALUES (?, ?)",
+            (user_id, api_key)
+        )
+        conn.commit()
+    print(f"🔑 Skapade API-nyckel för {user_id}")
+    return api_key
+
+def get_user_id_from_api_key(api_key: str) -> str | None:
+    with sqlite3.connect(DB_PATH) as conn:
+        row = conn.execute("SELECT user_id FROM api_keys WHERE api_key = ?", (api_key,)).fetchone()
+        return row[0] if row else None
+
+def list_all_api_keys():
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute("SELECT user_id, api_key FROM api_keys").fetchall()
+        return [{"user_id": row[0], "api_key": row[1]} for row in rows]
