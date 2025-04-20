@@ -177,6 +177,14 @@ def create_user(user_id: str, email: str = None):
         )
         conn.commit()
 
+def user_exists(user_id: str) -> bool:
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.execute(
+            "SELECT 1 FROM users WHERE user_id = ? LIMIT 1",
+            (user_id,)
+        )
+        return cursor.fetchone() is not None
+
 def get_user(user_id: str):
     with sqlite3.connect(DB_PATH) as conn:
         row = conn.execute(
@@ -197,3 +205,8 @@ def get_linked_vendors(user_id: str) -> list[str]:
     result = cursor.fetchall()
     conn.close()
     return [row[0] for row in result]
+
+def get_api_key_by_user(user_id: str) -> str | None:
+    with sqlite3.connect(DB_PATH) as conn:
+        row = conn.execute("SELECT api_key FROM api_keys WHERE user_id = ?", (user_id,)).fetchone()
+        return row[0] if row else None

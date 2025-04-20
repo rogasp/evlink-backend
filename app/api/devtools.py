@@ -1,6 +1,7 @@
 import os
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
+
 from app.enode import (
     subscribe_to_webhooks,
     get_access_token
@@ -27,13 +28,15 @@ if IS_DEV:
 
 
     @router.get("/token")
-    async def get_token(_: None = Depends(require_local_request)):
-        """Get raw access token from Enode"""
-        try:
-            access_token = await get_access_token()
-            return {"access_token": access_token}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    async def get_token(request: Request):
+        """
+        Development token endpoint – only accessible from localhost.
+        """
+        client_ip = request.client.host
+        if client_ip not in ["127.0.0.1", "::1"]:
+            raise HTTPException(status_code=403, detail=f"Forbidden – not localhost (client_ip: {client_ip})")
+
+        return {"token": "dev-token"}
 
 
     @router.delete("/events")

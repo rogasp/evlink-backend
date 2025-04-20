@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Body, HTTPException
-from app.enode import get_link_result
-from app.storage import save_linked_vendor
+from app.storage import user_exists, create_user
 
 router = APIRouter()
 
@@ -8,25 +7,18 @@ router = APIRouter()
 async def ping():
     return {"message": "pong"}
 
-@router.post("/confirm-link")
-async def confirm_link(payload: dict = Body(...)):
-    link_token = payload.get("token")
-    if not link_token:
-        raise HTTPException(status_code=400, detail="Missing link token")
+@router.get("/public/user/{user_id}")
+async def check_user_exists(user_id: str):
+    exists = user_exists(user_id)
+    return {"exists": exists}
 
-    try:
-        link_info = await get_link_result(link_token)
-        user_id = link_info.get("userId")
-        vendor = link_info.get("vendor")
+@router.post("/register")
+async def register_user(payload: dict = Body(...)):
+    user_id = payload.get("user_id")
+    email = payload.get("email")
 
-        if user_id and vendor:
-            save_linked_vendor(user_id, vendor)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Missing user_id")
 
-        return {
-            "message": "Vendor successfully linked",
-            "userId": user_id,
-            "vendor": vendor
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to verify link token: {str(e)}")
+    create_user(user_id, email)
+    return {"status": "created", "user_id": user_id}
