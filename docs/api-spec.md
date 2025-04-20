@@ -1,102 +1,147 @@
-# API Specification – EV Link Backend
+# API Specification
 
-## Base URL
-```
-http://localhost:8000/api
+This document defines the available endpoints in the `evlink-backend` API, including public, protected, and admin routes. Authentication is based on API keys for now, with plans to migrate to JWT in the future.
+
+---
+
+## 🔓 Public Endpoints
+
+Accessible without authentication.
+
+### `GET /api/ping`
+
+Health check endpoint.
+
+```json
+Response: { "message": "pong" }
 ```
 
 ---
 
-## Endpoints
+### `POST /api/register`
 
-### `GET /vehicle/{vehicle_id}`
-Fetches the latest known vehicle data from Enode or internal cache.
+Registers a new user.
 
-#### Request
-```http
-GET /api/vehicle/7c62b387-9c5c-4dc9-94d9-edab9b72812e
-```
-
-#### Response
+**Body:**
 ```json
 {
-  "battery": 78,
-  "range": 180,
-  "is_charging": true,
-  "charge_rate": 14.7,
-  "plugged_in": true,
-  "updated_at": "2025-04-14T18:25:43Z",
-  "display_name": "Roger's G6",
-  "vin": "0G702NSSRCF849730",
-  "odometer": 9820
+  "user_id": "your_id",
+  "email": "optional@example.com"
 }
 ```
 
----
-
-### `POST /webhook/enode`
-Receives push data from Enode and stores it.
-
-#### Request (from Enode)
-```http
-POST /webhook/enode
-Content-Type: application/json
-Authorization: Bearer <secure-token>
-```
-
-#### Payload (example)
+**Response:**
 ```json
-{
-  "vehicleId": "7c62b387-9c5c-4dc9-94d9-edab9b72812e",
-  "chargeState": {
-    "batteryLevel": 78,
-    "range": 180,
-    "isCharging": true
-  },
-  "odometer": {
-    "distance": 9820
-  }
-}
+{ "status": "created", "user_id": "your_id" }
 ```
 
-#### Response
+---
+
+### `POST /api/confirm-link`
+
+Used after Enode linking flow.
+
+**Body:**
 ```json
-{ "status": "ok" }
+{ "token": "linkToken" }
 ```
 
----
-
-### `POST /user/{user_id}/link`
-Creates a link session URL to redirect user to Enode linking flow.
-
-#### Response
+**Response:**
 ```json
-{
-  "linkUrl": "https://sandbox.link.enode.com/abc123"
-}
+{ "status": "linked", "vendor": "XPENG" }
 ```
 
 ---
 
-## Authentication
-- Currently no auth, but tokens per HA instance or vendor key are planned.
+## 🔐 Protected Endpoints
+
+Require valid API key via `X-API-Key` header. Can only access resources owned by the authenticated user.
+
+### `GET /api/user/{user_id}`
+
+Returns user metadata.
+
+### `GET /api/user/{user_id}/link?vendor=XPENG`
+
+Triggers Enode link session. Only accessible by the user.
+
+**Response:**
+```json
+{ "linkUrl": "https://link.example.com", "linkToken": "abc123" }
+```
 
 ---
 
-## Webhooks
-- Must be secured via secret token or signature header (to be implemented)
+### `GET /api/user/{user_id}/vehicles`
+
+List all vehicles linked to the user.
 
 ---
 
-## Future Endpoints (planned)
-- `GET /user/{user_id}` – Get linked vendors
-- `DELETE /user/{user_id}/vendor/{vendor}` – Unlink vendor
-- `GET /vehicle/{id}/status` – Separate data types
+### `GET /api/vehicle/{vehicle_id}`
+
+Returns vehicle data (metadata, battery, etc.)
 
 ---
 
-## Notes
-- Responses will be cacheable for polling
-- Webhook data takes precedence over live fetch
-- All endpoints return JSON
+### `GET /api/vehicle/{vehicle_id}/status`
 
+Returns cached or fresh vehicle status from Enode. Ownership is enforced.
+
+---
+
+## 🔧 Development Endpoint
+
+### `GET /api/token`
+
+Returns a temporary dev token for testing. Only accessible from `localhost`.
+
+**Response:**
+```json
+{ "token": "devtoken" }
+```
+
+---
+
+## 🔑 Public Login Support (Temporary)
+
+For non-JWT environments only.
+
+### `GET /api/public/user/{user_id}`
+
+Check if user exists.
+
+**Response:**
+```json
+{ "exists": true }
+```
+
+---
+
+### `GET /api/public/user/{user_id}/apikey`
+
+Fetch API key for login (used in dev environments only).
+
+---
+
+## 🛠 Admin Endpoints
+
+Require API key for a user with ID `admin`.
+
+### `GET /api/admin/apikeys`
+
+Returns a list of all API keys.
+
+---
+
+### `GET /api/events`
+
+Placeholder for future event log (e.g., webhook logs, link attempts).
+
+---
+
+## 🧪 Notes
+
+- All routes under `/api/user/{user_id}` or `/api/vehicle/{vehicle_id}` enforce ownership.
+- Data from Enode is cached in SQLite.
+- Enode integration requires ENV variables to be correctly configured.

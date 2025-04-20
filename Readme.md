@@ -1,109 +1,116 @@
-# EV Link Backend
+# EVLink Backend
 
-**EV Link Backend** is a proxy/microservice between [Home Assistant](https://www.home-assistant.io/) and [Enode](https://enode.com/), allowing users to securely integrate data from their electric vehicles and other energy devices into Home Assistant.
+EVLink is a backend service for integrating electric vehicle data into [Home Assistant](https://www.home-assistant.io/) using the Enode platform. It also provides a minimal frontend dashboard for user management, linking, and diagnostics.
 
-This project enables the connection of Enode-supported vendors (e.g. XPENG, Tesla, SMA) and acts as a backend API to manage:
+## 🔧 Features
 
-- OAuth/token handling with Enode
-- Webhook reception from Enode (push)
-- REST API endpoints for Home Assistant (polling)
-- Optional user authentication layer
-- Multi-user support and vendor linking
+- Secure REST API for Home Assistant integration  
+- Vehicle linking using Enode  
+- SQLite-based storage with caching  
+- API key authentication  
+- HTMX-based dashboard (Tailwind CSS planned)  
+- Modular codebase with JWT support planned  
+- Simple dev/test mode for local development  
 
-## Key Features
-- 🚗 Vehicle and device data from Enode
-- 🔐 Secure and token-isolated API
-- 🧰 Built with FastAPI for async performance
-- 🌍 Deployable as edge or cloud service
+## 🚀 Tech Stack
 
----
+- **Backend:** Python 3.12, FastAPI  
+- **Frontend:** HTMX, Tailwind CSS (planned)  
+- **Database:** SQLite  
+- **Dev Environment:** WSL2 + VS Code + Dev Containers  
+- **Testing:** pytest, httpx  
 
-## Technologies
+## 📦 Getting Started
 
-| Component      | Stack                       |
-|----------------|-----------------------------|
-| Backend        | Python 3.12 + FastAPI       |
-| Database       | SQLite (Turso compatible)   |
-| Auth           | Token-based (extensible)    |
-| API Comm       | REST + Webhook (Enode push) |
-| Deployment     | Docker (optional), WSL2     |
-
----
-
-## Project Structure
-
-```plaintext
-evlink-backend/
-├── app/                      # Application source code
-│   ├── __init__.py
-│   ├── api.py                # FastAPI routes
-│   ├── enode.py              # Enode API communication
-│   ├── webhook.py            # Webhook receiver (Enode push)
-│   ├── storage.py            # DB/cache (Turso/SQLite)
-│   └── config.py             # Environment variables and settings
-├── tests/                    # Unit/integration tests
-├── main.py                   # App entry point
-├── .env                      # Local environment variables
-├── requirements.txt
-├── .gitignore
-├── LICENSE                   # MIT License
-├── README.md
-├── Makefile                  # Developer command shortcuts
-└── docs/                     # Design and architecture docs
-    ├── architecture.md
-    ├── api-spec.md
-    └── decisions.md
-```
-
----
-
-## Quickstart
+### 1. Clone and enter the repo
 
 ```bash
-# 1. Clone the repository
-$ git clone https://github.com/rogasp/evlink-backend.git
-$ cd evlink-backend
-
-# 2. Create your .env file (see .env.example or below)
-$ cp .env.example .env
-
-# 3. Initialize the environment (venv + install + DB)
-$ make init
-
-# 4. Run the backend locally
-$ make run
-
-# 5. Send a test webhook to verify it works
-$ make test
+git clone https://github.com/<your-org>/evlink-backend.git
+cd evlink-backend
 ```
 
----
+### 2. Create virtual environment
 
-## .env format
-```env
-ENODE_CLIENT_ID=your_client_id_here
-ENODE_CLIENT_SECRET=your_client_secret_here
-ENODE_BASE_URL=https://enode-api.sandbox.enode.io
-ENODE_AUTH_URL=https://oauth.sandbox.enode.io/oauth2/token
-REDIRECT_URI=http://localhost:8000/callback
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
 ```
 
----
+### 3. Install dependencies
 
-## 🌐 Frontend-länkning (HTML + JS)
+```bash
+pip install -r requirements.txt
+```
 
-Projektet innehåller ett enkelt frontendflöde för att demonstrera hur Enode-länkning fungerar:
+### 4. Configure environment
 
-- `link.html`: Startar länkflödet med Enode
-- `callback.html`: Tar emot redirect från Enode
-- JavaScript hanterar sessionStorage + popup-kommunikation
+Copy the example environment file and edit it:
 
-📄 Se dokumentation:
-- [`docs/frontend-flow.md`](docs/frontend-flow.md)
-- [`docs/link-flow.md`](docs/link-flow.md)
+```bash
+cp .env.example .env
+```
 
----
+Edit `.env` and provide:
 
-## License
+- `ENODE_CLIENT_ID`, `ENODE_CLIENT_SECRET`  
+- `ENODE_BASE_URL`, `ENODE_AUTH_URL`  
+- `REDIRECT_URI`, `WEBHOOK_URL`  
+- `MOCK_LINK_RESULT=true` (for local test mode)  
 
-This project is licensed under the MIT License.
+### 5. Start development server
+
+```bash
+uvicorn app.main:app --reload
+```
+
+### 6. Optional: Run in devcontainer
+
+If you're using VS Code, open the project in a Dev Container for isolated development.
+
+## 🧪 Testing
+
+We use `pytest` and `httpx.AsyncClient` for async testing. Run all or targeted test suites:
+
+```bash
+make test             # Run all tests
+make test-access      # Run access control tests
+make test-public      # Run public endpoint tests
+make test-admin       # Run admin-specific tests
+make test-dev         # Run development-only tests
+```
+
+## 📁 Project Structure
+
+```
+app/
+├── api/              # API route definitions
+├── enode.py          # Enode API interaction
+├── main.py           # FastAPI app
+├── storage.py        # SQLite database logic
+├── templates/        # HTMX-based frontend templates
+├── static/           # Frontend assets (Tailwind later)
+docs/
+tests/
+.env.example
+requirements.txt
+```
+
+## 📄 Docs
+
+See the `/docs` folder for:
+
+- `architecture.md` – system overview  
+- `api-spec.md` – endpoint specs  
+- `decisions.md` – architectural decisions  
+- `authentication.md` – auth strategy (including JWT plan)  
+- `frontend.md` – frontend setup and decisions  
+- `frontend-flow.md` – how the frontend operates  
+- `link-flow.md` – Enode link process  
+
+## 📌 Roadmap
+
+See `ROADMAP.md` for planned features and progress tracking.
+
+## ✅ License
+
+MIT License. See `LICENSE` for details.

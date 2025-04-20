@@ -1,67 +1,130 @@
-# Architecture Overview
+# System Architecture
 
-## Overview
+This document describes the overall architecture of the `evlink-backend` project.
 
-The EV Link Backend acts as a secure middleware between Home Assistant instances and the Enode API. It facilitates access to vehicle/device data and manages vendor linking, authentication, and real-time updates via webhook or polling.
+---
 
+## 🧱 Overview
+
+The project is a modular backend API designed to:
+
+- Integrate with [Enode](https://www.enode.com/) for EV vehicle data
+- Provide a REST API for a frontend dashboard (HTMX-based)
+- Optionally connect with Home Assistant
+- Be open source and self-hostable
+- Be secure and scalable
+
+---
+
+## 🔁 Components
+
+### 1. **API Server (`FastAPI`)**
+
+Handles all API requests. Structured into logical route groups:
+- `public.py`: public unauthenticated routes
+- `external.py`: protected user-level routes
+- `admin.py`: admin-only routes
+- `devtools.py`: local/dev-only tools
+- `public_extra.py`: temporary support for login during development
+
+---
+
+### 2. **Storage Layer (`storage.py`)**
+
+SQLite-based local database used to store:
+- Users
+- API keys
+- Cached vehicle data
+- Linked vendors
+
+Simple CRUD functions abstract direct SQL usage.
+
+---
+
+### 3. **Enode Integration (`enode.py`)**
+
+Handles:
+- OAuth token retrieval
+- Linking sessions
+- Fetching vehicle metadata
+- Receiving webhook events
+
+---
+
+### 4. **Home Assistant Proxy (planned)**
+
+A microservice that communicates between `evlink-backend` and Home Assistant.
+
+Planned features:
+- Push sensor states (e.g., battery, charging, range)
+- Trigger actions (e.g., start charging)
+
+---
+
+### 5. **Frontend (HTMX + TailwindCSS)**
+
+Minimal JavaScript. Client renders dynamic dashboards using HTMX and HTML fragments.
+
+Alpine.js may be used later for interactivity.
+
+---
+
+### 6. **Authentication**
+
+Currently based on API keys. Stored in the database and attached via `X-API-Key` header.
+
+Future upgrade to JWT is planned.
+
+---
+
+## 🌐 Request Flow
+
+```plaintext
+[Browser] → [FastAPI Routes] → [Storage / Enode] → [Cache / Response]
 ```
-+--------------------+       +---------------------+
-|  Home Assistant    | <---> |  EV Link Backend    | <---> Enode API
-|  (user instance)   |       |  (FastAPI App)      |      + Webhooks
-+--------------------+       +---------------------+
+
+### Example:
+```plaintext
+GET /api/vehicle/demo123/status
+ → checks cache
+ → if stale, queries Enode
+ → returns JSON
 ```
 
-## Components
+---
 
-### 1. `main.py`
-- Entrypoint for FastAPI application
-- Loads routes and app settings
+## 🧪 Testing
 
-### 2. `app/api.py`
-- Public API endpoints consumed by Home Assistant
-- Exposes `/vehicle/{id}`, `/user/{id}/link`, etc.
+All tests are located in `tests/` and separated by:
 
-### 3. `app/webhook.py`
-- Receives webhook POST requests from Enode
-- Persists data for future reads
+- `test_access_control.py`: ownership checks
+- `test_public_api.py`: public functionality
+- `test_admin_api.py`: admin endpoint checks
+- `test_dev_api.py`: dev-only behaviors
 
-### 4. `app/enode.py`
-- Handles all outbound requests to Enode
-- Token management, vendor links, user details
-
-### 5. `app/storage.py`
-- Simple persistence layer using SQLite (Turso-compatible)
-- Handles inserts, lookups, user/vehicle mappings
-
-### 6. `app/config.py`
-- Loads `.env` settings
-- Centralizes secrets, URLs, client ID/secret
+Test coverage includes permission logic, data validation, and caching.
 
 ---
 
-## Data Flow (Polling)
+## 🧩 Deployment
 
-1. Home Assistant queries `/api/vehicle/{id}`
-2. Proxy requests data from Enode (with token)
-3. Response is returned to HA
+Works with:
+- Docker
+- VSCode DevContainers
+- WSL2 on Windows
 
-## Data Flow (Push)
-
-1. Enode sends webhook to `/webhook/enode`
-2. Backend stores incoming data
-3. Home Assistant polls backend instead of Enode
+Environments managed via `.env` file.
 
 ---
 
-## Security Considerations
-- Each user will be identified via Enode ID
-- Long-term token storage should be encrypted or managed in secure store
-- Public API endpoints should be rate-limited and protected (future)
+## 📈 Future Extensions
+
+- JWT authentication
+- OAuth support (Google login)
+- PostgreSQL migration
+- Integration with more vendors via Enode
+- Web UI admin dashboard
 
 ---
 
-## Deployment
-- Local (WSL2 / Docker)
-- Cloud (Render, Fly.io, Railway)
-- Edge (Vercel + Turso)
-
+_Last updated: 2025-04-20_

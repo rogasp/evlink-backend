@@ -1,9 +1,22 @@
-# requirements.txt
-fastapi
-httpx[http2]>=0.23
-python-dotenv
-uvicorn
-pytest
-pytest-mock
-pytest-asyncio
-asgi-lifespan
+# Core dependencies
+fastapi==0.110.0
+uvicorn==0.29.0
+httpx==0.27.0
+
+# Database
+sqlite-utils==3.36
+
+# Environment
+python-dotenv==1.0.1
+
+# Testing
+pytest==8.3.1
+pytest-asyncio==0.26.0
+pytest-mock==3.14.0
+anyio==4.9.0
+
+# Frontend tools (HTMX + Tailwind via CDN, not included here)
+
+# Optional: Only for local dev
+black==24.4.0
+isort==5.13.2

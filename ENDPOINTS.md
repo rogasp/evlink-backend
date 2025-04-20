@@ -1,54 +1,75 @@
-# 📘 API Endpoint Overview
+# 📡 API Endpoints – EVLink Backend
 
-This document lists all current API endpoints, their access level, purpose, and protection status.
-
----
-
-## 🔐 Access Legend
-
-| Symbol | Access Level       | Description |
-|--------|--------------------|-------------|
-| 🔓     | Public              | Open to all without authentication |
-| 🔐     | API Key Required    | Must include a valid `X-API-Key` header |
-| 👮     | Admin Only          | Must include a valid `X-API-Key` for admin user |
-| 🛠️     | Dev Only            | Only accessible in development from localhost |
+This document describes the available API endpoints in the EVLink backend, grouped by access level.
 
 ---
 
 ## 🔓 Public Endpoints
 
-| Method | Path                   | File        | Description                     |
-|--------|------------------------|-------------|---------------------------------|
-| GET    | `/api/ping`            | `api.py`    | Basic ping check                |
-| POST   | `/api/confirm-link`    | `api.py`    | Confirms vendor link from Enode |
+| Method | Endpoint                  | Description                      |
+|--------|---------------------------|----------------------------------|
+| GET    | `/api/ping`              | Health check endpoint            |
+| GET    | `/api/token`             | Development-only token endpoint (localhost only) |
+| POST   | `/api/register`         | Create/register a new user      |
+| POST   | `/api/confirm-link`     | Accept link token from Enode    |
+| GET    | `/api/public/user/{user_id}` | Check if user exists         |
+| GET    | `/api/public/user/{user_id}/apikey` | Fetch user’s API key (login flow) |
 
 ---
 
-## 🔐 API Key Protected Endpoints
+## 🔐 Protected Endpoints (require API key)
 
-| Method | Path                                 | File        | Description                              |
-|--------|--------------------------------------|-------------|------------------------------------------|
-| GET    | `/api/vehicle/{id}/status`           | `api.py`    | Vehicle status via cache + Enode         |
-| GET    | `/api/vehicles`                      | `api.py`    | List cached vehicles                     |
-| GET    | `/api/vehicle/{vehicle_id}`          | `api.py`    | Full vehicle info from cache             |
-| GET    | `/api/user/{user_id}/link?vendor=X`  | `api.py`    | Start link session for a vendor          |
+### 🔧 User-scoped
+
+| Method | Endpoint                                | Description                            |
+|--------|------------------------------------------|----------------------------------------|
+| GET    | `/api/user/{user_id}`                   | Get user details                       |
+| GET    | `/api/user/{user_id}/link`              | Initiate vehicle linking (Enode)       |
+| GET    | `/api/user/{user_id}/vendor`            | Get user's linked vendor details       |
+
+### 🚗 Vehicles
+
+| Method | Endpoint                        | Description                      |
+|--------|----------------------------------|----------------------------------|
+| GET    | `/api/vehicles`                | List all user vehicles          |
+| GET    | `/api/vehicle/{vehicle_id}`    | Get full vehicle data           |
+| GET    | `/api/vehicle/{vehicle_id}/status` | Get summary vehicle status   |
 
 ---
 
-## 👮 Admin-Only Endpoints
+## 🔒 Admin Endpoints
 
-| Method | Path                   | File        | Description                      |
-|--------|------------------------|-------------|----------------------------------|
-| GET    | `/api/admin/apikeys`   | `api.py`    | List all registered API keys     |
-| GET    | `/events`              | `api.py`    | List all webhook events          |
+| Method | Endpoint                | Description                     |
+|--------|--------------------------|---------------------------------|
+| GET    | `/api/admin/apikeys`   | List all API keys               |
+| GET    | `/api/events`          | View webhook events (future)    |
 
 ---
 
-## 🛠️ Dev/Test Endpoints (Localhost + ENV=dev only)
+## 🧪 Dev Tools (Local only)
 
-| Method | Path                         | File            | Description                        |
-|--------|------------------------------|------------------|------------------------------------|
-| POST   | `/user/{user_id}/apikey`     | `devtools.py`   | Create new API key manually        |
-| GET    | `/token`                     | `devtools.py`   | Get raw access token from Enode    |
-| POST   | `/webhook/subscribe`         | `devtools.py`   | Subscribe to Enode webhooks        |
-| DELETE | `/events`                    | `devtools.py`   | Delete all webhook events          |
+| Method | Endpoint      | Description                         |
+|--------|----------------|-------------------------------------|
+| GET    | `/api/token` | Get mock access token (localhost only) |
+
+> Note: Access control is enforced via API key or IP address depending on the endpoint.
+
+---
+
+## 🔑 Authentication
+
+All protected endpoints require an API key in the request header:
+
+```
+X-API-Key: your-user-api-key
+```
+
+Future support for JWT will replace or complement API keys.
+
+---
+
+## 🧼 Notes
+
+- All responses are JSON-formatted.
+- External Enode calls are mocked in test mode.
+- Versioning via `/api/` prefix; no numeric versions used yet.
