@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to EVLink{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-16 text-center">
+  <h2 class="text-4xl font-extrabold text-gray-800 mb-4">Welcome to EVLink</h2>
+  <p class="text-lg text-gray-600 mb-8">
+    Your personal EV dashboard powered by Home Assistant & Enode.
+  </p>
+  <a href="/dashboard" class="inline-block px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+    Go to Dashboard
+  </a>
+</div>
+{% endblock %}

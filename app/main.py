@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 
-from app import devtools
-from app.api import public, external, internal, public_extra, admin
+from app.api import public, external, internal, public_extra, admin, devtools
+from app.routes import frontend
 from app.webhook import router as webhook_router
 from app.storage import init_db
 
@@ -30,6 +30,8 @@ app.include_router(admin.router, prefix="/api")   # 🛠️ Local development on
 
 # 📬 Webhook (ingen prefix – måste vara exakt matchad av Enode)
 app.include_router(webhook_router)
+
+app.include_router(frontend.router)
 
 # 🌐 Frontend (statisk mapp)
 # app.mount("/static", StaticFiles(directory=os.path.join(os.getcwd(), "static")), name="static")

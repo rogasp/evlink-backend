@@ -71,3 +71,8 @@ test-admin:
 
 test-dev:
 	pytest tests/test_dev_api.py
+
+css:
+	@echo "▶️  Building Tailwind CSS..."
+	npm run dev:css
+

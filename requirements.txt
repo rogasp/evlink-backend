@@ -15,7 +15,9 @@ pytest-asyncio==0.26.0
 pytest-mock==3.14.0
 anyio==4.9.0
 
-# Frontend tools (HTMX + Tailwind via CDN, not included here)
+# --- Templating ---
+jinja2>=3.1.3
+python-multipart>=0.0.9  # För FormData om du använder det
 
 # Optional: Only for local dev
 black==24.4.0
