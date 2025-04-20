@@ -135,14 +135,17 @@ def clear_webhook_events():
         conn.commit()
     print("🗑️  Alla webhook-events rensade")
 
-def is_recent(timestamp: str, max_age_minutes: int = 5) -> bool:
-    try:
-        updated_time = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-        now = datetime.now(timezone.utc)
-        return (now - updated_time) < timedelta(minutes=max_age_minutes)
-    except Exception as e:
-        print(f"⚠️  Kunde inte tolka timestamp: {timestamp} – {e}")
+def is_recent(timestamp_str: str, minutes: int = 5) -> bool:
+    """Returns True if the timestamp is within the last N minutes."""
+    if not timestamp_str:
         return False
+    try:
+        ts = datetime.datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+        return datetime.datetime.now(datetime.UTC) - ts < datetime.timedelta(minutes=minutes)
+    except Exception as e:
+        print(f"⚠️  Kunde inte tolka timestamp: {timestamp_str} – {e}")
+        return False
+
 
 def create_api_key_for_user(user_id: str) -> str:
     api_key = secrets.token_hex(32)
@@ -181,3 +184,16 @@ def get_user(user_id: str):
             (user_id,)
         ).fetchone()
         return {"user_id": row[0], "email": row[1], "created_at": row[2]} if row else None
+
+def get_linked_vendors(user_id: str) -> list[str]:
+    """
+    Returnerar en lista med alla vendor-koder som användaren länkat till tidigare.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT vendor FROM linked_vendors WHERE user_id = ?
+    """, (user_id,))
+    result = cursor.fetchall()
+    conn.close()
+    return [row[0] for row in result]

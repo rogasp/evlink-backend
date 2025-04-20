@@ -2,6 +2,8 @@ import json
 import os
 import httpx
 from dotenv import load_dotenv
+from fastapi import HTTPException
+
 from app.storage import get_cached_vehicle, cache_vehicle_data, is_recent
 from datetime import datetime, UTC
 
@@ -86,7 +88,7 @@ async def get_link_result(link_token: str) -> dict:
     if USE_MOCK:
         print("[MOCK] get_link_result active")
         return {
-            "userId": "rogasp",
+            "userId": "testuser",
             "vendor": "XPENG"
         }
 
@@ -140,26 +142,59 @@ async def subscribe_to_webhooks():
 
         return response.json()
 
-async def get_vehicle_status(vehicle_id: str, max_age_minutes: int = 5, force: bool = False):
-    if not force:
-        cached_json = get_cached_vehicle(vehicle_id)
-        if cached_json:
-            vehicle = json.loads(cached_json)
-            updated_at = vehicle.get("updatedAt") or vehicle.get("lastSeen")
-            if updated_at and is_recent(updated_at, max_age_minutes):
-                print(f"✅ Använder cache för fordon {vehicle_id}")
-                return vehicle
-            else:
-                print(f"🔄 Cache för gammal för {vehicle_id}, hämtar ny...")
+import datetime
+from fastapi import HTTPException
 
-    # ⬇ Hämta från Enode oavsett (om force=True eller cache saknas/gammal)
+# ...
+
+def is_recent(timestamp: str, minutes: int = 5) -> bool:
+    try:
+        dt = datetime.datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        return (datetime.datetime.now(datetime.UTC) - dt).total_seconds() < minutes * 60
+    except Exception as e:
+        print(f"⚠️  Kunde inte tolka timestamp: {timestamp} – {e}")
+        return False
+
+
+async def get_vehicle_status(vehicle_id: str, user_id: str, force: bool = False) -> dict:
+    cached = get_cached_vehicle(vehicle_id)
+
+    if cached:
+        try:
+            data = json.loads(cached)
+            cached_user_id = data.get("userId")
+
+            print(f"🧪 Kontroll: cached.userId = {cached_user_id}, request.userId = {user_id}")
+
+            if cached_user_id != user_id:
+                print(f"⛔ Fel användare – fordon {vehicle_id} tillhör {cached_user_id}, inte {user_id}")
+                raise HTTPException(status_code=403, detail="Unauthorized vehicle access")
+
+            updated_at = data.get("updatedAt") or data.get("lastSeen")
+            if updated_at and not force and is_recent(updated_at):
+                print(f"✅ Använder cache för {vehicle_id}")
+                return data
+
+            print(f"🔄 Cache för gammal eller saknas för {vehicle_id}, hämtar ny...")
+
+        except Exception as e:
+            print(f"⚠️  Fel vid tolkning av cache: {e}")
+
+    # Ingen giltig cache – hämta nytt
     fresh = await get_vehicle_data(vehicle_id)
-    if fresh:
-        updated_at = fresh.get("updatedAt") or fresh.get("lastSeen") or datetime.now(UTC).isoformat()
-        cache_vehicle_data(vehicle_id, json.dumps(fresh), updated_at)
-        return fresh
 
-    raise ValueError("Kunde inte hämta fordon från cache eller Enode")
+    if not fresh:
+        raise HTTPException(status_code=404, detail=f"Vehicle {vehicle_id} not found")
+
+    updated_at = fresh.get("updatedAt") or fresh.get("lastSeen") or datetime.datetime.now(datetime.UTC).isoformat()
+    cache_vehicle_data(vehicle_id, json.dumps(fresh), updated_at)
+
+    if fresh.get("userId") != user_id:
+        print(f"⛔ Fel användare – live data {vehicle_id} tillhör {fresh.get('userId')}, inte {user_id}")
+        raise HTTPException(status_code=403, detail="Unauthorized vehicle access")
+
+    return fresh
+
 
 async def get_user_vehicles(user_id: str) -> list:
     access_token = await get_access_token()

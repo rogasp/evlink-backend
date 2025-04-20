@@ -62,3 +62,12 @@ test:
 
 test-access:
 	pytest tests/test_access_control.py
+
+test-public:
+	pytest tests/test_public_api.py
+
+test-admin:
+	pytest tests/test_admin_api.py
+
+test-dev:
+	pytest tests/test_dev_api.py
