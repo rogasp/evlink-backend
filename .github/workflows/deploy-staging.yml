@@ -27,7 +27,7 @@ jobs:
 
       - name: Create archive
         run: |
-          tar czf app.tar.gz --exclude .git --exclude venv .
+          tar --warning=no-file-changed -czf app.tar.gz --exclude .git --exclude venv .
 
       - name: Upload to server with scp
         run: |
