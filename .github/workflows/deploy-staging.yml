@@ -1,0 +1,33 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - dev  # kör bara när du pushar till dev-branchen
+
+jobs:
+  deploy:
+    name: Deploy to staging.evlink.se
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 144.91.124.233 >> ~/.ssh/known_hosts
+
+      - name: Rsync code to server
+        run: |
+          rsync -avz --delete \
+            --exclude=".git" \
+            --exclude="venv" \
+            ./ fastapiuser@144.91.124.233:/opt/apps/evlink-staging/
+
+      - name: Restart staging app
+        run: |
+          ssh fastapiuser@144.91.124.233 'sudo systemctl restart evlink-staging'
