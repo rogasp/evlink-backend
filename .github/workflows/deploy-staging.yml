@@ -1,4 +1,4 @@
-name: Deploy to Staging (with SCP)
+name: Deploy to Staging (with SCP + base64 SSH key)
 
 on:
   push:
@@ -14,26 +14,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
+      - name: Set up SSH with base64-decoded key
         run: |
-          sudo apt-get update && sudo apt-get install -y openssh-client
-          eval "$(ssh-agent -s)"
-          echo "$STAGING_SSH_KEY" | tr -d '\r' | ssh-add -
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+          echo "$STAGING_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
           ssh-keyscan 144.91.124.233 >> ~/.ssh/known_hosts
         env:
-          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          STAGING_SSH_KEY_B64: ${{ secrets.STAGING_SSH_KEY_B64 }}
 
-      - name: Create temp package
+      - name: Create archive
         run: |
           tar czf app.tar.gz --exclude .git --exclude venv .
 
-      - name: Copy to server with scp
+      - name: Upload to server with scp
         run: |
           scp app.tar.gz fastapiuser@144.91.124.233:/tmp/app.tar.gz
 
-      - name: Extract and restart on server
+      - name: Deploy and restart service
         run: |
           ssh fastapiuser@144.91.124.233 << 'EOF'
             rm -rf /opt/apps/evlink-staging/*
