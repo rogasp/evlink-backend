@@ -1,9 +1,9 @@
-name: Deploy to Staging
+name: Deploy to Staging (with SCP)
 
 on:
   push:
     branches:
-      - dev  # kör bara när du pushar till dev-branchen
+      - dev
 
 jobs:
   deploy:
@@ -14,20 +14,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH key
+      - name: Set up SSH
         run: |
+          sudo apt-get update && sudo apt-get install -y openssh-client
+          eval "$(ssh-agent -s)"
+          echo "$STAGING_SSH_KEY" | tr -d '\r' | ssh-add -
           mkdir -p ~/.ssh
-          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H 144.91.124.233 >> ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          ssh-keyscan 144.91.124.233 >> ~/.ssh/known_hosts
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
 
-      - name: Rsync code to server
+      - name: Create temp package
         run: |
-          rsync -avz --delete \
-            --exclude=".git" \
-            --exclude="venv" \
-            ./ fastapiuser@144.91.124.233:/opt/apps/evlink-staging/
+          tar czf app.tar.gz --exclude .git --exclude venv .
 
-      - name: Restart staging app
+      - name: Copy to server with scp
         run: |
-          ssh fastapiuser@144.91.124.233 'sudo systemctl restart evlink-staging'
+          scp app.tar.gz fastapiuser@144.91.124.233:/tmp/app.tar.gz
+
+      - name: Extract and restart on server
+        run: |
+          ssh fastapiuser@144.91.124.233 << 'EOF'
+            rm -rf /opt/apps/evlink-staging/*
+            tar xzf /tmp/app.tar.gz -C /opt/apps/evlink-staging/
+            sudo systemctl restart evlink-staging
+          EOF
