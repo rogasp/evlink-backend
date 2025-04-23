@@ -1,4 +1,4 @@
-name: Deploy to Staging (base64 + SCP + no-password sudo)
+name: Deploy to Staging (base64 + pip install)
 
 on:
   push:
@@ -42,7 +42,13 @@ jobs:
       - name: Deploy and restart service
         run: |
           ssh fastapiuser@144.91.124.233 << 'EOF'
-            rm -rf /opt/apps/evlink-staging/*
+            set -e
+            cd /opt/apps/evlink-staging/
+            rm -rf *
             tar xzf /tmp/app.tar.gz -C /opt/apps/evlink-staging/
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
             sudo /bin/systemctl restart evlink-staging
           EOF
