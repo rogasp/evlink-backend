@@ -1,4 +1,4 @@
-name: Deploy to Staging (full CI with backup, env, logging)
+name: Deploy to Staging (with backup, env, log, SHA-fix)
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
 
       - name: Deploy, log, and restart service
         run: |
-          ssh fastapiuser@144.91.124.233 << 'EOF'
+          ssh fastapiuser@144.91.124.233 "DEPLOY_SHA=${GITHUB_SHA} bash -s" << 'EOF'
             set -e
             cd /opt/apps/evlink-staging/
 
@@ -50,8 +50,8 @@ jobs:
             ls -1t ~/deploy-backups/evlink-staging-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm --
 
             # 💾 Skapa ny backup
-            TIMESTAMP=\$(date +%Y%m%d-%H%M)
-            tar czf ~/deploy-backups/evlink-staging-\$TIMESTAMP.tar.gz .
+            TIMESTAMP=$(date +%Y%m%d-%H%M)
+            tar czf ~/deploy-backups/evlink-staging-$TIMESTAMP.tar.gz .
 
             # 🔄 Rensa gammal kod
             rm -rf *
@@ -59,22 +59,22 @@ jobs:
             # 📦 Packa upp ny kod
             tar xzf /tmp/app.tar.gz -C /opt/apps/evlink-staging/
 
-            # 🌱 Ladda staging.env om det finns
+            # 🌱 staging.env → .env
             if [ -f ~/staging.env ]; then
               cp ~/staging.env /opt/apps/evlink-staging/.env
             fi
 
-            # 🐍 Återskapa venv + installera dependencies
+            # 🐍 venv och dependencies
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
 
             # 📝 Logga deploy + begränsa till 150 rader
-            echo "\$(date) - Deployed commit: $GITHUB_SHA" >> /opt/apps/evlink-staging/deploy.log
+            echo "$(date) - Deployed commit: $DEPLOY_SHA" >> /opt/apps/evlink-staging/deploy.log
             tail -n 150 /opt/apps/evlink-staging/deploy.log > /opt/apps/evlink-staging/deploy.log.tmp
             mv /opt/apps/evlink-staging/deploy.log.tmp /opt/apps/evlink-staging/deploy.log
 
-            # 🔁 Starta om tjänsten
+            # 🔁 Starta om systemd-tjänst
             sudo /bin/systemctl restart evlink-staging
           EOF
