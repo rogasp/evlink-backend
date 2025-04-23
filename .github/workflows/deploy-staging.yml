@@ -1,4 +1,4 @@
-name: Deploy to Staging (with SCP + base64 SSH key)
+name: Deploy to Staging (stable package flow)
 
 on:
   push:
@@ -25,9 +25,15 @@ jobs:
         env:
           STAGING_SSH_KEY_B64: ${{ secrets.STAGING_SSH_KEY_B64 }}
 
+      - name: Copy to deploy_tmp folder
+        run: |
+          mkdir deploy_tmp
+          shopt -s extglob
+          cp -r !(deploy_tmp|.git|venv) deploy_tmp/
+
       - name: Create archive
         run: |
-          tar --warning=no-file-changed -czf app.tar.gz --exclude .git --exclude venv .
+          tar -czf app.tar.gz -C deploy_tmp .
 
       - name: Upload to server with scp
         run: |
