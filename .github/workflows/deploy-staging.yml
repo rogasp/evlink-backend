@@ -1,4 +1,4 @@
-name: Deploy to Staging (stable package flow)
+name: Deploy to Staging (base64 + SCP + no-password sudo)
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
         env:
           STAGING_SSH_KEY_B64: ${{ secrets.STAGING_SSH_KEY_B64 }}
 
-      - name: Copy to deploy_tmp folder
+      - name: Prepare clean deploy folder
         run: |
           mkdir deploy_tmp
           shopt -s extglob
@@ -35,7 +35,7 @@ jobs:
         run: |
           tar -czf app.tar.gz -C deploy_tmp .
 
-      - name: Upload to server with scp
+      - name: Upload to server
         run: |
           scp app.tar.gz fastapiuser@144.91.124.233:/tmp/app.tar.gz
 
@@ -44,5 +44,5 @@ jobs:
           ssh fastapiuser@144.91.124.233 << 'EOF'
             rm -rf /opt/apps/evlink-staging/*
             tar xzf /tmp/app.tar.gz -C /opt/apps/evlink-staging/
-            sudo systemctl restart evlink-staging
+            sudo /bin/systemctl restart evlink-staging
           EOF
