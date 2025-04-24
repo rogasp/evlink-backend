@@ -22,7 +22,8 @@ data/
 Thumbs.db
 
 # Misc
-.env
+/backend/.venv/
+backend/.env
 *.log
 
 # FastAPI / Uvicorn artifacts
