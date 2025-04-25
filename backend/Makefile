@@ -6,6 +6,7 @@ UVICORN=$(VENV)/bin/uvicorn
 
 # Default
 run:
+    python3 -m venv $(VENV)
 	$(UVICORN) $(APP):app --reload
 
 # Run tests
@@ -34,4 +35,5 @@ venv:
 
 # Install requirements
 install:
+	$(VENV)/bin/pip install --upgrade pip
 	$(VENV)/bin/pip install -r requirements.txt

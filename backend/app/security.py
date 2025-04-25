@@ -1,7 +1,7 @@
 from fastapi import Request, HTTPException, Header
 from datetime import datetime
 
-from backend.app.storage import get_user_id_from_api_key
+from storage import get_user_id_from_api_key
 
 
 async def require_api_key(request: Request, x_api_key: str = Header(...)) -> str:

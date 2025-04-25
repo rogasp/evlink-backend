@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Body, HTTPException
-from backend.app.storage import user_exists, create_user
+from fastapi import APIRouter, HTTPException
+from schemas.auth import LoginRequest, TokenResponse
 
 router = APIRouter()
 
@@ -7,18 +7,11 @@ router = APIRouter()
 async def ping():
     return {"message": "pong"}
 
-@router.get("/public/user/{user_id}")
-async def check_user_exists(user_id: str):
-    exists = user_exists(user_id)
-    return {"exists": exists}
 
-@router.post("/register")
-async def register_user(payload: dict = Body(...)):
-    user_id = payload.get("user_id")
-    email = payload.get("email")
-
-    if not user_id:
-        raise HTTPException(status_code=400, detail="Missing user_id")
-
-    create_user(user_id, email)
-    return {"status": "created", "user_id": user_id}
+@router.post("/login", response_model=TokenResponse)
+async def login(credentials: LoginRequest):
+    # Mock: Vi accepterar bara en viss användare för test
+    if credentials.email == "test@example.com" and credentials.password == "password123":
+        return TokenResponse(access_token="mocked-jwt-token")
+    
+    raise HTTPException(status_code=401, detail="Invalid email or password")

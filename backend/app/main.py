@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-
-from app.webhook import router as webhook_router
-from app.api import devtools, public, public_extra, external, internal, admin
+from fastapi.middleware.cors import CORSMiddleware
+from webhook import router as webhook_router
+from api import public
 
 app = FastAPI(
     title="EVLink Backend",
@@ -9,15 +9,22 @@ app = FastAPI(
     description="Secure backend for EV integrations via Home Assistant and Enode."
 )
 
+origins = [
+    "http://localhost:3000",  # Frontend URL i utveckling
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # 🛠️ Init database
 
 # 🧾 API endpoints
 app.include_router(public.router, prefix="/api")
-app.include_router(public_extra.router, prefix="/api")
-app.include_router(external.router, prefix="/api")
-app.include_router(internal.router, prefix="/api")
-app.include_router(devtools.router, prefix="/api")
-app.include_router(admin.router, prefix="/api")
 
 # 📬 Webhook
 app.include_router(webhook_router)

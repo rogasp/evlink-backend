@@ -1,6 +1,7 @@
 # Core dependencies
 fastapi==0.110.0
 uvicorn==0.29.0
+httpx
 
 # Database
 sqlite-utils==3.36
@@ -17,3 +18,6 @@ anyio==4.9.0
 # Optional: Only for local dev
 black==24.4.0
 isort==5.13.2
+
+
+pydantic==2.11.3
