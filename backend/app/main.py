@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from webhook import router as webhook_router
 from api import public
+from storage import init_db
 
 app = FastAPI(
     title="EVLink Backend",
@@ -22,6 +23,8 @@ app.add_middleware(
 )
 
 # 🛠️ Init database
+
+init_db()
 
 # 🧾 API endpoints
 app.include_router(public.router, prefix="/api")

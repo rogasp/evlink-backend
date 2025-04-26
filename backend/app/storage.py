@@ -62,6 +62,8 @@ def init_db():
                          KEY,
                          email
                          TEXT,
+                         hashed_password
+                         TEXT,
                          created_at
                          TIMESTAMP
                          DEFAULT
@@ -169,13 +171,28 @@ def list_all_api_keys():
         return [{"user_id": row[0], "api_key": row[1]} for row in rows]
 
 
-def create_user(user_id: str, email: str = None):
+def create_user(user_id: str, email: str = None, hashed_password: str = None):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
-            "INSERT OR IGNORE INTO users (user_id, email) VALUES (?, ?)",
-            (user_id, email),
+            "INSERT OR IGNORE INTO users (user_id, email, hashed_password) VALUES (?, ?, ?)",
+            (user_id, email, hashed_password),
         )
         conn.commit()
+
+
+def get_user_by_email(email: str):
+    with sqlite3.connect(DB_PATH) as conn:
+        row = conn.execute(
+            "SELECT user_id, email, hashed_password, created_at FROM users WHERE email = ?",
+            (email,)
+        ).fetchone()
+        return {
+            "user_id": row[0],
+            "email": row[1],
+            "hashed_password": row[2],
+            "created_at": row[3]
+        } if row else None
+
 
 def user_exists(user_id: str) -> bool:
     with sqlite3.connect(DB_PATH) as conn:
@@ -210,3 +227,5 @@ def get_api_key_by_user(user_id: str) -> str | None:
     with sqlite3.connect(DB_PATH) as conn:
         row = conn.execute("SELECT api_key FROM api_keys WHERE user_id = ?", (user_id,)).fetchone()
         return row[0] if row else None
+
+
