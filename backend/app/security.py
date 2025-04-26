@@ -6,7 +6,7 @@ from typing import Optional
 from storage import get_user_id_from_api_key
 import bcrypt
 
-SECRET_KEY = "supersecretkey123"  # Byt till en riktig hemlighet i din .env fil sen!
+SECRET_KEY = "KqGxiCaEm2FoQIAzgOGmVuHWkGRg01KO0Xkre76tmhA"  # Byt till en riktig hemlighet i din .env fil sen!
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60  # 1 timme
 
@@ -44,6 +44,20 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
     return encoded_jwt
 
+def create_refresh_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(days=7)  # Refresh token lever längre än access
+
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    return encoded_jwt
+
+
 def decode_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -69,3 +83,20 @@ def get_current_user(request: Request):
     payload = decode_token(token)
 
     return payload  # Vi returnerar hela payload just nu (kan anpassas senare)
+
+def verify_jwt_token(request: Request):
+    """Verifies JWT access token from Authorization header."""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Authorization Header")
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload  # typ {sub: user_id, exp: timestamp, ...}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+

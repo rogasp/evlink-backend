@@ -3,6 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./../globals.css";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import ProtectedLayout from "@/components/ProtectedLayout";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
@@ -29,7 +30,9 @@ export default function AppLayout({
         <main className="flex flex-1">
             <Sidebar />
             <div className="flex-1 p-6">
-            {children}
+              <ProtectedLayout>
+                {children}
+              </ProtectedLayout>
             </div>
         </main>
         <Footer />

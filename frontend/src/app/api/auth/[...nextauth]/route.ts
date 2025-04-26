@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { AuthOptions } from "next-auth";
-import { JWT } from "next-auth/jwt";
+import { decodeJwt } from "jose"; // Lägg till denna rad!
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -48,26 +48,66 @@ export const authOptions: AuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // När användare loggar in
       if (user) {
-        token.accessToken = user.accessToken; // Spara accessToken från authorize
+        token.accessToken = user.accessToken;
+        token.error = undefined;
       }
+
+      // Om ingen accessToken ➔ försök använda refresh_token
+      if (!token.accessToken) {
+        try {
+          const res = await fetch("http://localhost:8000/api/refresh-token", {
+            method: "POST",
+            credentials: "include",
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            token.accessToken = data.access_token;
+            token.error = undefined;
+          } else {
+            console.error("Failed to refresh access token (response not ok)");
+            token.error = "RefreshAccessTokenError";
+          }
+        } catch (error) {
+          console.error("Failed to refresh access token", error);
+          token.error = "RefreshAccessTokenError";
+        }
+      }
+
       return token;
     },
+
     async session({ session, token }) {
-      // Lägg till accessToken i sessionen
-      session.accessToken = token.accessToken;
-      return session;
+      let userId = null;
+
+      if (token?.accessToken) {
+        try {
+          const decoded = decodeJwt(token.accessToken as string) as { sub?: string };
+          userId = decoded.sub ?? null;
+        } catch (error) {
+          console.error("Failed to decode JWT:", error);
+        }
+      }
+
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: userId,
+        },
+        accessToken: token.accessToken,
+      };
     },
   },
   pages: {
     signIn: "/login",
-    error: "/login", // Redirectar till login vid error också
+    error: "/login",
   },
   session: {
-    strategy: "jwt", // Vi använder JWT sessions
+    strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET || "defaultsecret123", // Lägg gärna i .env i production
+  secret: process.env.NEXTAUTH_SECRET || "defaultsecret123",
 };
 
 const handler = NextAuth(authOptions);
