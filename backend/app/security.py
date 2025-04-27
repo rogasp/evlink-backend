@@ -3,7 +3,7 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
 from typing import Optional
-from storage import get_user_id_from_api_key
+from app.storage import get_user_id_from_api_key
 import bcrypt
 
 SECRET_KEY = "KqGxiCaEm2FoQIAzgOGmVuHWkGRg01KO0Xkre76tmhA"  # Byt till en riktig hemlighet i din .env fil sen!
