@@ -1,0 +1,87 @@
+name: Deploy to Staging (Next.js frontend + FastAPI backend)
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    name: Deploy to staging.evlink.se
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH with base64-decoded key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$STAGING_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+          ssh-keyscan 144.91.124.233 >> ~/.ssh/known_hosts
+        env:
+          STAGING_SSH_KEY_B64: ${{ secrets.STAGING_SSH_KEY_B64 }}
+
+      - name: Prepare clean deploy folder
+        run: |
+          mkdir deploy_tmp
+          shopt -s extglob
+          cp -r !(deploy_tmp|.git|venv) deploy_tmp/
+
+      - name: Create archive
+        run: |
+          tar -czf app.tar.gz -C deploy_tmp .
+
+      - name: Upload to server
+        run: |
+          scp app.tar.gz roger@144.91.124.233:/tmp/app.tar.gz
+
+      - name: Deploy, log, build frontend and restart services
+        run: |
+          ssh roger@144.91.124.233 "DEPLOY_SHA=${GITHUB_SHA} bash -s" << 'EOF'
+            set -e
+            cd /opt/apps/evlink-staging/
+
+            # 💾 Rensa äldre backups (behåll senaste 5)
+            mkdir -p ~/deploy-backups/
+            ls -1t ~/deploy-backups/evlink-staging-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm --
+
+            # 💾 Skapa ny backup
+            TIMESTAMP=$(date +%Y%m%d-%H%M)
+            tar czf ~/deploy-backups/evlink-staging-$TIMESTAMP.tar.gz .
+
+            # 🔄 Rensa gammal kod
+            rm -rf *
+
+            # 📦 Packa upp ny kod
+            tar xzf /tmp/app.tar.gz -C /opt/apps/evlink-staging/
+
+            # 🌱 staging.env → .env
+            if [ -f ~/staging.env ]; then
+              cp ~/staging.env /opt/apps/evlink-staging/backend/.env
+            fi
+
+            # 🐍 Backend: skapa venv och installera Python-dependencies
+            cd /opt/apps/evlink-staging/backend
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            # 🌐 Frontend: installera och bygg Next.js
+            cd /opt/apps/evlink-staging/frontend
+            npm install
+            npm run build
+
+            # 📝 Logga deploy + begränsa till 150 rader
+            echo "$(date) - Deployed commit: $DEPLOY_SHA" >> /opt/apps/evlink-staging/deploy.log
+            tail -n 150 /opt/apps/evlink-staging/deploy.log > /opt/apps/evlink-staging/deploy.log.tmp
+            mv /opt/apps/evlink-staging/deploy.log.tmp /opt/apps/evlink-staging/deploy.log
+
+            # 🔁 Starta om systemd-tjänster
+            sudo systemctl restart evlink-staging
+            sudo systemctl restart evlink-staging-frontend
+          EOF
