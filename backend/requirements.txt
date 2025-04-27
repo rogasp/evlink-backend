@@ -1,23 +1,41 @@
-# Core dependencies
+annotated-types==0.7.0
+anyio==4.9.0
+bcrypt==4.3.0
+black==24.4.0
+certifi==2025.1.31
+click==8.1.8
+click-default-group==1.2.4
+dnspython==2.7.0
+ecdsa==0.19.1
+email_validator==2.2.0
 fastapi==0.110.0
-uvicorn==0.29.0
-httpx
-
-# Database
-sqlite-utils==3.36
-
-# Environment
-python-dotenv==1.0.1
-
-# Testing
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.28.1
+idna==3.10
+iniconfig==2.1.0
+isort==5.13.2
+mypy_extensions==1.1.0
+packaging==25.0
+pathspec==0.12.1
+platformdirs==4.3.7
+pluggy==1.5.0
+pyasn1==0.4.8
+pydantic==2.11.3
+pydantic_core==2.33.1
 pytest==8.3.1
 pytest-asyncio==0.26.0
 pytest-mock==3.14.0
-anyio==4.9.0
-
-# Optional: Only for local dev
-black==24.4.0
-isort==5.13.2
-
-
-pydantic==2.11.3
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
+python-jose==3.4.0
+rsa==4.9.1
+six==1.17.0
+sniffio==1.3.1
+sqlite-fts4==1.0.3
+sqlite-utils==3.36
+starlette==0.36.3
+tabulate==0.9.0
+typing-inspection==0.4.0
+typing_extensions==4.13.2
+uvicorn==0.29.0
