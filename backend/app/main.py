@@ -9,7 +9,8 @@ from app.security import verify_jwt_token
 app = FastAPI(
     title="EVLink Backend",
     version="0.1.0",
-    description="Secure backend for EV integrations via Home Assistant and Enode."
+    description="Secure backend for EV integrations via Home Assistant and Enode.",
+    root_path="/backend/api"
 )
 
 origins = [
@@ -25,16 +26,11 @@ app.add_middleware(
 )
 
 # 🛠️ Init database
-
 init_db()
 
 # 🧾 API endpoints
-app.include_router(public.router, prefix="/api")
-
-
-app.include_router(private.router, prefix="/api", dependencies=[Depends(verify_jwt_token)])
-
+app.include_router(public.router)
+app.include_router(private.router, dependencies=[Depends(verify_jwt_token)])
 
 # 📬 Webhook
 app.include_router(webhook_router)
-
