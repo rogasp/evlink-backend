@@ -1,4 +1,4 @@
-name: Deploy to Staging (Next.js frontend + FastAPI backend)
+name: Deploy to Staging (Next.js and FastAPI)
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir deploy_tmp
           shopt -s extglob
-          cp -r !(deploy_tmp|.git|venv) deploy_tmp/
+          cp -r !(deploy_tmp|.git|venv|node_modules|.next) deploy_tmp/
 
       - name: Create archive
         run: |
@@ -37,51 +37,47 @@ jobs:
 
       - name: Upload to server
         run: |
-          scp app.tar.gz roger@144.91.124.233:/tmp/app.tar.gz
+          scp app.tar.gz fastapiuser@144.91.124.233:/tmp/app.tar.gz
 
-      - name: Deploy, log, build frontend and restart services
+      - name: Deploy, log, and restart service
         run: |
-          ssh roger@144.91.124.233 "DEPLOY_SHA=${GITHUB_SHA} bash -s" << 'EOF'
+          ssh fastapiuser@144.91.124.233 "DEPLOY_SHA=${GITHUB_SHA} bash -s" << 'EOF'
             set -e
             cd /opt/apps/evlink-staging/
 
-            # 💾 Rensa äldre backups (behåll senaste 5)
+            # 💾 Backup gammal deploy
             mkdir -p ~/deploy-backups/
             ls -1t ~/deploy-backups/evlink-staging-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm --
-
-            # 💾 Skapa ny backup
             TIMESTAMP=$(date +%Y%m%d-%H%M)
             tar czf ~/deploy-backups/evlink-staging-$TIMESTAMP.tar.gz .
 
-            # 🔄 Rensa gammal kod
+            # 🔄 Rensa gammal kod och packa upp ny
             rm -rf *
-
-            # 📦 Packa upp ny kod
             tar xzf /tmp/app.tar.gz -C /opt/apps/evlink-staging/
 
             # 🌱 staging.env → .env
             if [ -f ~/staging.env ]; then
-              cp ~/staging.env /opt/apps/evlink-staging/backend/.env
+              cp ~/staging.env /opt/apps/evlink-staging/.env
             fi
 
-            # 🐍 Backend: skapa venv och installera Python-dependencies
+            # 🐍 Installera backend-dependencies
             cd /opt/apps/evlink-staging/backend
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
 
-            # 🌐 Frontend: installera och bygg Next.js
+            # 🧹 Installera frontend-dependencies
             cd /opt/apps/evlink-staging/frontend
             npm install
             npm run build
 
-            # 📝 Logga deploy + begränsa till 150 rader
+            # 📝 Logga deployment
             echo "$(date) - Deployed commit: $DEPLOY_SHA" >> /opt/apps/evlink-staging/deploy.log
             tail -n 150 /opt/apps/evlink-staging/deploy.log > /opt/apps/evlink-staging/deploy.log.tmp
             mv /opt/apps/evlink-staging/deploy.log.tmp /opt/apps/evlink-staging/deploy.log
 
-            # 🔁 Starta om systemd-tjänster
+            # 🔁 Starta om tjänster
             sudo systemctl restart evlink-staging
             sudo systemctl restart evlink-staging-frontend
           EOF
