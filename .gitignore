@@ -1,34 +1,45 @@
-# .gitignore
+# ------------------------------------
+# Node.js / Frontend
+# ------------------------------------
+**/node_modules/
+**/.next/
+**/dist/
+**/.turbo/
+**/build/
+**/out/
+**/.env.local
+**/.env.production
+**/.env.development
+**/.vercel/
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.pyc
-*.env
-venv/
+# ------------------------------------
+# Python / Backend
+# ------------------------------------
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+**/*.pyc
+**/.env
+**/.venv/
+**/*.log
 
-# SQLite data
-data/
+# SQLite
 *.db
+data/
 
-# VSCode / PyCharm
+# ------------------------------------
+# Editors / OS
+# ------------------------------------
 .idea/
 .vscode/
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Misc
-.env
-*.log
-
-# FastAPI / Uvicorn artifacts
+# ------------------------------------
+# Testing / Coverage
+# ------------------------------------
+.coverage
+htmlcov/
 *.pid
 *.sock
-
-# Testing
-htmlcov/
-.coverage
