@@ -1,4 +1,4 @@
-name: Deploy to Staging (with backup, env, log, SHA-fix)
+name: Deploy to Staging (Next.js frontend + FastAPI backend)
 
 on:
   push:
@@ -37,11 +37,11 @@ jobs:
 
       - name: Upload to server
         run: |
-          scp app.tar.gz fastapiuser@144.91.124.233:/tmp/app.tar.gz
+          scp app.tar.gz roger@144.91.124.233:/tmp/app.tar.gz
 
-      - name: Deploy, log, and restart service
+      - name: Deploy, log, build frontend and restart services
         run: |
-          ssh fastapiuser@144.91.124.233 "DEPLOY_SHA=${GITHUB_SHA} bash -s" << 'EOF'
+          ssh roger@144.91.124.233 "DEPLOY_SHA=${GITHUB_SHA} bash -s" << 'EOF'
             set -e
             cd /opt/apps/evlink-staging/
 
@@ -61,20 +61,27 @@ jobs:
 
             # 🌱 staging.env → .env
             if [ -f ~/staging.env ]; then
-              cp ~/staging.env /opt/apps/evlink-staging/.env
+              cp ~/staging.env /opt/apps/evlink-staging/backend/.env
             fi
 
-            # 🐍 venv och dependencies
+            # 🐍 Backend: skapa venv och installera Python-dependencies
+            cd /opt/apps/evlink-staging/backend
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
+
+            # 🌐 Frontend: installera och bygg Next.js
+            cd /opt/apps/evlink-staging/frontend
+            npm install
+            npm run build
 
             # 📝 Logga deploy + begränsa till 150 rader
             echo "$(date) - Deployed commit: $DEPLOY_SHA" >> /opt/apps/evlink-staging/deploy.log
             tail -n 150 /opt/apps/evlink-staging/deploy.log > /opt/apps/evlink-staging/deploy.log.tmp
             mv /opt/apps/evlink-staging/deploy.log.tmp /opt/apps/evlink-staging/deploy.log
 
-            # 🔁 Starta om systemd-tjänst
-            sudo /bin/systemctl restart evlink-staging
+            # 🔁 Starta om systemd-tjänster
+            sudo systemctl restart evlink-staging
+            sudo systemctl restart evlink-staging-frontend
           EOF
