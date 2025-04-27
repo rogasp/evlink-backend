@@ -3,35 +3,33 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner"; // Lägg till denna
+import { apiFetchSafe } from "@/lib/api"; // Uppdaterad fetch-hanterare
 
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/register', {
+      const { data, error } = await apiFetchSafe('/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ name, email, password }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Registration failed');
+      if (error) {
+        throw new Error(error.message || "Registration failed");
       }
 
-      // Auto login direkt efter lyckad register
+      toast.success(data?.message || "Registration successful");
+
+      // Auto login direkt efter lyckad registrering
       const result = await signIn('credentials', {
         email,
         password,
@@ -43,12 +41,18 @@ export default function RegisterPage() {
       }
 
       router.push('/dashboard');
+
+    } catch (err: unknown) {
+      console.error("Registration error:", err);
       
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      if (err instanceof Error) {
+        toast.error(err.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setLoading(false);
-    }
+    }    
   };
 
   return (
@@ -58,14 +62,7 @@ export default function RegisterPage() {
           Create Account
         </h1>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-center">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Fälten */}
           <div>
             <label htmlFor="name" className="block text-gray-700 mb-1">Name</label>
             <input

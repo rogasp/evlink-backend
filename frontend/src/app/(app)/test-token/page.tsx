@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function TestTokenPage() {
   const { data: session } = useSession();
@@ -15,7 +16,7 @@ export default function TestTokenPage() {
     }
 
     try {
-      const res = await fetch('http://localhost:8000/api/protected-data', {
+      const res = await apiFetch('/protected-data', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${session.accessToken}`, // 👈 Här använder vi token!
@@ -30,8 +31,12 @@ export default function TestTokenPage() {
       const data = await res.json();
       setResponse(JSON.stringify(data, null, 2));
       setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Something went wrong');
+      } else {
+        setError('Something went wrong');
+      }
       setResponse(null);
     }
   };
