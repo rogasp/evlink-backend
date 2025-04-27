@@ -61,12 +61,10 @@ jobs:
 
             if [ -f /var/www/envfiles/backend/.env.staging ]; then
               cp /var/www/envfiles/backend/.env.staging /opt/apps/evlink-staging/backend/.env
-              chmod 600 /opt/apps/evlink-staging/backend/.env
             fi
 
             if [ -f /var/www/envfiles/frontend/.env.staging ]; then
               cp /var/www/envfiles/frontend/.env.staging /opt/apps/evlink-staging/frontend/.env
-              chmod 600 /opt/apps/evlink-staging/frontend/.env
             fi
 
             # 🐍 Install backend dependencies
