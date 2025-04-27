@@ -1,6 +1,7 @@
 import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { decodeJwt } from "jose";
+import { apiFetchSafe } from "@/lib/api";
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -15,36 +16,28 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
-        try {
-          const response = await fetch("http://localhost:8000/api/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          });
-
-          if (!response.ok) {
-            return null;
-          }
-
-          const data = await response.json();
-
-          return {
-            id: data.user_id || data.email,
+        const { data, error } = await apiFetchSafe("/login", {
+          method: "POST",
+          body: JSON.stringify({
             email: credentials.email,
-            accessToken: data.access_token,
-          };
-        } catch (error) {
-          console.error("Login error:", error);
+            password: credentials.password,
+          }),
+        });
+
+        if (error || !data) {
+          console.error("Login failed:", error);
           return null;
         }
+
+        return {
+          id: data.user_id || data.email,
+          email: credentials.email,
+          accessToken: data.access_token,
+        };
       },
     }),
   ],
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -53,23 +46,17 @@ export const authOptions: AuthOptions = {
       }
 
       if (!token.accessToken) {
-        try {
-          const res = await fetch("http://localhost:8000/api/refresh-token", {
-            method: "POST",
-            credentials: "include",
-          });
+        const { data, error } = await apiFetchSafe("/refresh-token", {
+          method: "POST",
+          credentials: "include",
+        });
 
-          if (res.ok) {
-            const data = await res.json();
-            token.accessToken = data.access_token;
-            token.error = undefined;
-          } else {
-            console.error("Failed to refresh access token (response not ok)");
-            token.error = "RefreshAccessTokenError";
-          }
-        } catch (error) {
-          console.error("Failed to refresh access token", error);
+        if (error || !data) {
+          console.error("Failed to refresh access token");
           token.error = "RefreshAccessTokenError";
+        } else {
+          token.accessToken = data.access_token;
+          token.error = undefined;
         }
       }
 
@@ -98,12 +85,15 @@ export const authOptions: AuthOptions = {
       };
     },
   },
+
   pages: {
     signIn: "/login",
     error: "/login",
   },
+
   session: {
     strategy: "jwt",
   },
+
   secret: process.env.NEXTAUTH_SECRET || "defaultsecret123",
 };

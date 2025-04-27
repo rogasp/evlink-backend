@@ -25,17 +25,17 @@ export default function AppLayout({
 }>) {
   return (
     <SessionProviderWrapper>
-        <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex flex-1">
-            <Sidebar />
-            <div className="flex-1 p-6">
-              <ProtectedLayout>
-                {children}
-              </ProtectedLayout>
-            </div>
-        </main>
-        <Footer />
+        <div className={`flex flex-col min-h-screen ${geistSans.variable} ${geistMono.variable}`}>
+          <Navbar />
+          <main className="flex flex-1">
+              <Sidebar />
+              <div className="flex-1 p-6">
+                <ProtectedLayout>
+                  {children}
+                </ProtectedLayout>
+              </div>
+          </main>
+          <Footer />
         </div>
     </SessionProviderWrapper>
   );

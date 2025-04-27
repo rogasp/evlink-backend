@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { toast } from "sonner";
 import {
@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import EditableField
- from "@/components/EditableField";
+import EditableField from "@/components/EditableField";
+import { authFetch } from "@/lib/authFetch";
+
 export default function ProfilePage() {
   const { data: session } = useSession();
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -25,62 +26,70 @@ export default function ProfilePage() {
   const [justCreated, setJustCreated] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (session?.accessToken && (session?.user as { id: string }).id) {
-      fetchApiKey((session.user as { id: string }).id, session.accessToken);
+  const fetchApiKey = useCallback(async () => {
+    const userId = (session?.user as { id: string })?.id;
+    if (!userId || !session?.accessToken) return;
+
+    const { data, error } = await authFetch(`/users/${userId}/apikey`, {
+      method: "GET",
+      accessToken: session.accessToken,
+    });
+
+    if (error) {
+      toast.error("Failed to fetch API key");
+      return;
     }
+
+    setApiKey(data.api_key_masked || null);
+    setCreatedAt(data.created_at || null);
   }, [session]);
 
-  const fetchApiKey = async (userId: string, accessToken: string) => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/users/${userId}/apikey`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch API key");
-      }
-
-      const data = await res.json();
-      setApiKey(data.api_key_masked || null);
-      setCreatedAt(data.created_at || null);
-    } catch (error) {
-      console.error("Failed to fetch API key", error);
-      toast.error("Failed to fetch API key");
-    }
-  };
-
   const createApiKey = async () => {
-    if (!session?.accessToken || !(session?.user && 'id' in session.user)) {
+    const userId = (session?.user as { id: string })?.id;
+    if (!userId || !session?.accessToken) {
       toast.error("Missing user ID or access token");
       return;
     }
 
     setLoading(true);
-    try {
-      const res = await fetch(`http://localhost:8000/api/users/${(session.user as { id: string }).id}/apikey`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      });
 
-      if (!res.ok) {
-        throw new Error("Failed to create API key");
-      }
+    const { data, error } = await authFetch(`/users/${userId}/apikey`, {
+      method: "POST",
+      accessToken: session.accessToken,
+    });
 
-      const data = await res.json();
-      setApiKey(data.api_key || null);
-      setJustCreated(true);
-      setCreatedAt(new Date().toISOString());
-      toast.success("New API key created!");
-    } catch (error) {
-      console.error("Failed to create API key", error);
+    if (error) {
       toast.error("Failed to create new API key");
-    } finally {
-      setLoading(false);
+    } else {
+      setApiKey(data.api_key || null);
+      setCreatedAt(new Date().toISOString());
+      setJustCreated(true);
+      toast.success("New API key created!");
+    }
+
+    setLoading(false);
+  };
+
+  const saveEmail = async (newEmail: string) => {
+    const userId = (session?.user as { id: string })?.id;
+    if (!newEmail.trim() || !userId || !session?.accessToken) {
+      toast.error("Invalid data");
+      return;
+    }
+
+    const { error } = await authFetch(`/users/${userId}/email`, {
+      method: "POST",
+      accessToken: session.accessToken,
+      body: JSON.stringify({ email: newEmail }),
+    });
+
+    if (error) {
+      toast.error("Failed to update email");
+    } else {
+      toast.success("Email updated! Please log in again.");
+      setTimeout(() => {
+        signOut({ callbackUrl: "/login" });
+      }, 1500);
     }
   };
 
@@ -96,54 +105,26 @@ export default function ProfilePage() {
     return email.charAt(0).toUpperCase();
   };
 
-  const saveEmail = async (newEmail: string) => {
-    if (!newEmail.trim() || !session?.accessToken || !(session?.user && 'id' in session.user)) {
-      toast.error("Invalid data");
-      return;
+  useEffect(() => {
+    if (session?.accessToken && (session?.user as { id: string }).id) {
+      fetchApiKey();
     }
-  
-    try {
-      const res = await fetch(`http://localhost:8000/api/users/${(session.user as { id: string }).id}/email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-        body: JSON.stringify({ email: newEmail }),
-      });
-  
-      if (!res.ok) {
-        throw new Error("Failed to update email");
-      }
-  
-      toast.success("Email updated! Please log in again.");
-
-      setTimeout(() => {
-        signOut({ callbackUrl: "/login" });
-      }, 1500);
-  
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to update email");
-    }
-  };
-  
-  
+  }, [session, fetchApiKey]);
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       {/* Profile Header */}
       <div className="flex items-center space-x-4 mb-10 p-6 bg-white shadow rounded-lg">
         <Avatar className="h-16 w-16">
-            <AvatarFallback>{getInitials(session?.user?.email ?? undefined)}</AvatarFallback>
+          <AvatarFallback>{getInitials(session?.user?.email ?? undefined)}</AvatarFallback>
         </Avatar>
         <div>
-        <EditableField
-        label="Email"
-        value={session?.user?.email || ""}
-        onSave={saveEmail}
-        type="email"
-        />
+          <EditableField
+            label="Email"
+            value={session?.user?.email || ""}
+            onSave={saveEmail}
+            type="email"
+          />
           <p className="text-gray-500">Manage your API keys and settings</p>
         </div>
       </div>
@@ -187,7 +168,6 @@ export default function ProfilePage() {
                 {loading ? "Creating..." : "Create New API Key"}
               </Button>
             </AlertDialogTrigger>
-
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Create new API Key</AlertDialogTitle>
@@ -213,7 +193,6 @@ export default function ProfilePage() {
                 {loading ? "Creating..." : "Create API Key"}
               </Button>
             </AlertDialogTrigger>
-
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Create new API Key</AlertDialogTitle>
