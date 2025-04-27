@@ -45,39 +45,48 @@ jobs:
             set -e
             cd /opt/apps/evlink-staging/
 
-            # 💾 Backup gammal deploy
+            # 💾 Backup previous deploy (keep latest 5)
             mkdir -p ~/deploy-backups/
             ls -1t ~/deploy-backups/evlink-staging-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm --
             TIMESTAMP=$(date +%Y%m%d-%H%M)
             tar czf ~/deploy-backups/evlink-staging-$TIMESTAMP.tar.gz .
 
-            # 🔄 Rensa gammal kod och packa upp ny
+            # 🔄 Clear old code and unpack new
             rm -rf *
             tar xzf /tmp/app.tar.gz -C /opt/apps/evlink-staging/
+            rm /tmp/app.tar.gz
 
-            # 🌱 staging.env → .env
-            if [ -f ~/staging.env ]; then
-              cp ~/staging.env /opt/apps/evlink-staging/.env
+            # 🌱 Copy backend and frontend environment files
+            echo "🌱 Copying backend and frontend env files"
+
+            if [ -f /var/www/envfiles/backend/.env.staging ]; then
+              cp /var/www/envfiles/backend/.env.staging /opt/apps/evlink-staging/backend/.env
+              chmod 600 /opt/apps/evlink-staging/backend/.env
             fi
 
-            # 🐍 Installera backend-dependencies
+            if [ -f /var/www/envfiles/frontend/.env.staging ]; then
+              cp /var/www/envfiles/frontend/.env.staging /opt/apps/evlink-staging/frontend/.env
+              chmod 600 /opt/apps/evlink-staging/frontend/.env
+            fi
+
+            # 🐍 Install backend dependencies
             cd /opt/apps/evlink-staging/backend
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
 
-            # 🧹 Installera frontend-dependencies
+            # 🧹 Install frontend dependencies
             cd /opt/apps/evlink-staging/frontend
             npm install
             npm run build
 
-            # 📝 Logga deployment
+            # 📝 Log deployment
             echo "$(date) - Deployed commit: $DEPLOY_SHA" >> /opt/apps/evlink-staging/deploy.log
             tail -n 150 /opt/apps/evlink-staging/deploy.log > /opt/apps/evlink-staging/deploy.log.tmp
             mv /opt/apps/evlink-staging/deploy.log.tmp /opt/apps/evlink-staging/deploy.log
 
-            # 🔁 Starta om tjänster
+            # 🔁 Restart backend and frontend services
             sudo systemctl restart evlink-staging
             sudo systemctl restart evlink-staging-frontend
           EOF
