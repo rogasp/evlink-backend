@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
-from security import verify_jwt_token
-from storage import update_user_email
+from app.security import verify_jwt_token
+from app.storage import update_user_email
 
 router = APIRouter()
 

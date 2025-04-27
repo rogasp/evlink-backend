@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Header, Response, Path,status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
-from schemas.auth import LoginRequest, TokenResponse, RegisterRequest, RegisterResponse
-from storage import create_user, get_user_by_email, create_api_key, get_api_key_info, update_user_email
-from security import hash_password, verify_password, create_access_token, get_current_user, create_refresh_token, decode_token, verify_jwt_token
+from app.schemas.auth import LoginRequest, TokenResponse, RegisterRequest, RegisterResponse
+from app.storage import create_user, get_user_by_email, create_api_key, get_api_key_info, update_user_email
+from app.security import hash_password, verify_password, create_access_token, get_current_user, create_refresh_token, decode_token, verify_jwt_token
 import uuid
 
 router = APIRouter()

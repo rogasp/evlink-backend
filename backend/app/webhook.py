@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from storage import save_webhook_event
+from app.storage import save_webhook_event
 
 router = APIRouter()
 

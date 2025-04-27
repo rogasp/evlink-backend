@@ -3,7 +3,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 
-from storage import get_cached_vehicle, cache_vehicle_data, is_recent
+from app.storage import get_cached_vehicle, cache_vehicle_data, is_recent
 from datetime import datetime
 
 load_dotenv()
