@@ -1,11 +1,15 @@
 // src/lib/api.tsx
 
-import { toast } from "sonner"; // eller annan toast lib du använder
+import { toast } from "sonner";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  const isInternalAuthRoute = endpoint.startsWith("/api/auth");
+
+  const url = isInternalAuthRoute
+    ? endpoint // gå direkt till Next.js egna auth API
+    : `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
   try {
     const res = await fetch(url, {
@@ -24,7 +28,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
           errorMessage = errorData.detail;
         }
       } catch {
-        // ignore
+        // no json body
       }
       throw new Error(errorMessage);
     }
@@ -37,20 +41,26 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   } 
   catch (error: unknown) {
     console.error("apiFetch error:", error);
-  
+
     if (error instanceof Error) {
       toast.error(error.message || "An unexpected error occurred");
     } else {
       toast.error("An unexpected error occurred");
     }
-  
-    throw error; // viktigt: låt felet bubbla vidare också!
+
+    throw error; // important: let the error propagate
   }
 }
 
 export async function apiFetchSafe(endpoint: string, options?: RequestInit) {
+  const isInternalAuthRoute = endpoint.startsWith("/api/auth");
+
+  const url = isInternalAuthRoute
+    ? endpoint
+    : `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +71,7 @@ export async function apiFetchSafe(endpoint: string, options?: RequestInit) {
     let data = null;
 
     try {
-      data = await response.json(); // Försök alltid tolka som JSON
+      data = await response.json();
     } catch {
       console.warn("[apiFetchSafe] No JSON body returned");
     }
@@ -74,7 +84,7 @@ export async function apiFetchSafe(endpoint: string, options?: RequestInit) {
   } 
   catch (error: unknown) {
     console.error("[apiFetchSafe] error:", error);
-  
+
     if (error instanceof Error) {
       toast.error(error.message || "Unknown error");
       return { data: null, error };
@@ -82,6 +92,5 @@ export async function apiFetchSafe(endpoint: string, options?: RequestInit) {
       toast.error("Unknown error");
       return { data: null, error: new Error("Unknown error") };
     }
-  }  
+  }
 }
-
