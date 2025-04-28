@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 from app.storage import get_user_id_from_api_key
 import bcrypt
+import os
 
-SECRET_KEY = "KqGxiCaEm2FoQIAzgOGmVuHWkGRg01KO0Xkre76tmhA"  # Byt till en riktig hemlighet i din .env fil sen!
+SECRET_KEY = os.getenv("NEXTAUTH_SECRET", "KqGxiCaEm2FoQIAzgOGmVuHWkGRg01KO0Xkre76tmhA=")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60  # 1 timme
 
