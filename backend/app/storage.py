@@ -3,15 +3,18 @@ from pathlib import Path
 import json
 import hashlib
 import uuid
+import os
 
 from datetime import datetime, timezone, timedelta
 import secrets
 
+# 📍 Database path setup
+DATABASE_PATH = os.getenv("DATABASE_PATH", ".data/evlink.db")
 
+DB_PATH = Path(DATABASE_PATH)
 
-# 📍 Databasens sökväg
-DB_PATH = Path(".data/evlink.db")
-DB_PATH.parent.mkdir(exist_ok=True)
+# 📂 Ensure the parent folder exists
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # ============================
 # 🚀 INIT: Skapa alla tabeller
