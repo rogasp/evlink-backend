@@ -11,6 +11,10 @@ router = APIRouter()
 class UpdateEmailRequest(BaseModel):
     email: EmailStr
 
+@router.get("/status")
+async def status_check():
+    return {"status": "ok"}
+
 @router.get("/ping")
 async def ping():
     return {"message": "pong"}
