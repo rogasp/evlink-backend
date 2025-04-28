@@ -2,7 +2,7 @@
 
 ## [0.2.0] - 2025-04-27
 
-### Added
+### Added 
 - Backend endpoint `POST /api/users/{user_id}/email` to allow users to update their email.
 - `private.py` router for protected user actions.
 - JWT token verification for all private routes (`security.py`).
