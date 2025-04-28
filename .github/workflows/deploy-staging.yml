@@ -67,6 +67,10 @@ jobs:
               cp /var/www/envfiles/frontend/.env.staging /opt/apps/evlink-staging/frontend/.env
             fi
 
+            # 📂 Ensure Next.js cache images directory exists
+            mkdir -p /opt/apps/evlink-staging/frontend/.next/cache/images
+            chmod -R 755 /opt/apps/evlink-staging/frontend/.next
+
             # 🐍 Install backend dependencies
             cd /opt/apps/evlink-staging/backend
             python3 -m venv venv
