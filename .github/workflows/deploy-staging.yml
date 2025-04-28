@@ -59,12 +59,12 @@ jobs:
             # 🌱 Copy backend and frontend environment files
             echo "🌱 Copying backend and frontend env files"
 
-            if [ -f /var/www/envfiles/backend/.env.staging ]; then
-              cp /var/www/envfiles/backend/.env.staging /opt/apps/evlink-staging/backend/.env
+            if [ -f /home/fastapiuser/envfiles/backend/.env.staging ]; then
+              cp /home/fastapiuser/envfiles/backend/.env.staging /opt/apps/evlink-staging/backend/.env
             fi
 
-            if [ -f /var/www/envfiles/frontend/.env.staging ]; then
-              cp /var/www/envfiles/frontend/.env.staging /opt/apps/evlink-staging/frontend/.env
+            if [ -f /home/fastapiuser/envfiles/frontend/.env.staging ]; then
+              cp /home/fastapiuser/envfiles/frontend/.env.staging /opt/apps/evlink-staging/frontend/.env
             fi
 
             # 📂 Ensure Next.js cache images directory exists
