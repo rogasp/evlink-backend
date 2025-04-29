@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,20 +16,47 @@ import {
 } from "@/components/ui/dialog";
 import { authFetch } from "@/lib/authFetch";
 import VendorSelect from "@/components/VendorSelect";
-import VehicleName from "@/components/VehicleName";
-import BatteryIndicator from "@/components/BatteryIndicator";
-import ChargingStatus from "@/components/ChargingStatus";
-
-const mockVehicles = [
-  { id: "low", name: "Nissan Leaf", batteryLevel: 5, charging: false },
-  { id: "medium", name: "Renault Zoe", batteryLevel: 35, charging: true },
-  { id: "high", name: "Tesla Model S", batteryLevel: 85, charging: false },
-];
+import VehicleTable from "@/components/VehicleTable";
+import type { Vehicle } from "@/components/VehicleTable";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      if (!session?.accessToken) return;
+
+      const { data, error } = await authFetch("/user/vehicles", {
+        method: "GET",
+        accessToken: session.accessToken,
+      });
+
+      if (error) {
+        toast.error("Failed to fetch vehicles");
+        console.error("Vehicle fetch error:", error);
+      } else {
+        try {
+          if (Array.isArray(data)) {
+            const parsed = data.flatMap((v) =>
+              typeof v === "string" ? [JSON.parse(v)] : [v]
+            );
+            setVehicles(parsed);
+          } else {
+            toast.error("Unexpected vehicle data format");
+            console.error("Vehicle fetch format error:", data);
+          }
+        } catch (e) {
+          toast.error("Failed to parse vehicles");
+          console.error("Vehicle parse error:", e);
+        }
+      }
+    };
+
+    fetchVehicles();
+  }, [session]);
 
   const handleLinkVehicle = async () => {
     if (!selectedVendor || !session?.accessToken) {
@@ -49,11 +76,7 @@ export default function DashboardPage() {
         return;
       }
 
-      // Store the linkToken in localStorage
       localStorage.setItem("linkToken", data.linkToken);
-      console.log("[📦 dashboard] Stored linkToken in localStorage");
-
-      // Open Enode Link in the same tab
       window.location.href = data.url;
     } catch (error) {
       console.error("Link vehicle error:", error);
@@ -103,38 +126,8 @@ export default function DashboardPage() {
         </Dialog>
       </div>
 
-      <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-indigo-600">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                Vehicle
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                Battery Level
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {mockVehicles.map((vehicle) => (
-              <tr key={vehicle.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <VehicleName name={vehicle.name} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <BatteryIndicator level={vehicle.batteryLevel} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <ChargingStatus charging={vehicle.charging} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* 🚗 Vehicle Table */}
+      <VehicleTable vehicles={vehicles} />
     </main>
   );
 }

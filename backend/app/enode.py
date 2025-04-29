@@ -195,7 +195,7 @@ async def get_vehicle_status(vehicle_id: str, user_id: str, force: bool = False)
     return fresh
 
 
-async def get_user_vehicles(user_id: str) -> list:
+async def get_user_vehicles_enode(user_id: str) -> list:
     access_token = await get_access_token()
     url = f"{ENODE_BASE_URL}/users/{user_id}/vehicles"
     headers = {"Authorization": f"Bearer {access_token}"}
