@@ -4,6 +4,8 @@ from pydantic import BaseModel, EmailStr
 from app.schemas.auth import LoginRequest, TokenResponse, RegisterRequest, RegisterResponse
 from app.storage import create_user, get_user_by_email, create_api_key, get_api_key_info, update_user_email
 from app.security import hash_password, verify_password, create_access_token, get_current_user, create_refresh_token, decode_token, verify_jwt_token
+from app.enode import get_link_result, USE_MOCK
+
 import uuid
 
 router = APIRouter()
@@ -105,3 +107,31 @@ async def get_user_api_key_info(user_id: str = Path(...)):
     else:
         return {"api_key_masked": None}
     
+
+@router.post("/user/link-result", response_model=dict)
+async def post_link_result(
+    data: dict,
+    user: dict = Depends(get_current_user)
+):
+    """
+    Receives linkToken from frontend and fetches link result from Enode.
+    """
+    link_token = data.get("linkToken")
+    if not link_token:
+        raise HTTPException(status_code=400, detail="Missing linkToken")
+
+    result = await get_link_result(link_token)
+
+    # DEBUG
+    print(f"🔍 Backend received: result.userId = {result.get('userId')}, session.user.sub = {user['sub']}")
+
+    # Skip userId check if using mock mode
+    if not USE_MOCK and result.get("userId") != user["sub"]:
+        raise HTTPException(status_code=403, detail="Unauthorized result")
+
+    return {
+        "vendor": result.get("vendor"),
+        "userId": result.get("userId"),
+        "status": "linked"
+    }
+
