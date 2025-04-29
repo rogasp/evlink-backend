@@ -1,6 +1,22 @@
 # Changelog
 
-## [0.2.0] - 2025-04-27
+## [0.2.0]
+
+## [2025-04-29] Vehicle Caching & UI Update
+
+### Added
+- Per-vehicle caching logic in SQLite backend.
+
+### Changed
+- Cache expiration now properly uses timedelta.
+- Adjusted vehicle table rendering in frontend to match updated Enode data structure.
+- Updated error handling on vehicle fetch to use toast messages.
+
+### Fixed
+- SQL insert issue caused by incorrect number of parameters.
+- TypeScript errors due to outdated vehicle type definitions.
+
+## [2025-04-27]
 
 ### Added
 - Backend endpoint `POST /api/users/{user_id}/email` to allow users to update their email.

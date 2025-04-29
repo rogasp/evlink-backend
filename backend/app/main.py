@@ -15,14 +15,12 @@ app = FastAPI(
 
 origins = [
     "http://localhost:3000",  # Frontend URL i utveckling
+    "https://95bcf61e0e04.ngrok.app",  # ngrok-url
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://95bcf61e0e04.ngrok.app",  # 👈 lägg till din ngrok-url här
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
