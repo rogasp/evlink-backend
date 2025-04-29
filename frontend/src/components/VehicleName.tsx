@@ -1,14 +1,11 @@
-// src/components/VehicleName.tsx
+type Props = {
+  name?: string;
+};
 
-interface VehicleNameProps {
-    name: string;
-  }
-  
-  export default function VehicleName({ name }: VehicleNameProps) {
-    return (
-      <div className="font-semibold text-gray-800">
-        {name}
-      </div>
-    );
-  }
-  
+export default function VehicleName({ name }: Props) {
+  return (
+    <span className="font-medium text-gray-800">
+      {name || "Unnamed vehicle"}
+    </span>
+  );
+}

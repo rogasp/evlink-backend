@@ -34,6 +34,7 @@ def init_db():
         conn.execute("""
             CREATE TABLE IF NOT EXISTS vehicle_cache (
                 vehicle_id TEXT PRIMARY KEY,
+                user_id TEXT,
                 data TEXT,
                 updated_at TEXT
             )
@@ -81,17 +82,17 @@ def init_db():
 # 💾 Fordonsdata
 # ============================
 
-def cache_vehicle_data(vehicle_id: str, data: str, updated_at: str):
+def cache_vehicle_data(user_id: str, vehicle_id: str, data: str, updated_at: str):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
             """
-            INSERT INTO vehicle_cache (vehicle_id, data, updated_at)
-            VALUES (?, ?, ?)
+            INSERT INTO vehicle_cache (vehicle_id, user_id, data, updated_at)
+            VALUES (?, ?, ?, ?)
             ON CONFLICT(vehicle_id) DO UPDATE SET
               data=excluded.data,
               updated_at=excluded.updated_at
             """,
-            (vehicle_id, data, updated_at),
+            (vehicle_id,user_id, data, updated_at),
         )
         conn.commit()
     print(f"✅ Fordon {vehicle_id} cachades")
@@ -104,10 +105,14 @@ def get_cached_vehicle(vehicle_id: str):
         ).fetchone()
         return row[0] if row else None
 
-def get_all_cached_vehicles():
+def get_all_cached_vehicles(user_id: str) -> list[dict]:
     with sqlite3.connect(DB_PATH) as conn:
-        rows = conn.execute("SELECT data FROM vehicle_cache").fetchall()
-        return [row[0] for row in rows]
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT data, updated_at FROM vehicle_cache WHERE user_id = ?",
+            (user_id,)
+        ).fetchall()
+        return [dict(row) for row in rows]
 
 # ============================
 # 🔗 Vendor-länkning
