@@ -19,7 +19,10 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://95bcf61e0e04.ngrok.app",  # 👈 lägg till din ngrok-url här
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

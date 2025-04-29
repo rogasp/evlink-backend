@@ -14,13 +14,12 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { authFetch } from "@/lib/authFetch"; // Lägg till högst upp om du inte redan har
+import { authFetch } from "@/lib/authFetch";
 import VendorSelect from "@/components/VendorSelect";
 import VehicleName from "@/components/VehicleName";
 import BatteryIndicator from "@/components/BatteryIndicator";
 import ChargingStatus from "@/components/ChargingStatus";
 
-// Mocked vehicle data
 const mockVehicles = [
   { id: "low", name: "Nissan Leaf", batteryLevel: 5, charging: false },
   { id: "medium", name: "Renault Zoe", batteryLevel: 35, charging: true },
@@ -30,47 +29,44 @@ const mockVehicles = [
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState("");
 
   const handleLinkVehicle = async () => {
     if (!selectedVendor || !session?.accessToken) {
       toast.error("Missing vendor selection or session.");
       return;
     }
-  
+
     try {
-      const { data, error } = await authFetch(`/user/link-vehicle`, {
+      const { data, error } = await authFetch("/user/link-vehicle", {
         method: "POST",
         accessToken: session.accessToken,
         body: JSON.stringify({ vendor: selectedVendor }),
       });
-  
-      if (error || !data?.url) {
-        const message =
-          typeof error === "object" && error !== null && "detail" in error
-            ? (error as any).detail
-            : "Failed to initiate vehicle linking.";
-        toast.error(message);
+
+      if (error || !data?.url || !data?.linkToken) {
+        toast.error("Failed to initiate vehicle linking.");
         return;
       }
-  
-      toast.success("Redirecting to Enode...");
+
+      // Store the linkToken in localStorage
+      localStorage.setItem("linkToken", data.linkToken);
+      console.log("[📦 dashboard] Stored linkToken in localStorage");
+
+      // Open Enode Link in the same tab
       window.location.href = data.url;
     } catch (error) {
       console.error("Link vehicle error:", error);
       toast.error("Unexpected error during vehicle linking.");
     }
   };
-  
 
   return (
     <main className="min-h-screen p-6 bg-gray-50">
-      {/* Welcome header */}
       <h1 className="text-3xl font-bold text-indigo-700 mb-8">
         Welcome, {session?.user?.name || "User"}
       </h1>
 
-      {/* Link vehicle button */}
       <div className="mb-8">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -107,18 +103,17 @@ export default function DashboardPage() {
         </Dialog>
       </div>
 
-      {/* Vehicle table */}
       <div className="overflow-x-auto bg-white shadow rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-indigo-600">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                 Vehicle
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                 Battery Level
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                 Status
               </th>
             </tr>
