@@ -69,6 +69,11 @@ async def process_event(event: dict) -> int:
     return 0
 
 
+from fastapi import Query
+
 @router.get("/webhook/logs")
-def fetch_webhook_logs():
-    return get_webhook_logs()
+def fetch_webhook_logs(
+    event: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=1000)
+):
+    return get_webhook_logs(limit=limit, event_filter=event)

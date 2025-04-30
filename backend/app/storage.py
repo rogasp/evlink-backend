@@ -157,7 +157,6 @@ def save_linked_vendor(user_id: str, vendor: str):
 # 📥 Webhook-events
 # ============================
 
-
 def clear_webhook_events():
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("DELETE FROM webhook_events")
@@ -174,7 +173,6 @@ def is_recent(timestamp_str: str, minutes: int = 5) -> bool:
     except Exception as e:
         print(f"⚠️  Kunde inte tolka timestamp: {timestamp_str} – {e}")
         return False
-
 
 def create_api_key_for_user(user_id: str) -> str:
     api_key = secrets.token_hex(32)
@@ -197,7 +195,6 @@ def list_all_api_keys():
         rows = conn.execute("SELECT user_id, api_key FROM api_keys").fetchall()
         return [{"user_id": row[0], "api_key": row[1]} for row in rows]
 
-
 def create_user(user_id: str, email: str = None, hashed_password: str = None):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
@@ -205,7 +202,6 @@ def create_user(user_id: str, email: str = None, hashed_password: str = None):
             (user_id, email, hashed_password),
         )
         conn.commit()
-
 
 def get_user_by_email(email: str):
     with sqlite3.connect(DB_PATH) as conn:
@@ -219,7 +215,6 @@ def get_user_by_email(email: str):
             "hashed_password": row[2],
             "created_at": row[3]
         } if row else None
-
 
 def user_exists(user_id: str) -> bool:
     with sqlite3.connect(DB_PATH) as conn:
@@ -266,7 +261,6 @@ def get_api_key_info(user_id: str):
         else:
             return None
 
-
 def generate_api_key():
     """Generate a secure random API key."""
     return secrets.token_urlsafe(32)
@@ -301,7 +295,6 @@ def create_api_key(user_id: str) -> str:
 
     return new_key  # Return the plain key so frontend can show it once
 
-
 def update_user_email(user_id: str, new_email: str):
     """Updates the email for a specific user."""
     with sqlite3.connect(DB_PATH) as conn:
@@ -334,28 +327,53 @@ def update_user_email(user_id: str, new_email: str):
         conn.commit()
     print(f"✅ Vehicle {vehicle_id} updated in cache")
 
-def get_webhook_logs(limit: int = 50) -> list[dict]:
+def get_webhook_logs(limit: int = 50, event_filter: str | None = None) -> list[dict]:
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
-        rows = conn.execute(
-            """
-            SELECT timestamp, payload 
-            FROM webhook_log 
-            ORDER BY timestamp DESC 
-            LIMIT ?
-            """, 
-            (limit,)
-        ).fetchall()
+        if event_filter:
+            rows = conn.execute(
+                """
+                SELECT id, timestamp, event, user_id, vehicle_id, payload
+                FROM webhook_log
+                WHERE event = ?
+                ORDER BY timestamp DESC
+                LIMIT ?
+                """,
+                (event_filter, limit)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT id, timestamp, event, user_id, vehicle_id, payload
+                FROM webhook_log
+                ORDER BY timestamp DESC
+                LIMIT ?
+                """,
+                (limit,)
+            ).fetchall()
+
         return [dict(row) for row in rows]
     
 def save_webhook_event(payload: dict | list):
+    timestamp = datetime.utcnow().isoformat()
+
+    # Extrahera metadata
+    try:
+        parsed = payload[0] if isinstance(payload, list) else payload
+        user_id = parsed.get("user", {}).get("id")
+        vehicle_id = parsed.get("vehicle", {}).get("id")
+        event = parsed.get("event")
+    except Exception as e:
+        print(f"⚠️  Failed to extract metadata from webhook payload: {e}")
+        user_id = vehicle_id = event = None
+
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
             """
-            INSERT INTO webhook_log (timestamp, payload)
-            VALUES (?, ?)
+            INSERT INTO webhook_log (timestamp, payload, user_id, vehicle_id, event)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (datetime.utcnow().isoformat(), json.dumps(payload))
+            (timestamp, json.dumps(payload), user_id, vehicle_id, event)
         )
         conn.commit()
     print("✅ Webhook event saved")
