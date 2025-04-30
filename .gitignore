@@ -60,3 +60,4 @@ coverage.xml
 .env.staging
 .env.test
 .env.example
+passwords.md
