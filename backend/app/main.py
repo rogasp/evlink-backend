@@ -1,8 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.webhook import router as webhook_router
-from app.api import public, private, user_routes
+from app.api import public, private, user_routes, webhook, admin_routes
 from app.storage import init_db
 from app.security import verify_jwt_token
 
@@ -33,6 +32,7 @@ init_db()
 app.include_router(public.router)
 app.include_router(private.router, dependencies=[Depends(verify_jwt_token)])
 app.include_router(user_routes.router)
+app.include_router(admin_routes.router)
 
 # 📬 Webhook
-app.include_router(webhook_router)
+app.include_router(webhook.router)

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, Response, Path,status
+import os
+from fastapi import APIRouter, HTTPException, Depends, Header, Request, Response, Path,status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
 from app.schemas.auth import LoginRequest, TokenResponse, RegisterRequest, RegisterResponse
@@ -9,6 +10,8 @@ from app.enode import get_link_result, USE_MOCK
 import uuid
 
 router = APIRouter()
+
+SECURE_COOKIES = os.getenv("SECURE_COOKIES", "false").lower() == "true"
 
 class UpdateEmailRequest(BaseModel):
     email: EmailStr
@@ -22,7 +25,10 @@ async def ping():
     return {"message": "pong"}
 
 @router.post("/refresh-token", response_model=TokenResponse)
-async def refresh_token_endpoint(refresh_token: str = Header(...)):
+async def refresh_token_endpoint(request: Request):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Missing refresh token")
     try:
         payload = decode_token(refresh_token)
         user_id = payload.get("sub")
@@ -61,14 +67,13 @@ async def login(credentials: LoginRequest, response: Response):
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,  # Borde vara True i production (HTTPS)
+        secure=SECURE_COOKIES, 
         samesite="lax",
         max_age=7 * 24 * 60 * 60,  # 7 dagar
         path="/",
     )
 
     return {"access_token": access_token}
-
 
 @router.post("/register", response_model=RegisterResponse)
 async def register_user(payload: RegisterRequest):
@@ -107,7 +112,6 @@ async def get_user_api_key_info(user_id: str = Path(...)):
     else:
         return {"api_key_masked": None}
     
-
 @router.post("/user/link-result", response_model=dict)
 async def post_link_result(
     data: dict,
@@ -134,4 +138,3 @@ async def post_link_result(
         "userId": result.get("userId"),
         "status": "linked"
     }
-

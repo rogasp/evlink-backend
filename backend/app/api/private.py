@@ -3,7 +3,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from app.security import get_current_user, verify_jwt_token
-from app.storage import cache_vehicle_data, get_all_cached_vehicles, update_user_email
+from app.storage import get_all_cached_vehicles, save_vehicle_data, update_user_email
 from app.config import CACHE_EXPIRATION_MINUTES
 from app.enode import get_user_vehicles_enode
 
@@ -31,7 +31,6 @@ async def get_user_vehicles(user: dict = Depends(get_current_user)):
     if cached_data:
         now = datetime.utcnow()
         try:
-            # Kontrollera om första raden är färsk nog
             updated_at = datetime.fromisoformat(cached_data[0]["updated_at"])
             if now - updated_at < timedelta(minutes=CACHE_EXPIRATION_MINUTES):
                 vehicles = []
@@ -48,15 +47,9 @@ async def get_user_vehicles(user: dict = Depends(get_current_user)):
     # Step 2: Load fresh data from Enode
     try:
         vehicles = await get_user_vehicles_enode(user_id)
-        now_str = datetime.utcnow().isoformat()
         for vehicle in vehicles:
-            vehicle_id = vehicle["id"]
-            cache_vehicle_data(
-                user_id=user_id,
-                vehicle_id=vehicle_id,
-                data=json.dumps(vehicle),
-                updated_at=now_str
-            )
+            vehicle["userId"] = user_id  # 🧩 Viktigt! Sätt userId manuellt
+            save_vehicle_data(vehicle)
         return vehicles
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch vehicles: {str(e)}")

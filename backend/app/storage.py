@@ -30,6 +30,13 @@ def init_db():
                 json TEXT NOT NULL
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS webhook_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                payload TEXT NOT NULL
+            )
+        """)
         # Fordonsdata-cache
         conn.execute("""
             CREATE TABLE IF NOT EXISTS vehicle_cache (
@@ -82,7 +89,26 @@ def init_db():
 # 💾 Fordonsdata
 # ============================
 
-def cache_vehicle_data(user_id: str, vehicle_id: str, data: str, updated_at: str):
+def save_vehicle_data(vehicle: dict):
+    vehicle_id = vehicle.get("id")
+    user_id = vehicle.get("userId")
+    if not vehicle_id or not user_id:
+        print("[⚠️] Invalid vehicle object:", vehicle)
+        return
+
+    cached_str = get_cached_vehicle(vehicle_id)
+    if cached_str:
+        try:
+            cached = json.loads(cached_str)
+            if not is_newer_data(vehicle, cached):
+                print(f"⚠️ Webhook-data för {vehicle_id} är äldre – cache uppdateras ej.")
+                return
+        except Exception as e:
+            print(f"⚠️ Fel vid tolkning av cache: {e}")
+
+    updated_at = vehicle.get("chargeState", {}).get("lastUpdated") or vehicle.get("lastSeen") or datetime.utcnow().isoformat()
+    data_str = json.dumps(vehicle)
+
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
             """
@@ -92,10 +118,10 @@ def cache_vehicle_data(user_id: str, vehicle_id: str, data: str, updated_at: str
               data=excluded.data,
               updated_at=excluded.updated_at
             """,
-            (vehicle_id,user_id, data, updated_at),
+            (vehicle_id, user_id, data_str, updated_at)
         )
         conn.commit()
-    print(f"✅ Fordon {vehicle_id} cachades")
+    print(f"✅ Vehicle {vehicle_id} updated in cache")
 
 def get_cached_vehicle(vehicle_id: str):
     with sqlite3.connect(DB_PATH) as conn:
@@ -131,13 +157,6 @@ def save_linked_vendor(user_id: str, vendor: str):
 # 📥 Webhook-events
 # ============================
 
-def save_webhook_event(raw_json: dict):
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.execute(
-            "INSERT INTO webhook_events (json) VALUES (?)",
-            (json.dumps(raw_json),)
-        )
-    print("✅ Webhook-event sparat till DB")
 
 def clear_webhook_events():
     with sqlite3.connect(DB_PATH) as conn:
@@ -292,3 +311,71 @@ def update_user_email(user_id: str, new_email: str):
         )
         conn.commit()
         
+    vehicle_id = vehicle.get("id")
+    user_id = vehicle.get("userId")  # Enodes fält för användar-ID
+    data = json.dumps(vehicle)
+    updated_at = datetime.utcnow().isoformat()
+
+    if not vehicle_id or not user_id:
+        print("[⚠️] Invalid vehicle object:", vehicle)
+        return
+
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            """
+            INSERT INTO vehicle_cache (vehicle_id, user_id, data, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(vehicle_id) DO UPDATE SET
+              data=excluded.data,
+              updated_at=excluded.updated_at
+            """,
+            (vehicle_id, user_id, data, updated_at)
+        )
+        conn.commit()
+    print(f"✅ Vehicle {vehicle_id} updated in cache")
+
+def get_webhook_logs(limit: int = 50) -> list[dict]:
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """
+            SELECT timestamp, payload 
+            FROM webhook_log 
+            ORDER BY timestamp DESC 
+            LIMIT ?
+            """, 
+            (limit,)
+        ).fetchall()
+        return [dict(row) for row in rows]
+    
+def save_webhook_event(payload: dict | list):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            """
+            INSERT INTO webhook_log (timestamp, payload)
+            VALUES (?, ?)
+            """,
+            (datetime.utcnow().isoformat(), json.dumps(payload))
+        )
+        conn.commit()
+    print("✅ Webhook event saved")
+
+def is_newer_data(incoming: dict, cached: dict) -> bool:
+    """
+    Return True if the incoming vehicle data is newer than the cached data.
+    Compares chargeState.lastUpdated or lastSeen timestamps.
+    """
+    try:
+        incoming_ts = incoming.get("chargeState", {}).get("lastUpdated") or incoming.get("lastSeen")
+        cached_ts = cached.get("chargeState", {}).get("lastUpdated") or cached.get("lastSeen")
+
+        if not incoming_ts or not cached_ts:
+            return True  # Saknar tidpunkt → vi sparar hellre än att tappa data
+
+        dt_incoming = datetime.fromisoformat(incoming_ts.replace("Z", "+00:00"))
+        dt_cached = datetime.fromisoformat(cached_ts.replace("Z", "+00:00"))
+
+        return dt_incoming > dt_cached
+    except Exception as e:
+        print(f"⚠️ Failed to compare timestamps: {e}")
+        return True  # För säkerhets skull – spara ändå om något går fel

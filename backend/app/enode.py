@@ -3,7 +3,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 
-from app.storage import get_cached_vehicle, cache_vehicle_data, is_recent
+from app.storage import get_cached_vehicle, is_recent, save_vehicle_data
 from datetime import datetime
 
 load_dotenv()
@@ -106,12 +106,16 @@ async def get_link_result(link_token: str) -> dict:
         response.raise_for_status()
         return response.json()
 
+
 async def subscribe_to_webhooks():
     access_token = await get_access_token()
     webhook_url = os.getenv("WEBHOOK_URL")
+    webhook_secret = os.getenv("ENODE_WEBHOOK_SECRET")
 
     if not webhook_url:
         raise ValueError("WEBHOOK_URL is not set in .env")
+    if not webhook_secret:
+        raise ValueError("ENODE_WEBHOOK_SECRET is not set in .env")
 
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -119,27 +123,25 @@ async def subscribe_to_webhooks():
     }
 
     payload = {
-        "url": webhook_url,
-        "secret": os.getenv("WEBHOOK_SECRET"),  # 👈 nyckel som du väljer och sparar i .env
-        "events": [
-            "user:vehicle:discovered",
+    "url": webhook_url,
+    "secret": webhook_secret,
+    "events": [  # ✅ ska vara 'events', inte 'eventTypes'
+        "user:vehicle:discovered",
             "user:vehicle:updated"
-        ]
-    }
+    ]
+}
 
     url = f"{ENODE_BASE_URL}/webhooks"
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=payload)
 
-        # 🔍 DEBUG RESPONSE
-        print("[ENODE RESPONSE STATUS]", response.status_code)
-        print("[ENODE RESPONSE BODY]", response.text)
+        print("[📡 ENODE] Webhook subscription status:", response.status_code)
+        print("[📡 ENODE] Webhook subscription response:", response.text)
 
-        # Raise exception if not 2xx
         response.raise_for_status()
-
         return response.json()
+
 
 import datetime
 from fastapi import HTTPException
@@ -186,7 +188,7 @@ async def get_vehicle_status(vehicle_id: str, user_id: str, force: bool = False)
         raise HTTPException(status_code=404, detail=f"Vehicle {vehicle_id} not found")
 
     updated_at = fresh.get("updatedAt") or fresh.get("lastSeen") or datetime.datetime.now(datetime.UTC).isoformat()
-    cache_vehicle_data(vehicle_id, json.dumps(fresh), updated_at)
+    save_vehicle_data(vehicle_id, json.dumps(fresh), updated_at)
 
     if fresh.get("userId") != user_id:
         print(f"⛔ Fel användare – live data {vehicle_id} tillhör {fresh.get('userId')}, inte {user_id}")
