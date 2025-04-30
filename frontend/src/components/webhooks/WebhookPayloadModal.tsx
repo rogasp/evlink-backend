@@ -1,6 +1,14 @@
 'use client'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose
+} from "@/components/ui/dialog"
+
+import { Button } from "@/components/ui/button"
 
 interface WebhookPayloadModalProps {
   open: boolean
@@ -15,9 +23,16 @@ export function WebhookPayloadModal({ open, setOpen, payload }: WebhookPayloadMo
         <DialogHeader>
           <DialogTitle>Webhook Payload</DialogTitle>
         </DialogHeader>
-        <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto whitespace-pre-wrap">
+
+        <pre className="text-xs bg-gray-100 p-4 rounded whitespace-pre-wrap break-words">
           {JSON.stringify(payload, null, 2)}
         </pre>
+
+        <div className="mt-4 flex justify-end">
+          <DialogClose asChild>
+            <Button variant="secondary">Close</Button>
+          </DialogClose>
+        </div>
       </DialogContent>
     </Dialog>
   )

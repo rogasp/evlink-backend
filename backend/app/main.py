@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import public, private, user_routes, webhook, admin_routes
-from app.storage import init_db
 from app.security import verify_jwt_token
+from app.routes import vehicle  # <-- ev. justera beroende på mappstruktur
 
 app = FastAPI(
     title="EVLink Backend",
@@ -13,8 +13,8 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost:3000",  # Frontend URL i utveckling
-    "https://95bcf61e0e04.ngrok.app",  # ngrok-url
+    "http://localhost:3000",  # Frontend dev
+    "https://95bcf61e0e04.ngrok.app",  # ngrok URL
 ]
 
 app.add_middleware(
@@ -25,14 +25,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🛠️ Init database
-init_db()
-
 # 🧾 API endpoints
 app.include_router(public.router)
 app.include_router(private.router, dependencies=[Depends(verify_jwt_token)])
 app.include_router(user_routes.router)
 app.include_router(admin_routes.router)
+app.include_router(vehicle.router)
 
 # 📬 Webhook
 app.include_router(webhook.router)
