@@ -1,9 +1,13 @@
 # backend/app/api/webhook.py
-from fastapi import APIRouter, Request, HTTPException, Header
-from app.storage import get_webhook_logs, save_webhook_event, save_vehicle_data
+
 import logging
-from app.config import ENODE_WEBHOOK_SECRET
 import hmac, hashlib
+
+from fastapi import APIRouter, Request, HTTPException, Header, Query
+
+from app.config import ENODE_WEBHOOK_SECRET
+from app.storage.webhook import get_webhook_logs, save_webhook_event
+from app.storage.vehicle import save_vehicle_data
 
 router = APIRouter()
 
@@ -15,27 +19,24 @@ def verify_signature(raw_body: bytes, signature: str) -> bool:
 @router.post("/webhook/enode")
 async def handle_webhook(
     request: Request,
-    x_signature: str = Header(None),  # valfritt: för signaturverifiering
+    x_signature: str = Header(None),
 ):
     try:
         payload = await request.json()
-        save_webhook_event(payload)  # 🔍 spårbarhet
+        save_webhook_event(payload)
 
-        # ➕ Lägg till signaturverifiering här om vi vill
-        # verify_signature(x_signature, payload)
+        # ➕ Signaturverifiering kan aktiveras om önskat:
         # raw_body = await request.body()
         # if not x_signature or not verify_signature(raw_body, x_signature):
         #     raise HTTPException(status_code=400, detail="Invalid signature")
         # payload = json.loads(raw_body)
 
-        # ✅ Hantera lista med events
         if isinstance(payload, list):
             handled = 0
             for event in payload:
                 handled += await process_event(event)
             return {"status": "ok", "handled": handled}
 
-        # ✅ Hantera enskilt event
         await process_event(payload)
         return {"status": "ok"}
 
@@ -61,19 +62,17 @@ async def process_event(event: dict) -> int:
             save_vehicle_data(vehicle)
             return 1
         else:
-            print(f"⚠️ Saknar vehicle eller user_id i event: {event}")
+            print(f"⚠️ Missing vehicle or user_id in event: {event}")
             return 0
 
-    # 🚫 Okänd eller irrelevant event
     print(f"⚠️ Unknown or unhandled event type: {event_type}")
     return 0
-
-
-from fastapi import Query
 
 @router.get("/webhook/logs")
 def fetch_webhook_logs(
     event: str | None = Query(None),
     limit: int = Query(50, ge=1, le=1000)
 ):
-    return get_webhook_logs(limit=limit, event_filter=event)
+    logs = get_webhook_logs(limit=limit, event_filter=event)
+    print("[🐞 DEBUG] Webhook logs sample:", logs[:1])
+    return logs

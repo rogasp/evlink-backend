@@ -8,17 +8,23 @@ import { Button } from "@/components/ui/button"
 export function WebhookLogRow({ log }: { log: any }) {
   const [open, setOpen] = useState(false)
 
-  let parsed = {}
-  try {
-    parsed = JSON.parse(log.payload)
-  } catch {}
+  let parsed = log.payload
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed)
+  } catch (e) {
+    console.warn("⚠️ Failed to parse payload JSON:", e)
+    parsed = {}
+  }
+}
+
 
   const first = Array.isArray(parsed) ? parsed[0] : parsed
 
   return (
     <>
       <tr className="border-t">
-        <td className="p-2">{log.timestamp}</td>
+        <td className="p-2">{log.created_at ? new Date(log.created_at).toLocaleString() : '-'}</td>
         <td className="p-2">{first?.version || '-'}</td>
         <td className="p-2">{first?.event || '-'}</td>
         <td className="p-2">
