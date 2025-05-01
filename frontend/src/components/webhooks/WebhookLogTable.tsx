@@ -1,6 +1,7 @@
+import { WebhookLog } from '@/types/webhook'
 import { WebhookLogRow } from './WebhookLogRow'
 
-export function WebhookLogTable({ logs }: { logs: any[] }) {
+export function WebhookLogTable({ logs }: { logs: WebhookLog[] }) {
   return (
     <table className="w-full text-sm table-auto">
       <thead className="bg-gray-100 text-left">

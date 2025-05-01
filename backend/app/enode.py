@@ -38,7 +38,6 @@ async def get_access_token():
         _token_cache["expires_at"] = time.time() + token_data.get("expires_in", 3600) - 60
         return _token_cache["access_token"]
 
-
 async def get_vehicle_data(vehicle_id: str):
     access_token = await get_access_token()
     headers = {"Authorization": f"Bearer {access_token}"}
@@ -53,7 +52,6 @@ async def get_vehicle_data(vehicle_id: str):
     else:
         print(f"❌ Misslyckades att hämta {vehicle_id} – {response.status_code}")
         return None
-
 
 async def get_vehicle_status(vehicle_id: str, user_id: str, force: bool = False) -> dict:
     cached = get_cached_vehicle(vehicle_id)
@@ -87,6 +85,19 @@ async def get_vehicle_status(vehicle_id: str, user_id: str, force: bool = False)
 
     return fresh
 
+async def get_all_vehicles(page_size: int = 50, after: str | None = None):
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    params = {"pageSize": str(page_size)}
+    if after:
+        params["after"] = after
+
+    url = f"{ENODE_BASE_URL}/vehicles"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers, params=params)
+        res.raise_for_status()
+        return res.json()
 
 async def get_user_vehicles_enode(user_id: str) -> list:
     access_token = await get_access_token()
@@ -96,7 +107,6 @@ async def get_user_vehicles_enode(user_id: str) -> list:
         res = await client.get(url, headers=headers)
         res.raise_for_status()
         return res.json().get("data", [])
-
 
 async def create_link_session(user_id: str, vendor: str = ""):
     token = await get_access_token()
@@ -124,7 +134,6 @@ async def create_link_session(user_id: str, vendor: str = ""):
         response.raise_for_status()
         return response.json()
 
-
 async def get_link_result(link_token: str) -> dict:
     if USE_MOCK:
         print("[MOCK] get_link_result active")
@@ -146,6 +155,28 @@ async def get_link_result(link_token: str) -> dict:
         response.raise_for_status()
         return response.json()
 
+async def get_all_users(page_size: int = 50, after: str | None = None):
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    params = {"pageSize": str(page_size)}
+    if after:
+        params["after"] = after
+
+    url = f"{ENODE_BASE_URL}/users"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers, params=params)
+        res.raise_for_status()
+        return res.json()
+
+async def delete_enode_user(user_id: str):
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"{ENODE_BASE_URL}/users/{user_id}"
+
+    async with httpx.AsyncClient() as client:
+        res = await client.delete(url, headers=headers)
+        return res.status_code
 
 async def subscribe_to_webhooks():
     access_token = await get_access_token()
@@ -179,7 +210,6 @@ async def subscribe_to_webhooks():
         response.raise_for_status()
         return response.json()
 
-
 async def get_linked_vendor_details(user_id: str) -> list:
     access_token = await get_access_token()
     url = f"{ENODE_BASE_URL}/users/{user_id}"
@@ -188,3 +218,32 @@ async def get_linked_vendor_details(user_id: str) -> list:
         res = await client.get(url, headers=headers)
         res.raise_for_status()
         return res.json().get("linkedVendors", [])
+
+async def get_webhooks():
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{ENODE_BASE_URL}/webhooks", headers=headers)
+        response.raise_for_status()
+        return response.json()
+
+async def delete_webhook(webhook_id: str):
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(f"{ENODE_BASE_URL}/webhooks/{webhook_id}", headers=headers)
+        if response.status_code == 204:
+            return {"deleted": True}
+        response.raise_for_status()
+
+async def fetch_enode_webhook_subscriptions():
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"{ENODE_BASE_URL}/webhooks"
+
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json().get("data", [])

@@ -11,9 +11,9 @@ import {
 import { Button } from "@/components/ui/button"
 
 interface WebhookPayloadModalProps {
-  open: boolean
-  setOpen: (value: boolean) => void
-  payload: any
+  open: boolean;
+  setOpen: (value: boolean) => void;
+  payload: Record<string, unknown> | Record<string, unknown>[]; // justerad och säker
 }
 
 export function WebhookPayloadModal({ open, setOpen, payload }: WebhookPayloadModalProps) {

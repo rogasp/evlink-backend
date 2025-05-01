@@ -1,9 +1,7 @@
-# backend/app/storage/webhook.py
-
 from datetime import datetime
 from typing import Optional
-import json
 from app.storage.db import supabase
+from app.enode import fetch_enode_webhook_subscriptions
 
 def save_webhook_event(payload: dict | list):
     """
@@ -34,20 +32,55 @@ def save_webhook_event(payload: dict | list):
     print("✅ Webhook event saved")
 
 def get_webhook_logs(limit: int = 50, event_filter: Optional[str] = None) -> list[dict]:
-    """
-    Retrieve the latest webhook logs, optionally filtered by event type.
-    """
     query = supabase.table("webhook_logs").select("*").order("created_at", desc=True).limit(limit)
-    
     if event_filter:
         query = query.eq("event", event_filter)
-    
     res = query.execute()
     return res.data or []
 
 def clear_webhook_events():
-    """
-    Delete all webhook logs. Use with caution!
-    """
     supabase.table("webhook_logs").delete().neq("id", "").execute()
     print("🗑️  All webhook events deleted")
+
+async def sync_webhook_subscriptions_from_enode():
+    """
+    Fetch current webhook subscriptions from Enode and upsert them to Supabase.
+    """
+    print("[🔄] Fetching subscriptions from Enode")
+    enode_subs = await fetch_enode_webhook_subscriptions()
+    print(f"[ℹ️] Found {len(enode_subs)} subscriptions from Enode")
+
+    for item in enode_subs:
+        try:
+            response = supabase.table("webhook_subscriptions").upsert({
+                "enode_webhook_id": item["id"],
+                "url": item["url"],
+                "events": item.get("events", []),
+                "is_active": item.get("isActive", False),
+                "api_version": item.get("apiVersion"),
+                "last_success": item.get("lastSuccess"),
+                "created_at": item.get("createdAt"),
+            }, on_conflict="enode_webhook_id").execute()
+
+            if not response.data:
+                print(f"⚠️ No data returned on upsert for {item['id']} (status: {response.status_code})")
+            else:
+                print(f"✅ Upserted subscription {item['id']}")
+
+        except Exception as e:
+            print(f"❌ Exception while upserting {item['id']}: {e}")
+
+def delete_webhook_subscription(enode_webhook_id: str):
+    supabase.table("webhook_subscriptions").delete().eq("enode_webhook_id", enode_webhook_id).execute()
+
+async def get_all_webhook_subscriptions():
+    res = supabase.table("webhook_subscriptions") \
+        .select("*") \
+        .order("created_at", desc=True) \
+        .execute()
+
+    if hasattr(res, "error") and res.error:
+        print(f"❌ Error fetching subscriptions from DB: {res.error}")
+        return []
+
+    return res.data or []
