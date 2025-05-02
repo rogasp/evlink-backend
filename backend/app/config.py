@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 CACHE_EXPIRATION_MINUTES: int = int(os.getenv("CACHE_EXPIRATION_MINUTES", 10))  # Default to 10 minutes
+<<<<<<< HEAD
+ENODE_WEBHOOK_SECRET = os.getenv("ENODE_WEBHOOK_SECRET")
+=======
+>>>>>>> origin/dev
 
 class Settings:
     ENODE_CLIENT_ID: str = os.getenv("ENODE_CLIENT_ID")

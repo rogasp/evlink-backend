@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "supabase": "^2.22.6"
+  },
+  "scripts": {
+    "supabase": "supabase"
+  }
+}
