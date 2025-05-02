@@ -12,6 +12,8 @@ from app.storage.vehicle import get_cached_vehicle, save_vehicle_data, is_newer_
 
 load_dotenv()
 
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+ENODE_WEBHOOK_SECRET = os.getenv("ENODE_WEBHOOK_SECRET")
 ENODE_BASE_URL = os.getenv("ENODE_BASE_URL")
 ENODE_AUTH_URL = os.getenv("ENODE_AUTH_URL")
 CLIENT_ID = os.getenv("ENODE_CLIENT_ID")
@@ -180,12 +182,10 @@ async def delete_enode_user(user_id: str):
 
 async def subscribe_to_webhooks():
     access_token = await get_access_token()
-    webhook_url = os.getenv("WEBHOOK_URL")
-    webhook_secret = os.getenv("ENODE_WEBHOOK_SECRET")
-
-    if not webhook_url:
+    
+    if not WEBHOOK_URL:
         raise ValueError("WEBHOOK_URL is not set in .env")
-    if not webhook_secret:
+    if not ENODE_WEBHOOK_SECRET:
         raise ValueError("ENODE_WEBHOOK_SECRET is not set in .env")
 
     headers = {
@@ -194,8 +194,8 @@ async def subscribe_to_webhooks():
     }
 
     payload = {
-        "url": webhook_url,
-        "secret": webhook_secret,
+        "url": WEBHOOK_URL,
+        "secret": ENODE_WEBHOOK_SECRET,
         "events": [
             "user:vehicle:discovered",
             "user:vehicle:updated"
