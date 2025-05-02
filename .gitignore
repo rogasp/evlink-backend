@@ -75,3 +75,7 @@ supabase/Makefile
 # Secrets
 passwords.md
 supabase/staging/config.toml
+
+
+!frontend/src/app/(app)/admin/logs/**
+!src/app/(app)/admin/logs/**
