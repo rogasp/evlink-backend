@@ -13,7 +13,7 @@ app = FastAPI(
 )
 
 origins = [
-    "https://evlink.se",  # Frontend URL i produktion
+    "https://evlink.se",  # Frontend URL i produktion 
     "https://staging.evlink.se",  # Frontend URL i staging
     "http://localhost:3000",  # Frontend URL i utveckling
     "https://4652dfc7a15f.ngrok.app",  # ngrok-url
