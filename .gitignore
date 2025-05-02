@@ -60,3 +60,18 @@ coverage.xml
 .env.staging
 .env.test
 .env.example
+
+# Supabase local dev artifacts
+supabase/**/.temp/
+supabase/**/.branches/
+supabase/**/.supabase/
+supabase/**/.snapshots/
+supabase/**/.log/
+
+# Ignore environment-specific files
+supabase/config.*.toml
+supabase/Makefile
+
+# Secrets
+passwords.md
+supabase/staging/config.toml

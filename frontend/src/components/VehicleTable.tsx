@@ -8,6 +8,10 @@ export interface Vehicle {
   id: string;
   information?: {
     displayName?: string;
+    brand?: string;
+    model?: string;
+    year?: string;
+    vin?: string;
   };
   chargeState?: {
     batteryLevel?: number;
@@ -41,7 +45,12 @@ export default function VehicleTable({ vehicles }: VehicleTableProps) {
         {vehicles.map((vehicle) => (
           <tr key={vehicle.id} className="hover:bg-gray-50">
             <td className="px-6 py-4 whitespace-nowrap">
-              <VehicleName name={vehicle.information?.displayName || "Unknown"} />
+            <VehicleName
+              name={
+                vehicle.information?.displayName ||
+                `${vehicle.information?.brand || "Unknown"} ${vehicle.information?.model || ""} ${vehicle.information?.year || ""} (${vehicle.information?.vin || "N/A"})`
+              }
+            />
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <BatteryIndicator level={vehicle.chargeState?.batteryLevel ?? 0} />
