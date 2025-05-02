@@ -14,7 +14,11 @@ app = FastAPI(
 
 origins = [
     "http://localhost:3000",  # Frontend URL i utveckling
+<<<<<<< HEAD
     "https://b044343002fc.ngrok.app",  # ngrok-url
+=======
+    "https://95bcf61e0e04.ngrok.app",  # ngrok-url
+>>>>>>> origin/dev
 ]
 
 app.add_middleware(

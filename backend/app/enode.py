@@ -210,6 +210,72 @@ async def subscribe_to_webhooks():
         response.raise_for_status()
         return response.json()
 
+<<<<<<< HEAD
+=======
+import datetime
+from fastapi import HTTPException
+
+# ...
+
+def is_recent(timestamp: str, minutes: int = 5) -> bool:
+    try:
+        dt = datetime.datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        return (datetime.datetime.now(datetime.UTC) - dt).total_seconds() < minutes * 60
+    except Exception as e:
+        print(f"⚠️  Kunde inte tolka timestamp: {timestamp} – {e}")
+        return False
+
+
+async def get_vehicle_status(vehicle_id: str, user_id: str, force: bool = False) -> dict:
+    cached = get_cached_vehicle(vehicle_id)
+
+    if cached:
+        try:
+            data = json.loads(cached)
+            cached_user_id = data.get("userId")
+
+            print(f"🧪 Kontroll: cached.userId = {cached_user_id}, request.userId = {user_id}")
+
+            if cached_user_id != user_id:
+                print(f"⛔ Fel användare – fordon {vehicle_id} tillhör {cached_user_id}, inte {user_id}")
+                raise HTTPException(status_code=403, detail="Unauthorized vehicle access")
+
+            updated_at = data.get("updatedAt") or data.get("lastSeen")
+            if updated_at and not force and is_recent(updated_at):
+                print(f"✅ Använder cache för {vehicle_id}")
+                return data
+
+            print(f"🔄 Cache för gammal eller saknas för {vehicle_id}, hämtar ny...")
+
+        except Exception as e:
+            print(f"⚠️  Fel vid tolkning av cache: {e}")
+
+    # Ingen giltig cache – hämta nytt
+    fresh = await get_vehicle_data(vehicle_id)
+
+    if not fresh:
+        raise HTTPException(status_code=404, detail=f"Vehicle {vehicle_id} not found")
+
+    updated_at = fresh.get("updatedAt") or fresh.get("lastSeen") or datetime.datetime.now(datetime.UTC).isoformat()
+    cache_vehicle_data(vehicle_id, json.dumps(fresh), updated_at)
+
+    if fresh.get("userId") != user_id:
+        print(f"⛔ Fel användare – live data {vehicle_id} tillhör {fresh.get('userId')}, inte {user_id}")
+        raise HTTPException(status_code=403, detail="Unauthorized vehicle access")
+
+    return fresh
+
+
+async def get_user_vehicles_enode(user_id: str) -> list:
+    access_token = await get_access_token()
+    url = f"{ENODE_BASE_URL}/users/{user_id}/vehicles"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json().get("data", [])
+
+>>>>>>> origin/dev
 async def get_linked_vendor_details(user_id: str) -> list:
     access_token = await get_access_token()
     url = f"{ENODE_BASE_URL}/users/{user_id}"
