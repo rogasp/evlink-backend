@@ -74,3 +74,4 @@ supabase/Makefile
 
 # Secrets
 passwords.md
+supabase/staging/config.toml
