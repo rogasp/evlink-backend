@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Loader2, Eye, Trash } from "lucide-react";
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Loader2, Eye, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 type WebhookSubscription = {
   enode_webhook_id: string;
@@ -24,67 +24,67 @@ type WebhookSubscription = {
 };
 
 export default function AdminPage() {
-  const { data: session } = useSession();
+  const { user, accessToken } = useAuth();
   const [subscriptions, setSubscriptions] = useState<WebhookSubscription[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSub, setSelectedSub] = useState<WebhookSubscription | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchSubscriptions = useCallback(async () => {
-    if (!session?.accessToken) return;
+    if (!accessToken) return;
     setLoading(true);
     try {
-      const data: WebhookSubscription[] = await fetch("/backend/api/webhook/subscriptions", {
+      const data: WebhookSubscription[] = await fetch('/backend/api/webhook/subscriptions', {
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }).then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch subscriptions");
+        if (!res.ok) throw new Error('Failed to fetch subscriptions');
         return res.json();
       });
 
       setSubscriptions(data);
-      toast.success("Subscriptions refreshed");
+      toast.success('Subscriptions refreshed');
     } catch (err) {
-      toast.error("Could not load subscriptions");
+      toast.error('Could not load subscriptions');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [session?.accessToken]);
+  }, [accessToken]);
 
   const handleSubscribe = async () => {
-    if (!session?.accessToken) return;
+    if (!accessToken) return;
     try {
-      const res = await fetch("/backend/api/webhook/subscriptions", {
-        method: "POST",
+      const res = await fetch('/backend/api/webhook/subscriptions', {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
-      if (!res.ok) throw new Error("Subscription failed");
+      if (!res.ok) throw new Error('Subscription failed');
       await fetchSubscriptions();
-      toast.success("Webhook subscription successful!");
+      toast.success('Webhook subscription successful!');
     } catch (err) {
-      toast.error("Webhook subscription failed");
+      toast.error('Webhook subscription failed');
       console.error(err);
     }
   };
 
   const confirmAndDelete = async () => {
-    if (!confirmDeleteId || !session?.accessToken) return;
+    if (!confirmDeleteId || !accessToken) return;
     try {
       const res = await fetch(`/backend/api/webhook/subscriptions/${confirmDeleteId}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
-      if (!res.ok) throw new Error("Delete failed");
-      toast.success("Webhook deleted");
+      if (!res.ok) throw new Error('Delete failed');
+      toast.success('Webhook deleted');
       await fetchSubscriptions();
     } catch (err) {
-      toast.error("Could not delete webhook");
+      toast.error('Could not delete webhook');
       console.error(err);
     } finally {
       setConfirmDeleteId(null);
@@ -94,6 +94,8 @@ export default function AdminPage() {
   useEffect(() => {
     fetchSubscriptions();
   }, [fetchSubscriptions]);
+
+  if (!user) return null;
 
   return (
     <div className="p-6 space-y-6">
@@ -110,7 +112,7 @@ export default function AdminPage() {
               Refreshing...
             </>
           ) : (
-            "Refresh"
+            'Refresh'
           )}
         </Button>
       </div>
@@ -130,11 +132,11 @@ export default function AdminPage() {
               <tr key={sub.enode_webhook_id} className="border-t">
                 <td className="px-4 py-2">{sub.enode_webhook_id}</td>
                 <td className="px-4 py-2">
-                  {sub.last_success ? new Date(sub.last_success).toLocaleString() : "–"}
+                  {sub.last_success ? new Date(sub.last_success).toLocaleString() : '–'}
                 </td>
                 <td className="px-4 py-2">
-                  <span className={sub.is_active ? "text-green-600" : "text-red-500"}>
-                    {sub.is_active ? "Active" : "Inactive"}
+                  <span className={sub.is_active ? 'text-green-600' : 'text-red-500'}>
+                    {sub.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
                 <td className="px-4 py-2 flex gap-2">
@@ -154,13 +156,28 @@ export default function AdminPage() {
                         <DialogTitle>Webhook Details</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-2 text-sm">
-                        <div><strong>ID:</strong> {selectedSub?.enode_webhook_id}</div>
-                        <div><strong>URL:</strong> {selectedSub?.url}</div>
-                        <div><strong>Events:</strong> {selectedSub?.events.join(", ")}</div>
-                        <div><strong>Created:</strong> {selectedSub?.created_at}</div>
-                        <div><strong>Last Success:</strong> {selectedSub?.last_success}</div>
-                        <div><strong>API Version:</strong> {selectedSub?.api_version ?? "–"}</div>
-                        <div><strong>Active:</strong> {selectedSub?.is_active ? "Yes" : "No"}</div>
+                        <div>
+                          <strong>ID:</strong> {selectedSub?.enode_webhook_id}
+                        </div>
+                        <div>
+                          <strong>URL:</strong> {selectedSub?.url}
+                        </div>
+                        <div>
+                          <strong>Events:</strong> {selectedSub?.events.join(', ')}
+                        </div>
+                        <div>
+                          <strong>Created:</strong> {selectedSub?.created_at}
+                        </div>
+                        <div>
+                          <strong>Last Success:</strong> {selectedSub?.last_success}
+                        </div>
+                        <div>
+                          <strong>API Version:</strong> {selectedSub?.api_version ?? '–'}
+                        </div>
+                        <div>
+                          <strong>Active:</strong>{' '}
+                          {selectedSub?.is_active ? 'Yes' : 'No'}
+                        </div>
                       </div>
                     </DialogContent>
                   </Dialog>

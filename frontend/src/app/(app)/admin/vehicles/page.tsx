@@ -1,15 +1,17 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Loader2, Eye } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth'; // ✅ Skyddad åtkomst
+import { Button } from '@/components/ui/button';
+import { Loader2, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 type Vehicle = {
   id: string;
@@ -31,6 +33,7 @@ type Vehicle = {
 };
 
 export default function VehicleAdminPage() {
+  const { user } = useAuth(); // 🛡️ Skydda tillgång till sidan
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Vehicle | null>(null);
@@ -38,19 +41,24 @@ export default function VehicleAdminPage() {
   const fetchVehicles = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/backend/api/admin/vehicles");
+      const res = await fetch('/backend/api/admin/vehicles');
       const data = await res.json();
       setVehicles(data);
     } catch (err) {
-      console.error("Failed to fetch vehicles", err);
+      console.error('Failed to fetch vehicles', err);
+      toast.error('Could not load vehicles');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchVehicles();
-  }, []);
+    if (user) {
+      fetchVehicles();
+    }
+  }, [user]);
+
+  if (!user) return null;
 
   return (
     <div className="p-6 space-y-6">
@@ -62,7 +70,7 @@ export default function VehicleAdminPage() {
               <Loader2 className="animate-spin mr-2 h-4 w-4" /> Refreshing...
             </>
           ) : (
-            "Refresh"
+            'Refresh'
           )}
         </Button>
       </div>
@@ -87,13 +95,13 @@ export default function VehicleAdminPage() {
                 <td className="px-4 py-2">{v.vendor}</td>
                 <td className="px-4 py-2">{v.information.model}</td>
                 <td className="px-4 py-2">
-                  {v.chargeState?.batteryLevel ?? "–"}%
+                  {v.chargeState?.batteryLevel ?? '–'}%
                 </td>
                 <td className="px-4 py-2">
-                  {v.chargeState?.isPluggedIn ? "Yes" : "No"}
+                  {v.chargeState?.isPluggedIn ? 'Yes' : 'No'}
                 </td>
                 <td className="px-4 py-2">
-                  {v.lastSeen ? new Date(v.lastSeen).toLocaleString() : "–"}
+                  {v.lastSeen ? new Date(v.lastSeen).toLocaleString() : '–'}
                 </td>
                 <td className="px-4 py-2">
                   <Dialog>
@@ -112,14 +120,35 @@ export default function VehicleAdminPage() {
                         <DialogTitle>Vehicle Details</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-2 text-sm">
-                        <div><strong>ID:</strong> {selected?.id}</div>
-                        <div><strong>User ID:</strong> {selected?.userId}</div>
-                        <div><strong>Vendor:</strong> {selected?.vendor}</div>
-                        <div><strong>Model:</strong> {selected?.information.model}</div>
-                        <div><strong>VIN:</strong> {selected?.information.vin}</div>
-                        <div><strong>Battery:</strong> {selected?.chargeState?.batteryLevel ?? "–"}%</div>
-                        <div><strong>Plugged In:</strong> {selected?.chargeState?.isPluggedIn ? "Yes" : "No"}</div>
-                        <div><strong>Last Seen:</strong> {selected?.lastSeen ? new Date(selected.lastSeen).toLocaleString() : "–"}</div>
+                        <div>
+                          <strong>ID:</strong> {selected?.id}
+                        </div>
+                        <div>
+                          <strong>User ID:</strong> {selected?.userId}
+                        </div>
+                        <div>
+                          <strong>Vendor:</strong> {selected?.vendor}
+                        </div>
+                        <div>
+                          <strong>Model:</strong> {selected?.information.model}
+                        </div>
+                        <div>
+                          <strong>VIN:</strong> {selected?.information.vin}
+                        </div>
+                        <div>
+                          <strong>Battery:</strong>{' '}
+                          {selected?.chargeState?.batteryLevel ?? '–'}%
+                        </div>
+                        <div>
+                          <strong>Plugged In:</strong>{' '}
+                          {selected?.chargeState?.isPluggedIn ? 'Yes' : 'No'}
+                        </div>
+                        <div>
+                          <strong>Last Seen:</strong>{' '}
+                          {selected?.lastSeen
+                            ? new Date(selected.lastSeen).toLocaleString()
+                            : '–'}
+                        </div>
                       </div>
                     </DialogContent>
                   </Dialog>

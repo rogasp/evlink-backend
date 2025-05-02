@@ -1,15 +1,16 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Loader2, Trash } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Loader2, Trash } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 type EnodeUser = {
   id: string;
@@ -17,19 +18,26 @@ type EnodeUser = {
 };
 
 export default function UserAdminPage() {
+  const { user } = useAuth(); // 👈 Ny skyddslogik
   const [users, setUsers] = useState<EnodeUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (user) {
+      fetchUsers();
+    }
+  }, [user]);
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/backend/api/admin/users");
+      const res = await fetch('/backend/api/admin/users');
       const data = await res.json();
       setUsers(data);
     } catch (err) {
-      console.error("Failed to fetch users", err);
-      toast.error("Could not load users");
+      console.error('Failed to fetch users', err);
+      toast.error('Could not load users');
     } finally {
       setLoading(false);
     }
@@ -39,25 +47,23 @@ export default function UserAdminPage() {
     if (!confirmDeleteId) return;
     try {
       const res = await fetch(`/backend/api/admin/users/${confirmDeleteId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       if (res.status === 204) {
-        toast.success("User deleted");
+        toast.success('User deleted');
         fetchUsers();
       } else {
-        toast.error("Failed to delete user");
+        toast.error('Failed to delete user');
       }
     } catch (err) {
       console.error(err);
-      toast.error("Could not delete user");
+      toast.error('Could not delete user');
     } finally {
       setConfirmDeleteId(null);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  if (!user) return null;
 
   return (
     <div className="p-6 space-y-6">
@@ -70,7 +76,7 @@ export default function UserAdminPage() {
               Refreshing...
             </>
           ) : (
-            "Refresh"
+            'Refresh'
           )}
         </Button>
       </div>
@@ -89,9 +95,7 @@ export default function UserAdminPage() {
               <tr key={u.id} className="border-t">
                 <td className="px-4 py-2">{u.id}</td>
                 <td className="px-4 py-2">
-                  {u.createdAt
-                    ? new Date(u.createdAt).toLocaleString()
-                    : "–"}
+                  {u.createdAt ? new Date(u.createdAt).toLocaleString() : '–'}
                 </td>
                 <td className="px-4 py-2">
                   <Button
@@ -116,7 +120,6 @@ export default function UserAdminPage() {
         </table>
       </div>
 
-      {/* Modal för bekräftelse */}
       <Dialog
         open={!!confirmDeleteId}
         onOpenChange={(open) => !open && setConfirmDeleteId(null)}
