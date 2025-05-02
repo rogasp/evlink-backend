@@ -4,7 +4,8 @@ import os
 import uuid
 from fastapi import APIRouter, HTTPException, Depends, status, Request, Response, Path
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+import supabase
 
 from app.schemas.auth import LoginRequest, TokenResponse, RegisterRequest, RegisterResponse
 from app.security import (
@@ -15,12 +16,17 @@ from app.enode import get_link_result, USE_MOCK
 
 from app.storage.user import create_user, get_user_by_email
 from app.storage.apikey import create_api_key, get_api_key_info
+from app.storage.interest import save_interest
 
 router = APIRouter()
 
 SECURE_COOKIES = os.getenv("SECURE_COOKIES", "false").lower() == "true"
 
 class UpdateEmailRequest(BaseModel):
+    email: EmailStr
+
+class InterestSubmission(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
 
 @router.get("/status")
@@ -134,3 +140,13 @@ async def post_link_result(data: dict, user: dict = Depends(get_current_user)):
         "userId": result.get("userId"),
         "status": "linked"
     }
+
+
+@router.post("/interest")
+async def submit_interest(data: InterestSubmission, request: Request):
+    try:
+        save_interest(data.name, data.email)
+        return {"message": "Thanks! We'll notify you when we launch."}
+    except Exception as e:
+        print(f"❌ Interest submission error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
