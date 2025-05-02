@@ -13,12 +13,10 @@ app = FastAPI(
 )
 
 origins = [
+    "https://evlink.se",  # Frontend URL i produktion
+    "https://staging.evlink.se",  # Frontend URL i staging
     "http://localhost:3000",  # Frontend URL i utveckling
-<<<<<<< HEAD
-    "https://b044343002fc.ngrok.app",  # ngrok-url
-=======
-    "https://95bcf61e0e04.ngrok.app",  # ngrok-url
->>>>>>> origin/dev
+    "https://4652dfc7a15f.ngrok.app",  # ngrok-url
 ]
 
 app.add_middleware(
