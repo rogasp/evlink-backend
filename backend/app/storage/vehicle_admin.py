@@ -1,6 +1,6 @@
 # backend/app/storage/vehicle_admin.py
 
-from app.lib.supabase_client import supabase_admin_client  # ✅ byter import
+from app.lib.supabase import supabase_admin  # ✅ byter import
 from datetime import datetime
 import json
 
@@ -24,7 +24,7 @@ def save_vehicle_data_with_admin_client(vehicle: dict):
             "updated_at": updated_at,
         }
 
-        res = supabase_admin_client.table("vehicles").upsert(payload, on_conflict=["vehicle_id"]).execute()
+        res = supabase_admin.table("vehicles").upsert(payload, on_conflict=["vehicle_id"]).execute()
 
         if hasattr(res, "error") and res.error:
             print(f"❌ [save_vehicle_data_with_admin_client] Supabase error: {res.error}")
