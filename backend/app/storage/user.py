@@ -52,9 +52,15 @@ def user_exists(user_id: str) -> bool:
         return False
 
 
-def update_user_email(user_id: str, new_email: str):
-    try:
-        supabase.table("users").update({"email": new_email}).eq("id", user_id).execute()
-        print(f"📧 Updated email for user {user_id} to {new_email}")
-    except Exception as e:
-        print(f"❌ update_user_email({user_id}) failed: {e}")
+def update_user_email(user_id: str, email: str, supabase):
+    res = (
+        supabase
+        .table("users")
+        .update({"email": email})
+        .eq("id", user_id)
+        .execute()
+    )
+
+    if hasattr(res, "error") and res.error:
+        print(f"❌ Failed to update email: {res.error}")
+        raise Exception("Failed to update email")

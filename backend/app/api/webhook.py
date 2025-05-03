@@ -10,7 +10,7 @@ from app.storage.webhook import (
     sync_webhook_subscriptions_from_enode,
     get_all_webhook_subscriptions,
 )
-from app.storage.vehicle import save_vehicle_data
+from app.storage.vehicle_admin import save_vehicle_data_with_admin_client  # ✅ ny import
 from app.enode import delete_webhook, subscribe_to_webhooks
 from app.storage.webhook_subscriptions import mark_webhook_as_inactive, save_webhook_subscription
 from app.auth.supabase_auth import get_supabase_user
@@ -68,7 +68,7 @@ async def process_event(event: dict) -> int:
 
         if vehicle and user_id:
             vehicle["userId"] = user_id
-            save_vehicle_data(vehicle)
+            save_vehicle_data_with_admin_client(vehicle)  # ✅ bypassar RLS
             return 1
         else:
             print(f"⚠️ Missing vehicle or user_id in event: {event}")

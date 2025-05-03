@@ -1,3 +1,5 @@
+# backend/app/api/public.py
+
 import asyncio
 import os
 from fastapi import APIRouter, HTTPException, Depends, Request, Response, Path
@@ -8,8 +10,8 @@ from app.storage.user import get_user_by_email
 from app.storage.apikey import create_api_key, get_api_key_info
 from app.storage.interest import save_interest
 from app.enode import get_link_result, USE_MOCK
-from app.lib.supabase import supabase
 from app.auth.supabase_auth import get_supabase_user
+from app.lib.supabase import supabase_admin  # 🔄 ändrad import
 
 router = APIRouter()
 
@@ -39,8 +41,8 @@ async def ping():
 @router.post("/register")
 async def register_user(data: RegisterInput, request: Request):
     try:
-        # ✅ Skapa användaren via Supabase Admin API (utan lösenord)
-        result = supabase.auth.admin.create_user({
+        # ✅ Create user via Supabase Admin API (no password required)
+        result = supabase_admin.auth.admin.create_user({
             "email": data.email,
             "email_confirm": True,
             "user_metadata": {"name": data.name}

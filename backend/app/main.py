@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import public, private, user_routes, webhook, admin_routes
-from app.security import verify_jwt_token
-from app.routes import vehicle  # <-- ev. justera beroende på mappstruktur
+from app.routes import vehicle
+from app.auth.supabase_auth import get_supabase_user  # <-- ev. justera beroende på mappstruktur
 
 app = FastAPI(
     title="EVLink Backend",
@@ -29,10 +29,12 @@ app.add_middleware(
 
 # 🧾 API endpoints
 app.include_router(public.router)
-app.include_router(private.router, dependencies=[Depends(verify_jwt_token)])
+app.include_router(private.router, dependencies=[Depends(get_supabase_user)])
 app.include_router(user_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(vehicle.router)
+
+# 🛠️ Admin
 
 # 📬 Webhook
 app.include_router(webhook.router)

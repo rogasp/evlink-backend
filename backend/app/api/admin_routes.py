@@ -8,9 +8,12 @@ from app.auth.supabase_auth import get_supabase_user
 router = APIRouter()
 
 def require_admin(user=Depends(get_supabase_user)):
-    if user.user_metadata.get("role") != "admin":
+    role = user.user_metadata.get("role")
+    if role != "admin":
+        print(f"⛔ Access denied: user {user.id} with role '{role}' tried to access admin route")
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
+
 
 @router.post("/admin/webhook/subscribe")
 async def trigger_webhook_subscription(user=Depends(require_admin)):
