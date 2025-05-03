@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from "react";
-import { useSession, signOut } from "next-auth/react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -18,21 +17,22 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import EditableField from "@/components/EditableField";
 import { authFetch } from "@/lib/authFetch";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "next-auth/react"; // används tillfälligt för redirect
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { user, accessToken, loading: authLoading } = useAuth();
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [justCreated, setJustCreated] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchApiKey = useCallback(async () => {
-    const userId = (session?.user as { id: string })?.id;
-    if (!userId || !session?.accessToken) return;
+    if (!user?.id || !accessToken) return;
 
-    const { data, error } = await authFetch(`/users/${userId}/apikey`, {
+    const { data, error } = await authFetch(`/users/${user.id}/apikey`, {
       method: "GET",
-      accessToken: session.accessToken,
+      accessToken,
     });
 
     if (error) {
@@ -42,20 +42,19 @@ export default function ProfilePage() {
 
     setApiKey(data.api_key_masked || null);
     setCreatedAt(data.created_at || null);
-  }, [session]);
+  }, [user, accessToken]);
 
   const createApiKey = async () => {
-    const userId = (session?.user as { id: string })?.id;
-    if (!userId || !session?.accessToken) {
+    if (!user?.id || !accessToken) {
       toast.error("Missing user ID or access token");
       return;
     }
 
     setLoading(true);
 
-    const { data, error } = await authFetch(`/users/${userId}/apikey`, {
+    const { data, error } = await authFetch(`/users/${user.id}/apikey`, {
       method: "POST",
-      accessToken: session.accessToken,
+      accessToken,
     });
 
     if (error) {
@@ -71,15 +70,14 @@ export default function ProfilePage() {
   };
 
   const saveEmail = async (newEmail: string) => {
-    const userId = (session?.user as { id: string })?.id;
-    if (!newEmail.trim() || !userId || !session?.accessToken) {
+    if (!newEmail.trim() || !user?.id || !accessToken) {
       toast.error("Invalid data");
       return;
     }
 
-    const { error } = await authFetch(`/users/${userId}/email`, {
+    const { error } = await authFetch(`/users/${user.id}/email`, {
       method: "POST",
-      accessToken: session.accessToken,
+      accessToken,
       body: JSON.stringify({ email: newEmail }),
     });
 
@@ -106,22 +104,24 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    if (session?.accessToken && (session?.user as { id: string }).id) {
+    if (accessToken && user?.id) {
       fetchApiKey();
     }
-  }, [session, fetchApiKey]);
+  }, [accessToken, user, fetchApiKey]);
+
+  if (authLoading || !user) return null;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       {/* Profile Header */}
       <div className="flex items-center space-x-4 mb-10 p-6 bg-white shadow rounded-lg">
         <Avatar className="h-16 w-16">
-          <AvatarFallback>{getInitials(session?.user?.email ?? undefined)}</AvatarFallback>
+          <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
         </Avatar>
         <div>
           <EditableField
             label="Email"
-            value={session?.user?.email || ""}
+            value={user?.email || ""}
             onSave={saveEmail}
             type="email"
           />

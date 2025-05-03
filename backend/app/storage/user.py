@@ -22,9 +22,12 @@ def create_user(email: str, name: str, hashed_password: str) -> dict:
         return {}
 
 
-def get_user_by_email(email: str) -> Optional[dict]:
+def get_user_by_email(email: str):
     try:
         response = supabase.table("users").select("*").eq("email", email).maybe_single().execute()
+        if response is None or response.data is None:
+            print(f"⚠️ get_user_by_email({email}) returned no data")
+            return None
         return response.data
     except Exception as e:
         print(f"❌ get_user_by_email({email}) failed: {e}")

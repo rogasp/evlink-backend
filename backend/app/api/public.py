@@ -1,11 +1,11 @@
 # backend/app/api/public.py
 
+import asyncio
 import os
 import uuid
 from fastapi import APIRouter, HTTPException, Depends, status, Request, Response, Path
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field
-import supabase
 
 from app.schemas.auth import LoginRequest, TokenResponse, RegisterRequest, RegisterResponse
 from app.security import (
@@ -17,10 +17,15 @@ from app.enode import get_link_result, USE_MOCK
 from app.storage.user import create_user, get_user_by_email
 from app.storage.apikey import create_api_key, get_api_key_info
 from app.storage.interest import save_interest
+from app.lib.supabase import supabase
 
 router = APIRouter()
 
 SECURE_COOKIES = os.getenv("SECURE_COOKIES", "false").lower() == "true"
+
+class RegisterInput(BaseModel):
+    name: str = Field(..., min_length=1)
+    email: EmailStr
 
 class UpdateEmailRequest(BaseModel):
     email: EmailStr
@@ -61,7 +66,15 @@ async def refresh_token_endpoint(request: Request):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(credentials: LoginRequest, response: Response):
-    user = get_user_by_email(credentials.email)
+    user = None
+    max_retries = 3
+
+    for attempt in range(max_retries):
+        user = get_user_by_email(credentials.email)
+        if user:
+            break
+        await asyncio.sleep(3)
+
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
@@ -81,25 +94,29 @@ async def login(credentials: LoginRequest, response: Response):
         httponly=True,
         secure=SECURE_COOKIES,
         samesite="lax",
-        max_age=7 * 24 * 60 * 60,
+        max_age=7 * 24 * 60 * 60,  # 7 days
         path="/",
     )
 
     return {"access_token": access_token}
 
-@router.post("/register", response_model=RegisterResponse)
-async def register_user(payload: RegisterRequest):
-    existing_user = get_user_by_email(payload.email)
-    if existing_user:
-        return JSONResponse(
-            status_code=400,
-            content={"detail": "An account with this email already exists."}
-        )
+@router.post("/register")
+async def register_user(data: RegisterInput, request: Request):
+    try:
+        # ✅ Skapa användaren via Supabase Admin API (utan lösenord)
+        result = supabase.auth.admin.create_user({
+            "email": data.email,
+            "email_confirm": True,
+            "user_metadata": {"name": data.name}
+        })
 
-    hashed_pw = hash_password(payload.password)
-    create_user(email=payload.email, name="Anonymous", hashed_password=hashed_pw)
+        if not result.user:
+            raise HTTPException(status_code=500, detail="Failed to create user")
 
-    return RegisterResponse(message="User registered successfully")
+        return {"message": "Registration successful"}
+    except Exception as e:
+        print(f"❌ Registration error: {e}")
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 @router.get("/protected-data")
 async def protected_data(user: dict = Depends(get_current_user)):
