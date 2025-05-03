@@ -29,7 +29,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchVehicles = async () => {
       if (!accessToken) return;
-
+      console.log(accessToken)
       const { data, error } = await authFetch('/user/vehicles', {
         method: 'GET',
         accessToken,
@@ -103,3 +103,4 @@ export default function DashboardPage() {
     </main>
   );
 }
+
