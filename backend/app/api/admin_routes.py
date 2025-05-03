@@ -1,31 +1,34 @@
-# backend/app/api/admin_routes.py
-
 from fastapi import APIRouter, Depends, HTTPException, Response
-from app.enode import delete_enode_user, get_all_users, get_all_vehicles, subscribe_to_webhooks
-from app.security import verify_jwt_token
 from fastapi.responses import JSONResponse
 
+from app.enode import delete_enode_user, get_all_users, get_all_vehicles, subscribe_to_webhooks
 from app.storage.webhook import sync_webhook_subscriptions_from_enode
+from app.auth.supabase_auth import get_supabase_user
 
 router = APIRouter()
 
+def require_admin(user=Depends(get_supabase_user)):
+    if user.user_metadata.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
 @router.post("/admin/webhook/subscribe")
-async def trigger_webhook_subscription(token_data: dict = Depends(verify_jwt_token)):
+async def trigger_webhook_subscription(user=Depends(require_admin)):
     result = await subscribe_to_webhooks()
     return {"status": "ok", "result": result}
 
 @router.get("/admin/vehicles")
-async def list_all_vehicles():
+async def list_all_vehicles(user=Depends(require_admin)):
     data = await get_all_vehicles()
-    return data.get("data", [])  # returnerar bara fordonslistan
+    return data.get("data", [])
 
 @router.get("/admin/users")
-async def list_all_users():
+async def list_all_users(user=Depends(require_admin)):
     data = await get_all_users()
-    return data.get("data", [])  # return only user list
+    return data.get("data", [])
 
 @router.delete("/admin/users/{user_id}")
-async def remove_user(user_id: str):
+async def remove_user(user_id: str, user=Depends(require_admin)):
     status_code = await delete_enode_user(user_id)
     if status_code == 204:
         return Response(status_code=204)
@@ -33,6 +36,6 @@ async def remove_user(user_id: str):
         raise HTTPException(status_code=500, detail="Failed to delete user from Enode")
 
 @router.post("/admin/webhooks/sync")
-async def sync_webhook_subscriptions():
+async def sync_webhook_subscriptions(user=Depends(require_admin)):
     await sync_webhook_subscriptions_from_enode()
     return {"status": "synced"}

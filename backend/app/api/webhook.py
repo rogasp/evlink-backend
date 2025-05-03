@@ -1,7 +1,7 @@
 import logging
 import hmac, hashlib
 
-from fastapi import APIRouter, Request, HTTPException, Header, Query
+from fastapi import APIRouter, Request, HTTPException, Header, Query, Depends
 
 from app.config import ENODE_WEBHOOK_SECRET
 from app.storage.webhook import (
@@ -13,6 +13,7 @@ from app.storage.webhook import (
 from app.storage.vehicle import save_vehicle_data
 from app.enode import delete_webhook, subscribe_to_webhooks
 from app.storage.webhook_subscriptions import mark_webhook_as_inactive, save_webhook_subscription
+from app.auth.supabase_auth import get_supabase_user
 
 router = APIRouter()
 
@@ -21,6 +22,12 @@ def verify_signature(raw_body: bytes, signature: str) -> bool:
     secret = ENODE_WEBHOOK_SECRET.encode()
     computed = hmac.new(secret, raw_body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(computed, signature)
+
+
+def require_admin(user=Depends(get_supabase_user)):
+    if user.user_metadata.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
 
 
 @router.post("/webhook/enode")
@@ -75,6 +82,7 @@ async def process_event(event: dict) -> int:
 def fetch_webhook_logs(
     event: str | None = Query(None),
     limit: int = Query(50, ge=1, le=1000),
+    user=Depends(require_admin),
 ):
     logs = get_webhook_logs(limit=limit, event_filter=event)
     print("[🐞 DEBUG] Webhook logs sample:", logs[:1])
@@ -82,7 +90,7 @@ def fetch_webhook_logs(
 
 
 @router.get("/webhook/subscriptions")
-async def list_enode_webhooks():
+async def list_enode_webhooks(user=Depends(require_admin)):
     try:
         print("[🔄] Syncing subscriptions from Enode → Supabase...")
         await sync_webhook_subscriptions_from_enode()
@@ -94,12 +102,8 @@ async def list_enode_webhooks():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
 @router.post("/webhook/subscriptions")
-async def create_enode_webhook():
-    """
-    Create a webhook subscription to Enode and persist in DB.
-    """
+async def create_enode_webhook(user=Depends(require_admin)):
     try:
         response = await subscribe_to_webhooks()
         await save_webhook_subscription(response)
@@ -109,10 +113,7 @@ async def create_enode_webhook():
 
 
 @router.delete("/webhook/subscriptions/{webhook_id}")
-async def delete_enode_webhook(webhook_id: str):
-    """
-    Delete a webhook subscription by ID and mark as inactive in DB.
-    """
+async def delete_enode_webhook(webhook_id: str, user=Depends(require_admin)):
     try:
         await mark_webhook_as_inactive(webhook_id)
         await delete_webhook(webhook_id)
