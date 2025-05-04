@@ -26,15 +26,6 @@ async def list_all_vehicles(user=Depends(require_admin)):
     return data.get("data", [])
 
 
-
-@router.delete("/admin/users/{user_id}")
-async def remove_user(user_id: str, user=Depends(require_admin)):
-    status_code = await delete_enode_user(user_id)
-    if status_code == 204:
-        return Response(status_code=204)
-    else:
-        raise HTTPException(status_code=500, detail="Failed to delete user from Enode")
-
 @router.post("/admin/webhooks/sync")
 async def sync_webhook_subscriptions(user=Depends(require_admin)):
     await sync_webhook_subscriptions_from_enode()

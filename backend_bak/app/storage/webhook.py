@@ -3,6 +3,7 @@ from typing import Optional
 from app.storage.db import supabase
 from app.enode import fetch_enode_webhook_subscriptions
 
+
 def save_webhook_event(payload: dict | list):
     """
     Save a webhook event with metadata like user_id, vehicle_id, and event type.

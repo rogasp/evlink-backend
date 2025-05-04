@@ -1,9 +1,9 @@
 # 📄 backend/app/api/admin.py
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from app.auth.supabase_auth import get_supabase_user
-from app.enode import get_all_users, get_all_vehicles
-from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, sync_webhook_subscriptions_from_enode
+from app.enode import delete_enode_user, delete_webhook, get_all_users, get_all_vehicles, subscribe_to_webhooks
+from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, mark_webhook_as_inactive, save_webhook_subscription, sync_webhook_subscriptions_from_enode
 
 router = APIRouter()
 
@@ -32,6 +32,21 @@ async def list_all_enode_users(user=Depends(require_admin)):
     except Exception as e:
         print(f"[❌ Enode API] Failed to fetch users: {e}")
         raise HTTPException(status_code=502, detail="Failed to fetch users from Enode")
+    
+@router.delete("/admin/users/{user_id}")
+async def remove_user(user_id: str, user=Depends(require_admin)):
+    print(f"🗑️ Admin {user['id']} is attempting to delete Enode user {user_id}")
+    try:
+        status_code = await delete_enode_user(user_id)
+        if status_code == 204:
+            print(f"✅ Successfully deleted Enode user {user_id}")
+            return Response(status_code=204)
+        else:
+            print(f"❌ Failed to delete Enode user {user_id}, status_code: {status_code}")
+            raise HTTPException(status_code=500, detail="Failed to delete user from Enode")
+    except Exception as e:
+        print(f"❌ Exception in remove_user: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/admin/vehicles")
 async def list_all_vehicles(user=Depends(require_admin)):
@@ -71,3 +86,23 @@ def fetch_webhook_logs(
     except Exception as e:
         print(f"[❌ fetch_webhook_logs] {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve webhook logs")
+    
+@router.post("/webhook/subscriptions")
+async def create_enode_webhook(user=Depends(require_admin)):
+    try:
+        response = await subscribe_to_webhooks()
+        await save_webhook_subscription(response)
+        return response
+    except Exception as e:
+        print(f"[❌ create_enode_webhook] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/webhook/subscriptions/{webhook_id}")
+async def delete_enode_webhook(webhook_id: str, user=Depends(require_admin)):
+    try:
+        await mark_webhook_as_inactive(webhook_id)
+        await delete_webhook(webhook_id)
+        return {"deleted": True}
+    except Exception as e:
+        print(f"[❌ delete_enode_webhook] {e}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -132,44 +132,8 @@ async def get_all_users(page_size: int = 50, after: str | None = None):
         res.raise_for_status()
         return res.json()
 
-async def delete_enode_user(user_id: str):
-    access_token = await get_access_token()
-    headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"{ENODE_BASE_URL}/users/{user_id}"
 
-    async with httpx.AsyncClient() as client:
-        res = await client.delete(url, headers=headers)
-        return res.status_code
 
-async def subscribe_to_webhooks():
-    access_token = await get_access_token()
-    
-    if not WEBHOOK_URL:
-        raise ValueError("WEBHOOK_URL is not set in .env")
-    if not ENODE_WEBHOOK_SECRET:
-        raise ValueError("ENODE_WEBHOOK_SECRET is not set in .env")
-
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "url": WEBHOOK_URL,
-        "secret": ENODE_WEBHOOK_SECRET,
-        "events": [
-            "user:vehicle:discovered",
-            "user:vehicle:updated"
-        ]
-    }
-
-    url = f"{ENODE_BASE_URL}/webhooks"
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, headers=headers, json=payload)
-        print("[📡 ENODE] Webhook subscription status:", response.status_code)
-        print("[📡 ENODE] Webhook subscription response:", response.text)
-        response.raise_for_status()
-        return response.json()
 
 async def get_linked_vendor_details(user_id: str) -> list:
     access_token = await get_access_token()

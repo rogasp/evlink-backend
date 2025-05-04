@@ -50,8 +50,8 @@ def save_vehicle_data_with_client(vehicle: dict):
             .upsert(payload, on_conflict=["vehicle_id"]) \
             .execute()
 
-        if res.error:
-            print(f"❌ save_vehicle_data_with_client error: {res.error}")
+        if not res.data:
+            print(f"⚠️ save_vehicle_data_with_client: No data returned, possible failure")
         else:
             print(f"✅ Vehicle {vehicle_id} saved for user {user_id}")
 
