@@ -70,19 +70,6 @@ async def get_vehicle_status(vehicle_id: str, user_id: str, force: bool = False)
 
     return fresh
 
-async def get_all_vehicles(page_size: int = 50, after: str | None = None):
-    access_token = await get_access_token()
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    params = {"pageSize": str(page_size)}
-    if after:
-        params["after"] = after
-
-    url = f"{ENODE_BASE_URL}/vehicles"
-    async with httpx.AsyncClient() as client:
-        res = await client.get(url, headers=headers, params=params)
-        res.raise_for_status()
-        return res.json()
 
 async def create_link_session(user_id: str, vendor: str = ""):
     token = await get_access_token()
@@ -212,12 +199,3 @@ async def delete_webhook(webhook_id: str):
             return {"deleted": True}
         response.raise_for_status()
 
-async def fetch_enode_webhook_subscriptions():
-    access_token = await get_access_token()
-    headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"{ENODE_BASE_URL}/webhooks"
-
-    async with httpx.AsyncClient() as client:
-        res = await client.get(url, headers=headers)
-        res.raise_for_status()
-        return res.json().get("data", [])

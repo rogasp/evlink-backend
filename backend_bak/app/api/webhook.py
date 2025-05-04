@@ -89,19 +89,6 @@ def fetch_webhook_logs(
     return logs
 
 
-@router.get("/webhook/subscriptions")
-async def list_enode_webhooks(user=Depends(require_admin)):
-    try:
-        print("[🔄] Syncing subscriptions from Enode → Supabase...")
-        await sync_webhook_subscriptions_from_enode()
-        result = await get_all_webhook_subscriptions()
-        print(f"[✅] Returning {len(result)} subscriptions")
-        return result
-    except Exception as e:
-        print(f"[❌ ERROR] {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @router.post("/webhook/subscriptions")
 async def create_enode_webhook(user=Depends(require_admin)):
     try:

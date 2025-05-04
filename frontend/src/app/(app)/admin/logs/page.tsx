@@ -43,12 +43,10 @@ export default function WebhookLogPage() {
 
   const fetchLogs = async (event: string | null, limit: number) => {
     try {
-      const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/webhook/logs`);
-      if (event) {
-        url.searchParams.append('event', event);
-      }
-      url.searchParams.append('limit', limit.toString());
-
+      let url = `/webhook/logs?limit=${limit}`;
+        if (event) {
+          url += `&event=${encodeURIComponent(event)}`;
+        }
       if (!accessToken) {
         console.warn("No access token found. Skipping fetch.");
         return;

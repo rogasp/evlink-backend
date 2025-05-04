@@ -35,7 +35,7 @@ export default function AdminPage() {
     if (!accessToken) return;
     setLoading(true);
     try {
-      const res = await authFetch('/api/webhook/subscriptions', {
+      const res = await authFetch('/webhook/subscriptions', {
         method: 'GET',
         accessToken,
       });
@@ -55,7 +55,7 @@ export default function AdminPage() {
   const handleSubscribe = async () => {
     if (!accessToken) return;
     try {
-      const res = await authFetch('/api/webhook/subscriptions', {
+      const res = await authFetch('/webhook/subscriptions', {
         method: 'POST',
         accessToken,
       });
@@ -73,7 +73,7 @@ export default function AdminPage() {
   const confirmAndDelete = async () => {
     if (!confirmDeleteId || !accessToken) return;
     try {
-      const res = await authFetch(`/api/webhook/subscriptions/${confirmDeleteId}`, {
+      const res = await authFetch(`/webhook/subscriptions/${confirmDeleteId}`, {
         method: 'DELETE',
         accessToken,
       });

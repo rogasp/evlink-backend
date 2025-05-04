@@ -31,13 +31,6 @@ def save_webhook_event(payload: dict | list):
 
     print("✅ Webhook event saved")
 
-def get_webhook_logs(limit: int = 50, event_filter: Optional[str] = None) -> list[dict]:
-    query = supabase.table("webhook_logs").select("*").order("created_at", desc=True).limit(limit)
-    if event_filter:
-        query = query.eq("event", event_filter)
-    res = query.execute()
-    return res.data or []
-
 def clear_webhook_events():
     supabase.table("webhook_logs").delete().neq("id", "").execute()
     print("🗑️  All webhook events deleted")

@@ -59,3 +59,27 @@ async def get_all_users(page_size: int = 50, after: str | None = None):
         res = await client.get(url, headers=headers, params=params)
         res.raise_for_status()
         return res.json()
+
+async def get_all_vehicles(page_size: int = 50, after: str | None = None):
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    params = {"pageSize": str(page_size)}
+    if after:
+        params["after"] = after
+
+    url = f"{ENODE_BASE_URL}/vehicles"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers, params=params)
+        res.raise_for_status()
+        return res.json()
+
+async def fetch_enode_webhook_subscriptions():
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"{ENODE_BASE_URL}/webhooks"
+
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers)
+        res.raise_for_status()
+        return res.json().get("data", [])
