@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { authFetch } from '@/lib/authFetch';
 
 type WebhookSubscription = {
   enode_webhook_id: string;
@@ -34,16 +35,14 @@ export default function AdminPage() {
     if (!accessToken) return;
     setLoading(true);
     try {
-      const data: WebhookSubscription[] = await fetch('/backend/api/webhook/subscriptions', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }).then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch subscriptions');
-        return res.json();
+      const res = await authFetch('/api/webhook/subscriptions', {
+        method: 'GET',
+        accessToken,
       });
 
-      setSubscriptions(data);
+      if (res.error) throw res.error;
+
+      setSubscriptions(res.data || []);
       toast.success('Subscriptions refreshed');
     } catch (err) {
       toast.error('Could not load subscriptions');
@@ -56,13 +55,13 @@ export default function AdminPage() {
   const handleSubscribe = async () => {
     if (!accessToken) return;
     try {
-      const res = await fetch('/backend/api/webhook/subscriptions', {
+      const res = await authFetch('/api/webhook/subscriptions', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        accessToken,
       });
-      if (!res.ok) throw new Error('Subscription failed');
+
+      if (res.error) throw res.error;
+
       await fetchSubscriptions();
       toast.success('Webhook subscription successful!');
     } catch (err) {
@@ -74,13 +73,13 @@ export default function AdminPage() {
   const confirmAndDelete = async () => {
     if (!confirmDeleteId || !accessToken) return;
     try {
-      const res = await fetch(`/backend/api/webhook/subscriptions/${confirmDeleteId}`, {
+      const res = await authFetch(`/api/webhook/subscriptions/${confirmDeleteId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        accessToken,
       });
-      if (!res.ok) throw new Error('Delete failed');
+
+      if (res.error) throw res.error;
+
       toast.success('Webhook deleted');
       await fetchSubscriptions();
     } catch (err) {
@@ -156,28 +155,13 @@ export default function AdminPage() {
                         <DialogTitle>Webhook Details</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-2 text-sm">
-                        <div>
-                          <strong>ID:</strong> {selectedSub?.enode_webhook_id}
-                        </div>
-                        <div>
-                          <strong>URL:</strong> {selectedSub?.url}
-                        </div>
-                        <div>
-                          <strong>Events:</strong> {selectedSub?.events.join(', ')}
-                        </div>
-                        <div>
-                          <strong>Created:</strong> {selectedSub?.created_at}
-                        </div>
-                        <div>
-                          <strong>Last Success:</strong> {selectedSub?.last_success}
-                        </div>
-                        <div>
-                          <strong>API Version:</strong> {selectedSub?.api_version ?? '–'}
-                        </div>
-                        <div>
-                          <strong>Active:</strong>{' '}
-                          {selectedSub?.is_active ? 'Yes' : 'No'}
-                        </div>
+                        <div><strong>ID:</strong> {selectedSub?.enode_webhook_id}</div>
+                        <div><strong>URL:</strong> {selectedSub?.url}</div>
+                        <div><strong>Events:</strong> {selectedSub?.events.join(', ')}</div>
+                        <div><strong>Created:</strong> {selectedSub?.created_at}</div>
+                        <div><strong>Last Success:</strong> {selectedSub?.last_success}</div>
+                        <div><strong>API Version:</strong> {selectedSub?.api_version ?? '–'}</div>
+                        <div><strong>Active:</strong> {selectedSub?.is_active ? 'Yes' : 'No'}</div>
                       </div>
                     </DialogContent>
                   </Dialog>

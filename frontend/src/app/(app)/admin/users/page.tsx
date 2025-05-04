@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { authFetch } from '@/lib/authFetch';
 
 type EnodeUser = {
   id: string;
@@ -18,23 +19,36 @@ type EnodeUser = {
 };
 
 export default function UserAdminPage() {
-  const { user } = useAuth(); // 👈 Ny skyddslogik
+  const { user, accessToken } = useAuth();
   const [users, setUsers] = useState<EnodeUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
+    if (accessToken) {
       fetchUsers();
     }
-  }, [user]);
+  }, [accessToken]);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/backend/api/admin/users');
-      const data = await res.json();
-      setUsers(data);
+      
+      if (!accessToken) {
+        console.warn("No access token found. Skipping fetch.");
+        return;
+      }
+
+      const res = await authFetch('/admin/users', {
+        method: 'GET',
+        accessToken,
+      });
+
+      if (res.error) {
+        toast.error('Failed to fetch users');
+      } else {
+        setUsers(res.data || []);
+      }
     } catch (err) {
       console.error('Failed to fetch users', err);
       toast.error('Could not load users');
@@ -44,16 +58,18 @@ export default function UserAdminPage() {
   };
 
   const confirmAndDelete = async () => {
-    if (!confirmDeleteId) return;
+    if (!confirmDeleteId || !accessToken) return;
     try {
-      const res = await fetch(`/backend/api/admin/users/${confirmDeleteId}`, {
+      const res = await authFetch(`/admin/users/${confirmDeleteId}`, {
         method: 'DELETE',
+        accessToken,
       });
-      if (res.status === 204) {
+
+      if (res.error) {
+        toast.error('Failed to delete user');
+      } else {
         toast.success('User deleted');
         fetchUsers();
-      } else {
-        toast.error('Failed to delete user');
       }
     } catch (err) {
       console.error(err);

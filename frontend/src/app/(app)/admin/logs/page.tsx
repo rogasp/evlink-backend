@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { WebhookLogTable } from '@/components/webhooks/WebhookLogTable';
 import { EventFilterSelect } from '@/components/webhooks/EventFilterSelect';
+import { authFetch } from '@/lib/authFetch';
 
 const FILTER_KEY = 'evlink-webhook-event-filter';
 
@@ -41,21 +42,36 @@ export default function WebhookLogPage() {
   }, [selectedEvent, limit, accessToken]);
 
   const fetchLogs = async (event: string | null, limit: number) => {
-    const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/webhook/logs`);
-    if (event) {
-      url.searchParams.append('event', event);
+    try {
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/webhook/logs`);
+      if (event) {
+        url.searchParams.append('event', event);
+      }
+      url.searchParams.append('limit', limit.toString());
+
+      if (!accessToken) {
+        console.warn("No access token found. Skipping fetch.");
+        return;
+      }
+      
+      const res = await authFetch(url.toString(), {
+        method: 'GET',
+        accessToken, // ✅ garanterat en string här
+      });
+      
+      if (res.data) {
+        setLogs(res.data);
+        setLogCount(res.data.length);
+      } else {
+        console.error('❌ Failed to load logs:', res.error);
+        setLogs([]);
+        setLogCount(0);
+      }
+    } catch (err) {
+      console.error('❌ Exception during fetchLogs:', err);
+      setLogs([]);
+      setLogCount(0);
     }
-    url.searchParams.append('limit', limit.toString());
-
-    const res = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const data = await res.json();
-    setLogs(data);
-    setLogCount(data.length);
   };
 
   const handleFilterChange = (value: string) => {

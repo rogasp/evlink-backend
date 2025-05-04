@@ -16,6 +16,7 @@ async def get_supabase_user(request: Request):
         user_id = payload.get("sub")
         role = payload.get("role", "user")
         email = payload.get("email")
+        user_metadata = payload.get("user_metadata", {})  # 🧠 Lägg till detta
 
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
@@ -24,7 +25,8 @@ async def get_supabase_user(request: Request):
             "id": user_id,
             "role": role,
             "email": email,
-            "access_token": token
+            "access_token": token,
+            "user_metadata": user_metadata  # ✅ Nyckeln till att require_admin fungerar
         }
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Token decode failed: {str(e)}")

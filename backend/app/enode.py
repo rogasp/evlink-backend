@@ -45,3 +45,17 @@ async def get_user_vehicles_enode(user_id: str) -> list:
         res = await client.get(url, headers=headers)
         res.raise_for_status()
         return res.json().get("data", [])
+
+async def get_all_users(page_size: int = 50, after: str | None = None):
+    access_token = await get_access_token()
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    params = {"pageSize": str(page_size)}
+    if after:
+        params["after"] = after
+
+    url = f"{ENODE_BASE_URL}/users"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers, params=params)
+        res.raise_for_status()
+        return res.json()

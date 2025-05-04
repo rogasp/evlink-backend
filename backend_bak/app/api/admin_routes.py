@@ -25,10 +25,7 @@ async def list_all_vehicles(user=Depends(require_admin)):
     data = await get_all_vehicles()
     return data.get("data", [])
 
-@router.get("/admin/users")
-async def list_all_users(user=Depends(require_admin)):
-    data = await get_all_users()
-    return data.get("data", [])
+
 
 @router.delete("/admin/users/{user_id}")
 async def remove_user(user_id: str, user=Depends(require_admin)):

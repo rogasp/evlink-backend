@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth'; // ✅ Skyddad åtkomst
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Loader2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { authFetch } from '@/lib/authFetch';
 
 type Vehicle = {
   id: string;
@@ -33,17 +34,25 @@ type Vehicle = {
 };
 
 export default function VehicleAdminPage() {
-  const { user } = useAuth(); // 🛡️ Skydda tillgång till sidan
+  const { user, accessToken } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Vehicle | null>(null);
 
   const fetchVehicles = async () => {
+    if (!accessToken) return;
     setLoading(true);
     try {
-      const res = await fetch('/backend/api/admin/vehicles');
-      const data = await res.json();
-      setVehicles(data);
+      const res = await authFetch('/admin/vehicles', {
+        method: 'GET',
+        accessToken,
+      });
+
+      if (res.error) {
+        toast.error('Failed to fetch vehicles');
+      } else {
+        setVehicles(res.data || []);
+      }
     } catch (err) {
       console.error('Failed to fetch vehicles', err);
       toast.error('Could not load vehicles');
@@ -120,35 +129,14 @@ export default function VehicleAdminPage() {
                         <DialogTitle>Vehicle Details</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-2 text-sm">
-                        <div>
-                          <strong>ID:</strong> {selected?.id}
-                        </div>
-                        <div>
-                          <strong>User ID:</strong> {selected?.userId}
-                        </div>
-                        <div>
-                          <strong>Vendor:</strong> {selected?.vendor}
-                        </div>
-                        <div>
-                          <strong>Model:</strong> {selected?.information.model}
-                        </div>
-                        <div>
-                          <strong>VIN:</strong> {selected?.information.vin}
-                        </div>
-                        <div>
-                          <strong>Battery:</strong>{' '}
-                          {selected?.chargeState?.batteryLevel ?? '–'}%
-                        </div>
-                        <div>
-                          <strong>Plugged In:</strong>{' '}
-                          {selected?.chargeState?.isPluggedIn ? 'Yes' : 'No'}
-                        </div>
-                        <div>
-                          <strong>Last Seen:</strong>{' '}
-                          {selected?.lastSeen
-                            ? new Date(selected.lastSeen).toLocaleString()
-                            : '–'}
-                        </div>
+                        <div><strong>ID:</strong> {selected?.id}</div>
+                        <div><strong>User ID:</strong> {selected?.userId}</div>
+                        <div><strong>Vendor:</strong> {selected?.vendor}</div>
+                        <div><strong>Model:</strong> {selected?.information.model}</div>
+                        <div><strong>VIN:</strong> {selected?.information.vin}</div>
+                        <div><strong>Battery:</strong> {selected?.chargeState?.batteryLevel ?? '–'}%</div>
+                        <div><strong>Plugged In:</strong> {selected?.chargeState?.isPluggedIn ? 'Yes' : 'No'}</div>
+                        <div><strong>Last Seen:</strong> {selected?.lastSeen ? new Date(selected.lastSeen).toLocaleString() : '–'}</div>
                       </div>
                     </DialogContent>
                   </Dialog>
