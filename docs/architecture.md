@@ -1,130 +1,51 @@
-# System Architecture
+# EVLink Backend Architecture
 
-This document describes the overall architecture of the `evlink-backend` project.
+## Overview
+This backend is built using **FastAPI** and integrates with **Supabase** for authentication and database functionality.
 
----
+## Tech Stack
+- **Frontend**: Next.js
+- **Backend**: FastAPI (Python 3.12)
+- **Auth & DB**: Supabase (Auth, Postgres, RLS)
+- **Deployment**: GitHub Actions + VPS
 
-## 🧱 Overview
-
-The project is a modular backend API designed to:
-
-- Integrate with [Enode](https://www.enode.com/) for EV vehicle data
-- Provide a REST API for a frontend dashboard (HTMX-based)
-- Optionally connect with Home Assistant
-- Be open source and self-hostable
-- Be secure and scalable
-
----
-
-## 🔁 Components
-
-### 1. **API Server (`FastAPI`)**
-
-Handles all API requests. Structured into logical route groups:
-- `public.py`: public unauthenticated routes
-- `external.py`: protected user-level routes
-- `admin.py`: admin-only routes
-- `devtools.py`: local/dev-only tools
-- `public_extra.py`: temporary support for login during development
-
----
-
-### 2. **Storage Layer (`storage.py`)**
-
-SQLite-based local database used to store:
-- Users
-- API keys
-- Cached vehicle data
-- Linked vendors
-
-Simple CRUD functions abstract direct SQL usage.
-
----
-
-### 3. **Enode Integration (`enode.py`)**
-
-Handles:
-- OAuth token retrieval
-- Linking sessions
-- Fetching vehicle metadata
-- Receiving webhook events
-
----
-
-### 4. **Home Assistant Proxy (planned)**
-
-A microservice that communicates between `evlink-backend` and Home Assistant.
-
-Planned features:
-- Push sensor states (e.g., battery, charging, range)
-- Trigger actions (e.g., start charging)
-
----
-
-### 5. **Frontend (HTMX + TailwindCSS)**
-
-Minimal JavaScript. Client renders dynamic dashboards using HTMX and HTML fragments.
-
-Alpine.js may be used later for interactivity.
-
----
-
-### 6. **Authentication**
-
-Currently based on API keys. Stored in the database and attached via `X-API-Key` header.
-
-Future upgrade to JWT is planned.
-
----
-
-## 🌐 Request Flow
-
-```plaintext
-[Browser] → [FastAPI Routes] → [Storage / Enode] → [Cache / Response]
+## Folder Structure
+```
+backend/
+├── app/
+│   ├── api/                # API routes (public, private, admin, system)
+│   ├── auth/               # Supabase JWT auth logic
+│   ├── lib/                # Supabase client logic
+│   ├── storage/            # DB access functions
+│   ├── config.py           # Centralized env var loading
+│   └── main.py             # FastAPI app definition
+├── docs/                   # Documentation files
+└── .env                    # Environment config (local)
 ```
 
-### Example:
-```plaintext
-GET /api/vehicle/demo123/status
- → checks cache
- → if stale, queries Enode
- → returns JSON
-```
+## Auth Flow
+- Frontend handles registration/login via Supabase Auth (GitHub, Magic Link).
+- Frontend stores and sends JWT as Bearer token to backend.
+- Backend verifies token and applies access rules (user, admin, system).
 
----
+## Supabase Keys
+- **Anon Key**: used on frontend.
+- **Service Key**: used on backend for admin/system access.
 
-## 🧪 Testing
+## RLS Strategy
+- RLS is enabled on all sensitive tables.
+- Policies are defined for:
+  - `authenticated` users: only access own data.
+  - `admin` role: full access.
+  - `service` backend: full access (used only in trusted endpoints like webhooks).
 
-All tests are located in `tests/` and separated by:
+## Security Notes
+- All `public` routes avoid Supabase auth.
+- `private` routes require token.
+- `admin` and `system` routes perform role checks.
 
-- `test_access_control.py`: ownership checks
-- `test_public_api.py`: public functionality
-- `test_admin_api.py`: admin endpoint checks
-- `test_dev_api.py`: dev-only behaviors
-
-Test coverage includes permission logic, data validation, and caching.
-
----
-
-## 🧩 Deployment
-
-Works with:
-- Docker
-- VSCode DevContainers
-- WSL2 on Windows
-
-Environments managed via `.env` file.
-
----
-
-## 📈 Future Extensions
-
-- JWT authentication
-- OAuth support (Google login)
-- PostgreSQL migration
-- Integration with more vendors via Enode
-- Web UI admin dashboard
-
----
-
-_Last updated: 2025-04-20_
+## Next Steps
+- Add `private.py` routes.
+- Add vehicle storage + linking.
+- Setup webhook verification.
+- Finalize RLS for `vehicles`, `webhook_logs`.

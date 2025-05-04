@@ -1,8 +1,16 @@
 # backend/app/main.py
 
 from fastapi import FastAPI
-from app.api import me, status
-from app.config import SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+
+from app.api import private, public
+from app.config import (
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_JWT_SECRET,
+)
 
 app = FastAPI(
     title="EVLink Backend",
@@ -10,10 +18,51 @@ app = FastAPI(
     description="Minimal FastAPI backend for secured API access.",
 )
 
-# Include only public (unauthenticated) endpoints for now
-app.include_router(status.router)
-app.include_router(me.router)
+# ✅ Lägg till CORS för localhost:3000 (Next.js)
+origins = ["http://localhost:3000"]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Routers
+app.include_router(public.router, prefix="/api")
+app.include_router(private.router, prefix="/api")
 
-# eyJhbGciOiJIUzI1NiIsImtpZCI6InVodVF6YW0ySFpXYk5RRTgiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3hpcGNnemJzem5sY3F3eWd3bnJnLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI2NzEwNDNlYS05NTVjLTRmNTctYWJhNS00YzcxYTAzNDg0MTIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzQ2MzA4MDQ3LCJpYXQiOjE3NDYzMDQ0NDcsImVtYWlsIjoicm9nZXIuYXNwZWxpbkBob3RtYWlsLnNlIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJnaXRodWIiLCJwcm92aWRlcnMiOlsiZ2l0aHViIl19LCJ1c2VyX21ldGFkYXRhIjp7ImF2YXRhcl91cmwiOiJodHRwczovL2F2YXRhcnMuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3UvOTQ2NzMxND92PTQiLCJlbWFpbCI6InJvZ2VyLmFzcGVsaW5AaG90bWFpbC5zZSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJSb2dlciBBc3BlbGluIiwiaXNzIjoiaHR0cHM6Ly9hcGkuZ2l0aHViLmNvbSIsIm5hbWUiOiJSb2dlciBBc3BlbGluIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJyb2dhc3AiLCJwcm92aWRlcl9pZCI6Ijk0NjczMTQiLCJyb2xlIjoiYWRtaW4iLCJzdWIiOiI5NDY3MzE0IiwidXNlcl9uYW1lIjoicm9nYXNwIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib2F1dGgiLCJ0aW1lc3RhbXAiOjE3NDYzMDQ0NDd9XSwic2Vzc2lvbl9pZCI6IjE4NTBiOTZkLWY3MTgtNGFkOC1iYzcyLWNjZTdmZmZiOTk4NCIsImlzX2Fub255bW91cyI6ZmFsc2V9.65NXRUPST9tjr2tos4slYR8R76gMQsJD1zx4sorpG5s
+# 🔐 Swagger JWT support
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+
+    # 👇 Ensure 'components' and 'securitySchemes' exist
+    if "components" not in openapi_schema:
+        openapi_schema["components"] = {}
+    if "securitySchemes" not in openapi_schema["components"]:
+        openapi_schema["components"]["securitySchemes"] = {}
+
+    openapi_schema["components"]["securitySchemes"]["bearerAuth"] = {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+    }
+
+    for path in openapi_schema["paths"].values():
+        for method in path.values():
+            if "security" not in method:
+                method["security"] = [{"bearerAuth": []}]
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
