@@ -1,8 +1,10 @@
 # 📄 backend/app/api/admin.py
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.responses import JSONResponse
 from app.auth.supabase_auth import get_supabase_user
 from app.enode import delete_enode_user, delete_webhook, get_all_users, get_all_vehicles, subscribe_to_webhooks
+from app.storage.user import get_all_users_with_enode_info
 from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, mark_webhook_as_inactive, save_webhook_subscription, sync_webhook_subscriptions_from_enode
 
 router = APIRouter()
@@ -23,6 +25,13 @@ def require_admin(user=Depends(get_supabase_user)):
 
 
 @router.get("/admin/users")
+async def list_all_users(user=Depends(require_admin)):
+    print(f"👮 Admin {user['id']} requested merged user list (Supabase + Enode)")
+    users = await get_all_users_with_enode_info()
+    print(f"✅ Returning {len(users)} users with merged data")
+    return JSONResponse(content=users)
+
+@router.get("/admin/users2")
 async def list_all_enode_users(user=Depends(require_admin)):
     print(f"👮 Admin {user['id']} requested list of Enode users")
     try:

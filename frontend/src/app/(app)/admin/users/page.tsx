@@ -13,32 +13,29 @@ import {
 } from '@/components/ui/dialog';
 import { authFetch } from '@/lib/authFetch';
 
-type EnodeUser = {
+type AdminUserView = {
   id: string;
-  createdAt?: string;
+  full_name?: string;
+  email: string;
+  is_admin: boolean;
+  linked_to_enode: boolean;
+  linked_at?: string | null;
 };
 
 export default function UserAdminPage() {
   const { user, accessToken } = useAuth();
-  const [users, setUsers] = useState<EnodeUser[]>([]);
+  const [users, setUsers] = useState<AdminUserView[]>([]);
   const [loading, setLoading] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (accessToken) {
-      fetchUsers();
-    }
+    if (accessToken) fetchUsers();
   }, [accessToken]);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      
-      if (!accessToken) {
-        console.warn("No access token found. Skipping fetch.");
-        return;
-      }
-
+      if (!accessToken) return;
       const res = await authFetch('/admin/users', {
         method: 'GET',
         accessToken,
@@ -99,22 +96,42 @@ export default function UserAdminPage() {
 
       <div className="border rounded-lg overflow-hidden mt-4">
         <table className="w-full text-sm text-left">
-          <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-            <tr>
-              <th className="px-4 py-2">User ID</th>
-              <th className="px-4 py-2">Created</th>
-              <th className="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-t">
-                <td className="px-4 py-2">{u.id}</td>
-                <td className="px-4 py-2">
-                  {u.createdAt ? new Date(u.createdAt).toLocaleString() : '–'}
-                </td>
-                <td className="px-4 py-2">
-                  <Button
+        <thead>
+          <tr>
+            <th className="px-4 py-2">User ID</th>
+            <th className="px-4 py-2">Name</th>
+            <th className="px-4 py-2">Email</th>
+            <th className="px-4 py-2">Admin</th>
+            <th className="px-4 py-2">Enode Connected</th>
+            <th className="px-4 py-2">Connected At</th>
+            <th className="px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((u) => (
+            <tr key={u.id} className="border-t">
+              <td className="px-4 py-2">{u.id}</td>
+              <td className="px-4 py-2">{u.full_name || '–'}</td>
+              <td className="px-4 py-2">{u.email}</td>
+              <td className="px-4 py-2">
+                {u.is_admin ? (
+                  <span className="text-green-600 font-semibold">Yes</span>
+                ) : (
+                  <span className="text-gray-500">No</span>
+                )}
+              </td>
+              <td className="px-4 py-2">
+                {u.linked_to_enode ? (
+                  <span className="text-green-600 font-bold">✓</span>
+                ) : (
+                  <span className="text-red-500 font-bold">✗</span>
+                )}
+              </td>
+              <td className="px-4 py-2">
+                {u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}
+              </td>
+              <td className="px-4 py-2">
+              <Button
                     size="icon"
                     variant="destructive"
                     onClick={() => setConfirmDeleteId(u.id)}
@@ -122,17 +139,17 @@ export default function UserAdminPage() {
                   >
                     <Trash className="w-4 h-4" />
                   </Button>
-                </td>
-              </tr>
-            ))}
-            {!loading && users.length === 0 && (
+              </td>
+            </tr>
+          ))}
+          {!loading && users.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-4 py-4 text-center text-gray-500">
                   No users found.
                 </td>
               </tr>
             )}
-          </tbody>
+        </tbody>
         </table>
       </div>
 
