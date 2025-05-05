@@ -8,7 +8,11 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function LinkCallbackPage() {
   const router = useRouter();
+<<<<<<< HEAD
+  const { accessToken, loading } = useAuth();
+=======
   const { accessToken, user, loading } = useAuth();
+>>>>>>> origin/dev
 
   useEffect(() => {
     if (loading || !accessToken) return;

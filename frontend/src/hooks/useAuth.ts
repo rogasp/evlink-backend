@@ -3,9 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+<<<<<<< HEAD
+import type { User } from '@supabase/supabase-js';
+
+export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {}) {
+  const [user, setUser] = useState<User | null>(null);
+=======
 
 export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {}) {
   const [user, setUser] = useState<any>(null);
+>>>>>>> origin/dev
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();

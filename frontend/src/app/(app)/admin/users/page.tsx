@@ -1,6 +1,10 @@
 'use client';
 
+<<<<<<< HEAD
+import { useEffect, useState, useCallback } from 'react';
+=======
 import { useEffect, useState } from 'react';
+>>>>>>> origin/dev
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Loader2, Trash } from 'lucide-react';
@@ -28,11 +32,16 @@ export default function UserAdminPage() {
   const [loading, setLoading] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+<<<<<<< HEAD
+  // ✅ Memoized version of fetchUsers
+  const fetchUsers = useCallback(async () => {
+=======
   useEffect(() => {
     if (accessToken) fetchUsers();
   }, [accessToken]);
 
   const fetchUsers = async () => {
+>>>>>>> origin/dev
     setLoading(true);
     try {
       if (!accessToken) return;
@@ -52,7 +61,12 @@ export default function UserAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  // 🔁 Run on first load
+  useEffect(() => {
+    if (accessToken) fetchUsers();
+  }, [accessToken, fetchUsers]);
 
   const confirmAndDelete = async () => {
     if (!confirmDeleteId || !accessToken) return;
@@ -66,7 +80,11 @@ export default function UserAdminPage() {
         toast.error('Failed to delete user');
       } else {
         toast.success('User deleted');
+<<<<<<< HEAD
+        fetchUsers(); // 🔁 Refresh after delete
+=======
         fetchUsers();
+>>>>>>> origin/dev
       }
     } catch (err) {
       console.error(err);
@@ -96,6 +114,44 @@ export default function UserAdminPage() {
 
       <div className="border rounded-lg overflow-hidden mt-4">
         <table className="w-full text-sm text-left">
+<<<<<<< HEAD
+          <thead>
+            <tr>
+              <th className="px-4 py-2">User ID</th>
+              <th className="px-4 py-2">Name</th>
+              <th className="px-4 py-2">Email</th>
+              <th className="px-4 py-2">Admin</th>
+              <th className="px-4 py-2">Enode Connected</th>
+              <th className="px-4 py-2">Connected At</th>
+              <th className="px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id} className="border-t">
+                <td className="px-4 py-2">{u.id}</td>
+                <td className="px-4 py-2">{u.full_name || '–'}</td>
+                <td className="px-4 py-2">{u.email}</td>
+                <td className="px-4 py-2">
+                  {u.is_admin ? (
+                    <span className="text-green-600 font-semibold">Yes</span>
+                  ) : (
+                    <span className="text-gray-500">No</span>
+                  )}
+                </td>
+                <td className="px-4 py-2">
+                  {u.linked_to_enode ? (
+                    <span className="text-green-600 font-bold">✓</span>
+                  ) : (
+                    <span className="text-red-500 font-bold">✗</span>
+                  )}
+                </td>
+                <td className="px-4 py-2">
+                  {u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}
+                </td>
+                <td className="px-4 py-2">
+                  <Button
+=======
         <thead>
           <tr>
             <th className="px-4 py-2">User ID</th>
@@ -132,6 +188,7 @@ export default function UserAdminPage() {
               </td>
               <td className="px-4 py-2">
               <Button
+>>>>>>> origin/dev
                     size="icon"
                     variant="destructive"
                     onClick={() => setConfirmDeleteId(u.id)}
@@ -144,7 +201,7 @@ export default function UserAdminPage() {
           ))}
           {!loading && users.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-4 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
                   No users found.
                 </td>
               </tr>
