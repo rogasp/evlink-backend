@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Loader2, Eye } from 'lucide-react';
@@ -39,7 +39,7 @@ export default function VehicleAdminPage() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Vehicle | null>(null);
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     if (!accessToken) return;
     setLoading(true);
     try {
@@ -59,13 +59,13 @@ export default function VehicleAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     if (user) {
       fetchVehicles();
     }
-  }, [user]);
+  }, [user, fetchVehicles]);
 
   if (!user) return null;
 

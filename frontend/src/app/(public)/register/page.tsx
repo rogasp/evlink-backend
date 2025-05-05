@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { apiFetchSafe } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,6 @@ interface ApiResponse<T> {
 }
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -83,9 +81,9 @@ export default function RegisterPage() {
           <div className="text-center space-y-4 text-sm text-gray-700">
             <h2 className="text-lg font-semibold text-indigo-700">Almost there!</h2>
             <p>
-              We've sent a magic login link to <strong>{email}</strong>.
+              We&apos;ve sent a magic login link to <strong>{email}</strong>.
             </p>
-            <p>Don't forget to check your spam folder.</p>
+            <p>Don&apos;t forget to check your spam folder.</p>
             <p className="text-xs text-gray-500">
               Sent from <em>Supabase Auth &lt;noreply@mail.app.supabase.io&gt;</em>
             </p>

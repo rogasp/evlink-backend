@@ -1,7 +1,6 @@
 'use client';
 
 import { PropsWithChildren } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import { SupabaseContext } from '@/lib/supabaseContext'; // skapar vi nedan
 import { useState } from 'react';
 import { createBrowserClient as createClient } from '@supabase/ssr';

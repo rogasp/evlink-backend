@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,6 @@ const allowRegister = process.env.NEXT_PUBLIC_ALLOW_REGISTER === 'true';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
     e.preventDefault();

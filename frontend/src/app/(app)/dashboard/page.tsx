@@ -2,19 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
 import { authFetch } from '@/lib/authFetch';
-import VendorSelect from '@/components/VendorSelect';
 import VehicleTable from '@/components/VehicleTable';
 import type { Vehicle } from '@/components/VehicleTable';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,14 +10,11 @@ import LinkVehicleDialog from '@/components/dashboard/LinkVehicleDialog';
 
 export default function DashboardPage() {
   const { user, accessToken, loading } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState('');
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
   useEffect(() => {
     const fetchVehicles = async () => {
       if (!accessToken) return;
-      console.log(accessToken)
       const { data, error } = await authFetch('/user/vehicles', {
         method: 'GET',
         accessToken,
@@ -59,34 +44,8 @@ export default function DashboardPage() {
     fetchVehicles();
   }, [accessToken]);
 
-  const handleLinkVehicle = async () => {
-    if (!selectedVendor || !accessToken) {
-      toast.error('Missing vendor selection or session.');
-      return;
-    }
-
-    try {
-      const { data, error } = await authFetch('/user/link-vehicle', {
-        method: 'POST',
-        accessToken,
-        body: JSON.stringify({ vendor: selectedVendor }),
-      });
-
-      if (error || !data?.url || !data?.linkToken) {
-        toast.error('Failed to initiate vehicle linking.');
-        return;
-      }
-
-      localStorage.setItem('linkToken', data.linkToken);
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Link vehicle error:', error);
-      toast.error('Unexpected error during vehicle linking.');
-    }
-  };
-
   if (loading) return <p className="p-4">Loading session...</p>;
-  if (loading || !user || !accessToken) return null;
+  if (!user || !accessToken) return null;
 
   return (
     <main className="min-h-screen p-6 bg-gray-50">
@@ -103,4 +62,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-
