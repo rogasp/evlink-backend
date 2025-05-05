@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useSupabase } from '@/lib/supabaseContext';
 import { useEffect, useState } from 'react';
 import UserAvatarMenu from './UserAvatarMenu';
+import { Badge } from '@/components/ui/badge'; // shadcn
 
 export default function Navbar() {
   const { supabase } = useSupabase();
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const [userName, setUserName] = useState<string | undefined>();
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -20,6 +22,7 @@ export default function Navbar() {
       if (user) {
         setAvatarUrl(user.user_metadata?.avatar_url);
         setUserName(user.user_metadata?.name || user.email);
+        setIsAdmin(user.user_metadata?.role === 'admin');
       }
     };
 
@@ -48,7 +51,10 @@ export default function Navbar() {
         </Link>
       </div>
 
-      <UserAvatarMenu avatarUrl={avatarUrl} fallback={fallback} />
+      <div className="flex items-center gap-2">
+        {isAdmin && <Badge variant="secondary">Admin</Badge>}
+        <UserAvatarMenu avatarUrl={avatarUrl} fallback={fallback} />
+      </div>
     </nav>
   );
 }

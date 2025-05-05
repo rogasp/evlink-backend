@@ -1,60 +1,39 @@
 # backend/app/storage/user.py
+from app.lib.supabase import get_supabase_admin_client
+from app.enode import get_all_users as get_enode_users
+import asyncio
 
-from app.storage.db import supabase
-from uuid import uuid4
-from datetime import datetime
-from typing import Optional
+supabase = get_supabase_admin_client()
 
-
-def create_user(email: str, name: str, hashed_password: str) -> dict:
-    user_id = str(uuid4())
+async def get_all_users_with_enode_info():
+    
     try:
-        response = supabase.table("users").insert({
-            "id": user_id,
-            "email": email,
-            "name": name,
-            "hashed_password": hashed_password,
-            "created_at": datetime.utcnow().isoformat()
-        }).execute()
-        return response.data[0] if response.data else {}
+        print("🔎 Fetching Supabase users...")
+        res = supabase.table("users").select("id, email, name, role").limit(1000).execute()
+        users = res.data or []
+        print(f"ℹ️ Found {len(users)} users in Supabase")
+
+        print("🔄 Fetching Enode users...")
+        enode_data = await get_enode_users()
+        enode_users = enode_data.get("data", [])
+        enode_lookup = {u["id"]: u for u in enode_users}
+        print(f"ℹ️ Found {len(enode_users)} users in Enode")
+
+        enriched = []
+        for user in users:
+            uid = user["id"]
+            enode_match = enode_lookup.get(uid)
+
+            enriched.append({
+                "id": uid,
+                "full_name": user.get("name"),
+                "email": user.get("email"),
+                "is_admin": user.get("role") == "admin",
+                "linked_to_enode": enode_match is not None,
+                "linked_at": enode_match.get("createdAt") if enode_match else None,
+            })
+
+        return enriched
     except Exception as e:
-        print(f"❌ create_user() failed for {email}: {e}")
-        return {}
-
-
-def get_user_by_email(email: str):
-    try:
-        response = supabase.table("users").select("*").eq("email", email).maybe_single().execute()
-        if response is None or response.data is None:
-            print(f"⚠️ get_user_by_email({email}) returned no data")
-            return None
-        return response.data
-    except Exception as e:
-        print(f"❌ get_user_by_email({email}) failed: {e}")
-        return None
-
-
-def get_user(user_id: str) -> Optional[dict]:
-    try:
-        response = supabase.table("users").select("id, email, created_at").eq("id", user_id).maybe_single().execute()
-        return response.data
-    except Exception as e:
-        print(f"❌ get_user({user_id}) failed: {e}")
-        return None
-
-
-def user_exists(user_id: str) -> bool:
-    try:
-        response = supabase.table("users").select("id").eq("id", user_id).maybe_single().execute()
-        return bool(response.data)
-    except Exception as e:
-        print(f"❌ user_exists({user_id}) failed: {e}")
-        return False
-
-
-def update_user_email(user_id: str, new_email: str):
-    try:
-        supabase.table("users").update({"email": new_email}).eq("id", user_id).execute()
-        print(f"📧 Updated email for user {user_id} to {new_email}")
-    except Exception as e:
-        print(f"❌ update_user_email({user_id}) failed: {e}")
+        print(f"[❌ get_all_users_with_enode_info] {e}")
+        return []

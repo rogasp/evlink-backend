@@ -18,6 +18,7 @@ import VendorSelect from '@/components/VendorSelect';
 import VehicleTable from '@/components/VehicleTable';
 import type { Vehicle } from '@/components/VehicleTable';
 import { useAuth } from '@/hooks/useAuth';
+import LinkVehicleDialog from '@/components/dashboard/LinkVehicleDialog';
 
 export default function DashboardPage() {
   const { user, accessToken, loading } = useAuth();
@@ -28,7 +29,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchVehicles = async () => {
       if (!accessToken) return;
-
+      console.log(accessToken)
       const { data, error } = await authFetch('/user/vehicles', {
         method: 'GET',
         accessToken,
@@ -85,7 +86,7 @@ export default function DashboardPage() {
   };
 
   if (loading) return <p className="p-4">Loading session...</p>;
-  if (!user) return null; // redan redirectad av useAuth
+  if (loading || !user || !accessToken) return null;
 
   return (
     <main className="min-h-screen p-6 bg-gray-50">
@@ -94,39 +95,7 @@ export default function DashboardPage() {
       </h1>
 
       <div className="mb-8">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="default">Link Vehicle</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Link a new vehicle</DialogTitle>
-              <DialogDescription>
-                Choose a vendor to start linking your vehicle.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="py-4 space-y-4">
-              <VendorSelect
-                selectedVendor={selectedVendor}
-                onChange={(value) => setSelectedVendor(value)}
-              />
-              <Button
-                variant="default"
-                onClick={handleLinkVehicle}
-                disabled={!selectedVendor}
-              >
-                Link Now
-              </Button>
-            </div>
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="secondary">Close</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <LinkVehicleDialog accessToken={accessToken} />
       </div>
 
       {/* 🚗 Vehicle Table */}
@@ -134,3 +103,4 @@ export default function DashboardPage() {
     </main>
   );
 }
+

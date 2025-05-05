@@ -2,51 +2,39 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { authFetch } from "@/lib/authFetch";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LinkCallbackPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { accessToken, user, loading } = useAuth();
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (loading || !accessToken) return;
 
-    console.log("[🔁 link-callback] Running useEffect");
+    const linkToken = typeof window !== "undefined"
+      ? localStorage.getItem("linkToken")
+      : null;
 
-    const linkToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("linkToken")
-        : null;
-
-    console.log("[📦 link-callback] Retrieved linkToken:", linkToken);
-    console.log("[📦 link-callback] Session accessToken:", session?.accessToken);
-
-    if (!linkToken || !session?.accessToken) {
-      console.warn("[⚠️ link-callback] Missing token or session");
+    if (!linkToken || !accessToken) {
       toast.error("Missing link token or session");
       router.push("/dashboard");
       return;
     }
 
     const sendResult = async () => {
-      console.log("[📡 link-callback] Sending token to backend");
-
       const { data, error } = await authFetch("/user/link-result", {
         method: "POST",
-        accessToken: session.accessToken as string,
+        accessToken,
         body: JSON.stringify({ linkToken }),
       });
 
-      // Remove token from storage after use
       localStorage.removeItem("linkToken");
 
       if (error) {
-        console.error("[❌ link-callback] Error from backend:", error);
         toast.error("Link result failed");
       } else {
-        console.log("[✅ link-callback] Vehicle linked:", data);
         toast.success(`Vehicle linked: ${data.vendor || "Success"}`);
       }
 
@@ -56,7 +44,7 @@ export default function LinkCallbackPage() {
     };
 
     sendResult();
-  }, [status, router, session]);
+  }, [loading, accessToken, router]);
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">

@@ -1,0 +1,9 @@
+[project]
+name = "evlink-backend"
+version = "0.1.0"
+description = "FastAPI backend for EVLink"
+authors = [{name = "EVLink"}]
+dependencies = []
+
+[tool.setuptools]
+packages = ["app"]
