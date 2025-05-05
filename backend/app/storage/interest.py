@@ -1,20 +1,22 @@
-import json
-from datetime import datetime
-from app.storage.db import supabase
+# 📄 backend/app/storage/interest.py
+
+import logging
+from app.lib.supabase import get_supabase_admin_client
+
 
 def save_interest(name: str, email: str) -> None:
+    """
+    Save interest submission to the Supabase 'interest' table.
+    This uses the service role key (admin) to bypass RLS for public inserts.
+    """
     try:
-        created_at = datetime.utcnow().isoformat()
+        payload = {"name": name, "email": email}
+        response = get_supabase_admin_client().table("interest").insert(payload).execute()
 
-        res = supabase.table("interest_submissions").insert({
-            "name": name,
-            "email": email,
-            "created_at": created_at
-        }).execute()
-
-        if not res.data:
-            print(f"❌ save_interest() failed: {res}")
+        if hasattr(response, "error") and response.error:
+            logging.error(f"[❌ save_interest] Supabase error: {response.error}")
         else:
-            print(f"✅ Interest from {email} saved successfully.")
+            logging.info(f"[✅ save_interest] Interest saved for: {email}")
+
     except Exception as e:
-        print(f"❌ save_interest() exception: {e}")
+        logging.exception(f"[❌ save_interest] Exception occurred while saving interest: {e}")

@@ -1,19 +1,20 @@
-# app/config.py
-
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-CACHE_EXPIRATION_MINUTES: int = int(os.getenv("CACHE_EXPIRATION_MINUTES", 10))  # Default to 10 minutes
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
+
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 ENODE_WEBHOOK_SECRET = os.getenv("ENODE_WEBHOOK_SECRET")
+ENODE_BASE_URL = os.getenv("ENODE_BASE_URL")
+ENODE_AUTH_URL = os.getenv("ENODE_AUTH_URL")
+CLIENT_ID = os.getenv("ENODE_CLIENT_ID")
+CLIENT_SECRET = os.getenv("ENODE_CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
+USE_MOCK = os.getenv("MOCK_LINK_RESULT", "false").lower() == "true"
 
-class Settings:
-    ENODE_CLIENT_ID: str = os.getenv("ENODE_CLIENT_ID")
-    ENODE_CLIENT_SECRET: str = os.getenv("ENODE_CLIENT_SECRET")
-    ENODE_BASE_URL: str = os.getenv("ENODE_BASE_URL", "https://enode-api.sandbox.enode.io")
-    ENODE_AUTH_URL: str = os.getenv("ENODE_AUTH_URL", "https://oauth.sandbox.enode.io/oauth2/token")
-    REDIRECT_URI: str = os.getenv("REDIRECT_URI")
-    
-
-
-settings = Settings()
+CACHE_EXPIRATION_MINUTES = int(os.getenv("CACHE_EXPIRATION_MINUTES", 5))
