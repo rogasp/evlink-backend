@@ -1,6 +1,10 @@
 'use client';
 
+<<<<<<< HEAD
+import { useEffect, useState, useCallback } from 'react';
+=======
 import { useEffect, useState } from 'react';
+>>>>>>> origin/dev
 import { useAuth } from '@/hooks/useAuth';
 import { WebhookLogTable } from '@/components/webhooks/WebhookLogTable';
 import { EventFilterSelect } from '@/components/webhooks/EventFilterSelect';
@@ -32,6 +36,51 @@ export default function WebhookLogPage() {
       setSelectedEvent(saved);
     }
   }, []);
+<<<<<<< HEAD
+
+  // ✅ useCallback to stabilize fetchLogs between renders
+  const fetchLogs = useCallback(
+    async (event: string | null, limit: number) => {
+      try {
+        let url = `/webhook/logs?limit=${limit}`;
+        if (event) {
+          url += `&event=${encodeURIComponent(event)}`;
+        }
+        if (!accessToken) {
+          console.warn("No access token found. Skipping fetch.");
+          return;
+        }
+
+        const res = await authFetch(url.toString(), {
+          method: 'GET',
+          accessToken,
+        });
+
+        if (res.data) {
+          setLogs(res.data);
+          setLogCount(res.data.length);
+        } else {
+          console.error('❌ Failed to load logs:', res.error);
+          setLogs([]);
+          setLogCount(0);
+        }
+      } catch (err) {
+        console.error('❌ Exception during fetchLogs:', err);
+        setLogs([]);
+        setLogCount(0);
+      }
+    },
+    [accessToken]
+  );
+
+  // 🔁 Fetch logs whenever filter or limit changes
+  useEffect(() => {
+    const event = selectedEvent === '__all__' ? null : selectedEvent;
+    if (accessToken) {
+      fetchLogs(event, limit);
+    }
+  }, [selectedEvent, limit, accessToken, fetchLogs]);
+=======
 
   // 🔁 Fetch logs whenever filter or limit changes
   useEffect(() => {
@@ -71,6 +120,7 @@ export default function WebhookLogPage() {
       setLogCount(0);
     }
   };
+>>>>>>> origin/dev
 
   const handleFilterChange = (value: string) => {
     localStorage.setItem(FILTER_KEY, value);
