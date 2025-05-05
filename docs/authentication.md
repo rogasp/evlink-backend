@@ -1,101 +1,73 @@
-# Authentication Strategy
+# Authentication and API Key Management
 
-This document outlines the current and planned authentication mechanisms for the EvLink backend.
+This document describes how authentication and authorization are handled in the EVLink backend using Supabase and FastAPI.
 
----
+## 🔐 Supabase Authentication Flow
 
-## ✅ Current Status
+- Frontend (Next.js) authenticates users via Supabase using GitHub or magic link.
+- The frontend receives an access token (JWT) and passes it as a Bearer token to the FastAPI backend.
+- The backend verifies the JWT using `SUPABASE_JWT_SECRET`.
+- Role and user ID are extracted from the token and used for authorization and RLS enforcement.
 
-Authentication is currently handled via **API keys** that are stored in the local SQLite database. These keys are sent in the `X-API-Key` header.
+## 🧪 Verified Token Handling
 
-- Each API key is tied to a `user_id`
-- Keys are manually fetched or created through public endpoints (for development only)
-
-```http
-GET /api/user/{user_id}
-Header: X-API-Key: abc123...
+The following helper is used:
+```python
+@router.get("/api/user/vehicles")
+async def get_user_vehicles(user=Depends(get_supabase_user)):
 ```
 
----
-
-## 🔐 Planned Transition: JWT-based Authentication
-
-We plan to transition from API keys to **JWT tokens** for better security and user session management.
-
-### Why JWT?
-
-- Stateless and secure
-- Expiration and refresh support
-- Widely compatible with external identity providers (e.g. Google, Auth0)
+### `get_supabase_user()`
+- Verifies Bearer token
+- Extracts `user_id`, `email`, `role`
+- Returns dict for further use
 
 ---
 
-## 🛠️ Implementation Plan
+## 🔑 API Key Endpoints
 
-| Phase | Description |
-|-------|-------------|
-| 1     | Keep API key access for internal/dev routes |
-| 2     | Introduce JWT token generation via `/api/token` |
-| 3     | Implement JWT-required protected routes |
-| 4     | Fully replace API key usage in frontend/backend |
+| Method | Endpoint                                 | Auth Required | Description                      |
+|--------|------------------------------------------|---------------|----------------------------------|
+| POST   | `/api/users/{user_id}/apikey`            | ✅ Yes        | Creates a new API key            |
+| GET    | `/api/users/{user_id}/apikey`            | ✅ Yes        | Gets metadata of active API key |
+
+### Behavior
+- On creation, all old keys for the user are deactivated
+- Only one `active=True` key is allowed at a time
 
 ---
 
-## 🧪 Development Token Endpoint
+## 🔐 Supabase RLS Policy for `api_keys`
 
-A temporary development endpoint `/api/token` allows local-only access to a static JWT token.
-
-```http
-GET /api/token
-Header: Host: localhost
+### Insert
+```sql
+CREATE POLICY "Allow user to insert own api_key"
+ON api_keys
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
 ```
 
-Access is blocked for all external domains.
-
----
-
-## 🔗 Optional External Providers
-
-We are considering allowing external authentication via:
-
-- Google OAuth2
-- GitHub login
-- Auth0 or Supabase
-
-This would reduce the need to manage user credentials manually.
-
----
-
-## 🔍 Authorization Strategy
-
-Access to resources (e.g. vehicles, vendors) is tied to the `user_id` inside the JWT or API key. The backend enforces:
-
-- **Ownership**: Users may only access their own data
-- **Admin role**: Special keys or tokens can be marked as admin for privileged routes
-
----
-
-## 📁 Token Structure
-
-JWT tokens (when implemented) will include:
-
-```json
-{
-  "sub": "testuser",
-  "role": "user",
-  "iat": 1234567890,
-  "exp": 1234569999
-}
+### Update (to deactivate)
+```sql
+CREATE POLICY "Allow user to deactivate own api_key"
+ON api_keys
+FOR UPDATE
+USING (
+  auth.uid() = user_id AND
+  active = false
+);
 ```
 
----
-
-## ⚠️ Security Considerations
-
-- Tokens should have short expiration and support refresh
-- Use HTTPS only in production
-- Consider rotating secret keys and revocation strategy
+### Read/Delete
+No policy exists → only backend system or admin via service role key can access these.
 
 ---
 
-_Last updated: 2025-04-20_
+## 🔍 Logging Example
+
+```
+🔑 Creating API key for user: 671043ea-955c-4f57-aba5-4c71a0348412
+[🔄 create_api_key] Deactivating old keys for user_id: ...
+[📤 insert] Storing new key with ID: ...
+✅ API key created for user: ...
+```
