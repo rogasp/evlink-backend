@@ -4,8 +4,37 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
 export default function LandingPage() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleInterestSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { data, error }: ApiResponse<{ message?: string }> = await apiFetchSafe('/interest', {
+        method: 'POST',
+        body: JSON.stringify({ name, email }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (error) throw new Error(error.message || 'Submission failed');
+      toast.success(data?.message || 'Thank you for your interest!');
+      setName('');
+      setEmail('');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      console.error('Interest submission error:', err);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-white text-gray-900">
+      <section className="relative z-0 bg-gradient-to-br from-indigo-100 via-white to-white py-24">
       <section className="relative z-0 bg-gradient-to-br from-indigo-100 via-white to-white py-24">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <h1 className="text-5xl font-extrabold text-indigo-700 mb-6">
