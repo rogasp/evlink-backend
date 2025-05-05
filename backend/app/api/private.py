@@ -2,14 +2,23 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 from datetime import datetime, timezone, timedelta
+
+from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
-from app.enode import get_user_vehicles_enode
+from app.enode import create_link_session, get_user_vehicles_enode
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.vehicle import get_all_cached_vehicles, save_vehicle_data_with_client
 
 router = APIRouter()
 
 CACHE_EXPIRATION_MINUTES = 5
+
+class LinkVehicleRequest(BaseModel):
+    vendor: str
+
+class LinkVehicleResponse(BaseModel):
+    url: str
+    linkToken: str 
 
 @router.get("/user/vehicles", response_model=list)
 async def get_user_vehicles(user=Depends(get_supabase_user)):
@@ -66,7 +75,6 @@ async def create_user_api_key(user_id: str = Path(...), user=Depends(get_supabas
     print(f"✅ API key created for user: {user_id}")
     return {"api_key": raw_key}
 
-
 @router.get("/users/{user_id}/apikey")
 async def get_user_api_key_info(user_id: str = Path(...), user=Depends(get_supabase_user)):
     if user["id"] != user_id:
@@ -84,4 +92,37 @@ async def get_user_api_key_info(user_id: str = Path(...), user=Depends(get_supab
     else:
         print(f"⚠️ No API key found for user: {user_id}")
         return {"api_key_masked": None}
+    
+@router.post("/user/link-vehicle", response_model=LinkVehicleResponse)
+async def api_create_link_session(
+    request: LinkVehicleRequest,
+    user=Depends(get_supabase_user),
+):
+    """
+    Create a linking session for a vehicle vendor via Enode v3
+    """
+    try:
+        user_id = user["id"]
+        print(f"🔗 Creating link session for user {user_id} and vendor {request.vendor}")
+
+        session = await create_link_session(user_id=user_id, vendor=request.vendor)
+
+        link_url = session.get("linkUrl")
+        link_token = session.get("linkToken")
+
+        if not link_url or not link_token:
+            print(f"❌ Invalid session response from Enode: {session}")
+            raise HTTPException(status_code=500, detail="Missing 'linkUrl' or 'linkToken' in Enode response")
+
+        print(f"✅ Link session created for {user_id}: {link_url}")
+        return LinkVehicleResponse(
+            url=link_url,
+            linkToken=link_token
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[❌ ERROR] Failed to create link session: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create link session: {str(e)}")
     

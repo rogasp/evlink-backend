@@ -23,24 +23,12 @@ def require_admin(user=Depends(get_supabase_user)):
     print(f"✅ Admin access granted to user {user['id']}")
     return user
 
-
 @router.get("/admin/users")
 async def list_all_users(user=Depends(require_admin)):
     print(f"👮 Admin {user['id']} requested merged user list (Supabase + Enode)")
     users = await get_all_users_with_enode_info()
     print(f"✅ Returning {len(users)} users with merged data")
     return JSONResponse(content=users)
-
-@router.get("/admin/users2")
-async def list_all_enode_users(user=Depends(require_admin)):
-    print(f"👮 Admin {user['id']} requested list of Enode users")
-    try:
-        data = await get_all_users()
-        print(f"✅ Fetched {len(data.get('data', []))} users from Enode")
-        return data.get("data", [])
-    except Exception as e:
-        print(f"[❌ Enode API] Failed to fetch users: {e}")
-        raise HTTPException(status_code=502, detail="Failed to fetch users from Enode")
     
 @router.delete("/admin/users/{user_id}")
 async def remove_user(user_id: str, user=Depends(require_admin)):

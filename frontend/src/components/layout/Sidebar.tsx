@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth'; // 👈 Importera auth
 import SidebarSection from './SidebarSection';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuth(); // 👈 Hämta inloggad användare
 
   const baseLinks = [
     { href: '/dashboard', label: 'Dashboard' },
@@ -19,6 +21,8 @@ export default function Sidebar() {
     { href: '/admin/webhooks', label: 'Webhooks' },
     { href: '/admin/logs', label: 'Logs' },
   ];
+
+  const isAdmin = user?.user_metadata?.role === 'admin';
 
   return (
     <aside className="w-64 min-h-screen bg-gray-100 p-4 shadow-md flex flex-col">
@@ -35,7 +39,7 @@ export default function Sidebar() {
           </Link>
         ))}
 
-        <SidebarSection label="Admin" items={adminLinks} />
+        {isAdmin && <SidebarSection label="Admin" items={adminLinks} />}
       </nav>
     </aside>
   );
