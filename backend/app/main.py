@@ -14,7 +14,7 @@ from app.config import (
 
 app = FastAPI(
     title="EVLink Backend",
-    version="0.1.0",
+    version="0.2.0",
     description="Minimal FastAPI backend for secured API access.",
 )
 
