@@ -1,49 +1,44 @@
 'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { authFetch } from "@/lib/authFetch";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { authFetch } from '@/lib/authFetch';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LinkCallbackPage() {
   const router = useRouter();
-<<<<<<< HEAD
   const { accessToken, loading } = useAuth();
-=======
-  const { accessToken, user, loading } = useAuth();
->>>>>>> origin/dev
 
   useEffect(() => {
     if (loading || !accessToken) return;
 
-    const linkToken = typeof window !== "undefined"
-      ? localStorage.getItem("linkToken")
-      : null;
+    const linkToken =
+      typeof window !== 'undefined' ? localStorage.getItem('linkToken') : null;
 
     if (!linkToken || !accessToken) {
-      toast.error("Missing link token or session");
-      router.push("/dashboard");
+      toast.error('Missing link token or session');
+      router.push('/dashboard');
       return;
     }
 
     const sendResult = async () => {
-      const { data, error } = await authFetch("/user/link-result", {
-        method: "POST",
+      const { data, error } = await authFetch('/user/link-result', {
+        method: 'POST',
         accessToken,
         body: JSON.stringify({ linkToken }),
       });
 
-      localStorage.removeItem("linkToken");
+      localStorage.removeItem('linkToken');
 
       if (error) {
-        toast.error("Link result failed");
+        toast.error('Link result failed');
       } else {
-        toast.success(`Vehicle linked: ${data.vendor || "Success"}`);
+        toast.success(`Vehicle linked: ${data.vendor || 'Success'}`);
       }
 
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push('/dashboard');
       }, 2500);
     };
 

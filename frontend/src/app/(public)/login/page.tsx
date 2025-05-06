@@ -1,10 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-<<<<<<< HEAD
-=======
-import { useRouter } from 'next/navigation';
->>>>>>> origin/dev
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -16,7 +12,6 @@ const allowRegister = process.env.NEXT_PUBLIC_ALLOW_REGISTER === 'true';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,16 +78,14 @@ export default function LoginPage() {
               />
               <span>Continue with GitHub</span>
             </Button>
-          </>
-        )}
 
-        {allowRegister && (
-          <p className="text-center text-xs text-gray-500 mt-6">
-            Don’t have an account?{' '}
-            <a href="/register" className="text-indigo-600 hover:underline">
-              Click here to register
-            </a>
-          </p>
+            <p className="text-center text-xs text-gray-500 mt-6">
+              Don&apos;t have an account?{' '}
+              <a href="/register" className="text-indigo-600 hover:underline">
+                Click here to register
+              </a>
+            </p>
+          </>
         )}
       </div>
     </main>
