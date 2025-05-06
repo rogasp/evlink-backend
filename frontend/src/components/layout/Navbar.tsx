@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { useSupabase } from '@/lib/supabaseContext';
 import { useEffect, useState } from 'react';
 import UserAvatarMenu from './UserAvatarMenu';
-import { Badge } from '@/components/ui/badge'; // shadcn
+import { Badge } from '@/components/ui/badge';
+import { useRegistrationStatus } from '@/contexts/RegistrationContext';
 
 export default function Navbar() {
   const { supabase } = useSupabase();
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const [userName, setUserName] = useState<string | undefined>();
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const { registrationAllowed } = useRegistrationStatus();
 
   useEffect(() => {
     const getUserData = async () => {
@@ -52,7 +54,25 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        {isAdmin && <Badge variant="secondary">Admin</Badge>}
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            {registrationAllowed === false && (
+              <Link href="/admin/settings">
+                <Badge
+                  variant="outline"
+                  className="border-red-500 text-red-500 cursor-pointer hover:underline"
+                >
+                  Registration Closed
+                </Badge>
+              </Link>
+            )}
+            <Link href="/admin/settings">
+              <Badge variant="secondary" className="cursor-pointer hover:underline">
+                Admin
+              </Badge>
+            </Link>
+          </div>
+        )}
         <UserAvatarMenu avatarUrl={avatarUrl} fallback={fallback} />
       </div>
     </nav>
