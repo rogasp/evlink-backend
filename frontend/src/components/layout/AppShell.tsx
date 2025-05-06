@@ -1,16 +1,23 @@
 'use client';
 
-import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import Sidebar from './Sidebar';
+import { SidebarProvider } from '@/contexts/SidebarContext';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <div className="flex flex-1">
+    <SidebarProvider>
+      <div className="grid grid-rows-[auto_1fr] grid-cols-[auto_1fr] h-screen">
+        <div className="row-start-1 col-span-2 sticky top-0 z-50">
+          <Navbar />
+        </div>
+
         <Sidebar />
-        <main className="flex-1 p-6 bg-gray-50">{children}</main>
+
+        <main className="overflow-y-auto bg-gray-50 p-6">
+          {children}
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
