@@ -1,17 +1,13 @@
 'use client';
 
-import { PropsWithChildren } from 'react';
-<<<<<<< HEAD
-=======
-import { createBrowserClient } from '@supabase/ssr';
->>>>>>> origin/dev
-import { SupabaseContext } from '@/lib/supabaseContext'; // skapar vi nedan
 import { useState } from 'react';
-import { createBrowserClient as createClient } from '@supabase/ssr';
+import { PropsWithChildren } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import { SupabaseContext } from '@/lib/supabaseContext';
 
 export const SupabaseProvider = ({ children }: PropsWithChildren) => {
   const [supabase] = useState(() =>
-    createClient(
+    createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
