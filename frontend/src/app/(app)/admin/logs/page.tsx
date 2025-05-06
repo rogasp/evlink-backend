@@ -33,18 +33,18 @@ export default function WebhookLogPage() {
   }, []);
 
   const fetchLogs = useCallback(
-    async (event: string | null, limit: number) => {
+    async (event: string | null, limitValue: number) => {
+      if (!accessToken) {
+        console.warn('No access token found. Skipping fetch.');
+        return;
+      }
+
+      let url = `/webhook/logs?limit=${limitValue}`;
+      if (event) {
+        url += `&event=${encodeURIComponent(event)}`;
+      }
+
       try {
-        if (!accessToken) {
-          console.warn('No access token found. Skipping fetch.');
-          return;
-        }
-
-        let url = `/webhook/logs?limit=${limit}`;
-        if (event) {
-          url += `&event=${encodeURIComponent(event)}`;
-        }
-
         const res = await authFetch(url, {
           method: 'GET',
           accessToken,
@@ -69,10 +69,8 @@ export default function WebhookLogPage() {
 
   useEffect(() => {
     const event = selectedEvent === '__all__' ? null : selectedEvent;
-    if (accessToken) {
-      fetchLogs(event, limit);
-    }
-  }, [selectedEvent, limit, accessToken, fetchLogs]);
+    fetchLogs(event, limit);
+  }, [selectedEvent, limit, fetchLogs]);
 
   const handleFilterChange = (value: string) => {
     localStorage.setItem(FILTER_KEY, value);
@@ -80,8 +78,8 @@ export default function WebhookLogPage() {
   };
 
   const handleLimitChange = (value: string) => {
-    const intLimit = parseInt(value, 10);
-    setLimit(intLimit);
+    const parsed = parseInt(value, 10);
+    setLimit(parsed);
   };
 
   return (
@@ -100,10 +98,11 @@ export default function WebhookLogPage() {
             onChange={(e) => handleLimitChange(e.target.value)}
             className="border border-gray-300 text-sm px-2 py-1 rounded"
           >
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
+            {[10, 25, 50, 100].map((val) => (
+              <option key={val} value={val}>
+                {val}
+              </option>
+            ))}
           </select>
         </div>
       </div>

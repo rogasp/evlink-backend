@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
+      {/* Hero Section */}
       <section className="relative z-0 bg-gradient-to-br from-indigo-100 via-white to-white py-24">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <h1 className="text-5xl font-extrabold text-indigo-700 mb-6">
@@ -30,6 +31,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Features Section */}
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-8 text-center">
         <div>
           <h3 className="text-xl font-semibold mb-2">🔌 Real-time Charging</h3>

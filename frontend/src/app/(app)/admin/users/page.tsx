@@ -66,7 +66,7 @@ export default function UserAdminPage() {
         toast.error('Failed to delete user');
       } else {
         toast.success('User deleted');
-        fetchUsers();
+        fetchUsers(); // Refresh list
       }
     } catch (err) {
       console.error(err);
