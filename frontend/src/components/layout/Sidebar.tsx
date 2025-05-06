@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { LayoutDashboard, Settings, Users, Zap, Server, List, ChevronLeft, ChevronRight, Car, Podcast, ScrollText } from 'lucide-react';
+import {
+  LayoutDashboard, Settings, Users, Zap,
+  ChevronLeft, ChevronRight, Car, Podcast, ScrollText
+} from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type NavItem = {
@@ -60,8 +63,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   const isAdmin = user?.user_metadata?.role === 'admin';
 
-  const navClass = collapsed ? 'w-16' : 'w-64';
-
+  
   const renderNavItem = ({ href, label, icon }: NavItem) => {
     const active = pathname.startsWith(href);
     const baseClass =
