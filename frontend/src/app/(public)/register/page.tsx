@@ -1,23 +1,15 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-<<<<<<< HEAD
-=======
-import { useRouter } from 'next/navigation';
->>>>>>> origin/dev
+import Image from 'next/image';
 import { toast } from 'sonner';
-import { apiFetchSafe } from '@/lib/api';
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
-import { supabase } from '@/lib/supabaseClient';
+import { apiFetchSafe } from '@/lib/api';
+import type { ApiResponse } from '@/types/api';
 
 const allowRegister = process.env.NEXT_PUBLIC_ALLOW_REGISTER === 'true';
-
-interface ApiResponse<T> {
-  data: T | null;
-  error: { message?: string } | null;
-}
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -85,23 +77,22 @@ export default function RegisterPage() {
           <div className="text-center space-y-4 text-sm text-gray-700">
             <h2 className="text-lg font-semibold text-indigo-700">Almost there!</h2>
             <p>
-<<<<<<< HEAD
               We&apos;ve sent a magic login link to <strong>{email}</strong>.
             </p>
             <p>Don&apos;t forget to check your spam folder.</p>
-=======
-              We've sent a magic login link to <strong>{email}</strong>.
-            </p>
-            <p>Don't forget to check your spam folder.</p>
->>>>>>> origin/dev
             <p className="text-xs text-gray-500">
               Sent from <em>Supabase Auth &lt;noreply@mail.app.supabase.io&gt;</em>
             </p>
           </div>
         ) : (
-          <form onSubmit={allowRegister ? handleMagicLinkRegister : handleInterestSubmit} className="space-y-4">
+          <form
+            onSubmit={allowRegister ? handleMagicLinkRegister : handleInterestSubmit}
+            className="space-y-4"
+          >
             <div className="space-y-1">
-              <label htmlFor="name" className="block text-gray-700 text-sm">Name</label>
+              <label htmlFor="name" className="block text-gray-700 text-sm">
+                Name
+              </label>
               <Input
                 id="name"
                 type="text"
@@ -113,7 +104,9 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="email" className="block text-gray-700 text-sm">Email</label>
+              <label htmlFor="email" className="block text-gray-700 text-sm">
+                Email
+              </label>
               <Input
                 id="email"
                 type="email"
@@ -126,8 +119,12 @@ export default function RegisterPage() {
 
             <Button type="submit" disabled={loading} className="w-full h-9 text-sm">
               {loading
-                ? allowRegister ? 'Registering...' : 'Submitting...'
-                : allowRegister ? 'Register with Magic Link' : 'Notify Me'}
+                ? allowRegister
+                  ? 'Registering...'
+                  : 'Submitting...'
+                : allowRegister
+                ? 'Register with Magic Link'
+                : 'Notify Me'}
             </Button>
           </form>
         )}
@@ -162,9 +159,16 @@ export default function RegisterPage() {
         )}
 
         <p className="text-center text-xs text-gray-500 mt-4">
-          {allowRegister
-            ? <>Already have an account? <a href="/login" className="text-indigo-600 hover:underline">Log In</a></>
-            : <>EVLink is currently under development. You&apos;ll be the first to know when we launch.</>}
+          {allowRegister ? (
+            <>
+              Already have an account?{' '}
+              <a href="/login" className="text-indigo-600 hover:underline">
+                Log In
+              </a>
+            </>
+          ) : (
+            <>EVLink is currently under development. You&apos;ll be the first to know when we launch.</>
+          )}
         </p>
       </div>
     </main>

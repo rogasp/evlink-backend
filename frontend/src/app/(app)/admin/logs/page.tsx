@@ -1,10 +1,6 @@
 'use client';
 
-<<<<<<< HEAD
 import { useEffect, useState, useCallback } from 'react';
-=======
-import { useEffect, useState } from 'react';
->>>>>>> origin/dev
 import { useAuth } from '@/hooks/useAuth';
 import { WebhookLogTable } from '@/components/webhooks/WebhookLogTable';
 import { EventFilterSelect } from '@/components/webhooks/EventFilterSelect';
@@ -29,29 +25,27 @@ export default function WebhookLogPage() {
   const [logCount, setLogCount] = useState<number>(0);
   const [limit, setLimit] = useState<number>(50);
 
-  // 🚀 Load initial filter from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(FILTER_KEY);
     if (saved) {
       setSelectedEvent(saved);
     }
   }, []);
-<<<<<<< HEAD
 
-  // ✅ useCallback to stabilize fetchLogs between renders
   const fetchLogs = useCallback(
-    async (event: string | null, limit: number) => {
-      try {
-        let url = `/webhook/logs?limit=${limit}`;
-        if (event) {
-          url += `&event=${encodeURIComponent(event)}`;
-        }
-        if (!accessToken) {
-          console.warn("No access token found. Skipping fetch.");
-          return;
-        }
+    async (event: string | null, limitValue: number) => {
+      if (!accessToken) {
+        console.warn('No access token found. Skipping fetch.');
+        return;
+      }
 
-        const res = await authFetch(url.toString(), {
+      let url = `/webhook/logs?limit=${limitValue}`;
+      if (event) {
+        url += `&event=${encodeURIComponent(event)}`;
+      }
+
+      try {
+        const res = await authFetch(url, {
           method: 'GET',
           accessToken,
         });
@@ -73,54 +67,10 @@ export default function WebhookLogPage() {
     [accessToken]
   );
 
-  // 🔁 Fetch logs whenever filter or limit changes
   useEffect(() => {
     const event = selectedEvent === '__all__' ? null : selectedEvent;
-    if (accessToken) {
-      fetchLogs(event, limit);
-    }
-  }, [selectedEvent, limit, accessToken, fetchLogs]);
-=======
-
-  // 🔁 Fetch logs whenever filter or limit changes
-  useEffect(() => {
-    const event = selectedEvent === '__all__' ? null : selectedEvent;
-    if (accessToken) {
-      fetchLogs(event, limit);
-    }
-  }, [selectedEvent, limit, accessToken]);
-
-  const fetchLogs = async (event: string | null, limit: number) => {
-    try {
-      let url = `/webhook/logs?limit=${limit}`;
-        if (event) {
-          url += `&event=${encodeURIComponent(event)}`;
-        }
-      if (!accessToken) {
-        console.warn("No access token found. Skipping fetch.");
-        return;
-      }
-      
-      const res = await authFetch(url.toString(), {
-        method: 'GET',
-        accessToken, // ✅ garanterat en string här
-      });
-      
-      if (res.data) {
-        setLogs(res.data);
-        setLogCount(res.data.length);
-      } else {
-        console.error('❌ Failed to load logs:', res.error);
-        setLogs([]);
-        setLogCount(0);
-      }
-    } catch (err) {
-      console.error('❌ Exception during fetchLogs:', err);
-      setLogs([]);
-      setLogCount(0);
-    }
-  };
->>>>>>> origin/dev
+    fetchLogs(event, limit);
+  }, [selectedEvent, limit, fetchLogs]);
 
   const handleFilterChange = (value: string) => {
     localStorage.setItem(FILTER_KEY, value);
@@ -128,8 +78,8 @@ export default function WebhookLogPage() {
   };
 
   const handleLimitChange = (value: string) => {
-    const intLimit = parseInt(value);
-    setLimit(intLimit);
+    const parsed = parseInt(value, 10);
+    setLimit(parsed);
   };
 
   return (
@@ -148,10 +98,11 @@ export default function WebhookLogPage() {
             onChange={(e) => handleLimitChange(e.target.value)}
             className="border border-gray-300 text-sm px-2 py-1 rounded"
           >
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
+            {[10, 25, 50, 100].map((val) => (
+              <option key={val} value={val}>
+                {val}
+              </option>
+            ))}
           </select>
         </div>
       </div>
