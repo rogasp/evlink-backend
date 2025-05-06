@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SupabaseProvider } from "@/components/SupabaseProvider";
+import { RegistrationProvider } from "@/contexts/RegistrationContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,18 +21,14 @@ export const metadata: Metadata = {
   description: "Smarter EV integration for Home Assistant",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Toaster position="top-center" richColors closeButton={false} />
-        <SupabaseProvider>
-          {children}
-        </SupabaseProvider>
+        <RegistrationProvider>
+          <SupabaseProvider>{children}</SupabaseProvider>
+        </RegistrationProvider>
       </body>
     </html>
   );

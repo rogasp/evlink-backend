@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
@@ -9,13 +9,27 @@ import { Input } from '@/components/ui/input';
 import { apiFetchSafe } from '@/lib/api';
 import type { ApiResponse } from '@/types/api';
 
-const allowRegister = process.env.NEXT_PUBLIC_ALLOW_REGISTER === 'true';
-
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [allowRegister, setAllowRegister] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkRegistration = async () => {
+      try {
+        const res = await fetch('/api/public/registration-allowed');
+        const json = await res.json();
+        setAllowRegister(json.allowed === true);
+      } catch (err) {
+        console.error('❌ Failed to check registration status:', err);
+        setAllowRegister(false);
+      }
+    };
+
+    checkRegistration();
+  }, []);
 
   const handleMagicLinkRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,6 +79,14 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (allowRegister === null) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-gray-500 text-sm">Checking registration status...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-white px-4">

@@ -3,7 +3,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from app.auth.supabase_auth import get_supabase_user
-from app.enode import delete_enode_user, delete_webhook, get_all_users, get_all_vehicles, subscribe_to_webhooks
+from app.enode import delete_enode_user, delete_webhook, get_all_vehicles, subscribe_to_webhooks
+from app.storage import settings
 from app.storage.user import get_all_users_with_enode_info
 from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, mark_webhook_as_inactive, save_webhook_subscription, sync_webhook_subscriptions_from_enode
 
@@ -103,3 +104,24 @@ async def delete_enode_webhook(webhook_id: str, user=Depends(require_admin)):
     except Exception as e:
         print(f"[❌ delete_enode_webhook] {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/admin/settings")
+async def list_settings():
+    return await settings.get_all_settings()
+
+@router.post("/admin/settings")
+async def create_setting(setting: dict, user=Depends(require_admin)):
+    return await settings.add_setting(setting)
+
+@router.put("/admin/settings/{setting_id}")
+async def update_setting(setting_id: str, setting: dict, user=Depends(require_admin)):
+    allowed_keys = {"value"}
+    update_data = {k: v for k, v in setting.items() if k in allowed_keys}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Only 'value' can be updated")
+    return await settings.update_setting(setting_id, update_data)
+
+
+@router.delete("/admin/settings/{setting_id}")
+async def remove_setting(setting_id: str, user=Depends(require_admin)):
+    return await settings.delete_setting(setting_id)

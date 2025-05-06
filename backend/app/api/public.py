@@ -62,3 +62,11 @@ async def post_link_result(data: dict):
         "userId": user_id,
         "status": "linked"
     }
+
+@router.get("/public/registration-allowed")
+async def is_registration_allowed():
+    from app.storage.settings import get_setting_by_name
+    setting = await get_setting_by_name("allow_registration")
+    if not setting:
+        return {"allowed": False}
+    return {"allowed": setting.get("value") == "true"}
