@@ -1,4 +1,5 @@
 from app.storage.settings import get_setting_by_name
+from app.storage.status_logs import log_status
 from app.storage.webhook import sync_webhook_subscriptions_from_enode
 from app.lib.supabase import get_supabase_admin_client
 from app.enode.auth import get_access_token
@@ -16,6 +17,16 @@ async def monitor_webhook_health():
     print("[🔄] Syncing webhook subscriptions from Enode...")
     await sync_webhook_subscriptions_from_enode()
     print("[✅] Sync complete")
+    result = supabase.table("webhook_subscriptions").select("*").execute()
+    subscriptions = result.data or []
+    inactive = [s for s in subscriptions if not s.get("is_active")]
+
+    if inactive:
+        print(f"[⚠️] {len(inactive)} inactive subscriptions detected after sync")
+        await log_status("webhook_incoming", False, f"{len(inactive)} inactive after sync")
+    else:
+        print("[✅] All subscriptions are active after sync")
+        await log_status("webhook_incoming", True, "All active after sync")
 
     # 2. Läs inställningar
     enabled_setting = await get_setting_by_name("webhook.monitor.enabled")
