@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
+from app.auth.service_role_auth import verify_service_role_token
 from app.auth.supabase_auth import get_supabase_user
 from app.enode.user import delete_enode_user
 from app.enode.vehicle import get_all_vehicles
@@ -130,7 +131,7 @@ async def remove_setting(setting_id: str, user=Depends(require_admin)):
     return await settings.delete_setting(setting_id)
 
 @router.post("/admin/webhook/monitor")
-async def run_webhook_monitor(user=Depends(require_admin)):
+async def run_webhook_monitor(user=Depends(verify_service_role_token)):
     """
     Run webhook health monitoring manually (sync + check + auto test).
     """
