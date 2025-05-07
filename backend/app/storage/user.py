@@ -1,6 +1,6 @@
 # backend/app/storage/user.py
 from app.lib.supabase import get_supabase_admin_client
-from app.enode import get_all_users as get_enode_users
+from app.enode.user import get_all_users as get_enode_users
 import asyncio
 
 supabase = get_supabase_admin_client()

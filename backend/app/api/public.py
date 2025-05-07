@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 
-from app.enode import get_link_result
+from app.enode.link import get_link_result
 from app.storage.interest import save_interest
 
 router = APIRouter()
