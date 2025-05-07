@@ -5,7 +5,8 @@ from datetime import datetime, timezone, timedelta
 
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
-from app.enode import create_link_session, get_user_vehicles_enode
+from app.enode.link import create_link_session
+from app.enode.user import get_user_vehicles_enode
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.vehicle import get_all_cached_vehicles, save_vehicle_data_with_client
 

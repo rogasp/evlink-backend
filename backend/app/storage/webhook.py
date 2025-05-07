@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import Optional
-from app.enode import fetch_enode_webhook_subscriptions
+from app.enode.webhook import fetch_enode_webhook_subscriptions
 from app.lib.supabase import get_supabase_admin_client
 
 supabase = get_supabase_admin_client()
