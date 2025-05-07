@@ -63,7 +63,6 @@ export default function Sidebar() {
   const { user } = useAuth();
   const isAdmin = user?.user_metadata?.role === 'admin';
 
-  
   const renderNavItem = ({ href, label, icon }: NavItem) => {
     const active = pathname.startsWith(href);
     const baseClass =
