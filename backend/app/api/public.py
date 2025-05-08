@@ -70,3 +70,10 @@ async def is_registration_allowed():
     if not setting:
         return {"allowed": False}
     return {"allowed": setting.get("value") == "true"}
+
+@router.get("/status/webhook")
+async def get_webhook_status():
+    from app.storage.status_logs import get_recent_status_logs
+    logs = await get_recent_status_logs("webhook_incoming", limit=24)
+    return logs
+
