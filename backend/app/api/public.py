@@ -1,10 +1,13 @@
 # app/api/public.py
 
-from fastapi import APIRouter, HTTPException, Request
+from datetime import datetime, timedelta
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr
 
-from app.enode import get_link_result
+from app.enode.link import get_link_result
+from app.lib.supabase import get_supabase_admin_client
 from app.storage.interest import save_interest
+from app.storage.status_logs import calculate_uptime, get_daily_status
 
 router = APIRouter()
 
@@ -70,3 +73,17 @@ async def is_registration_allowed():
     if not setting:
         return {"allowed": False}
     return {"allowed": setting.get("value") == "true"}
+
+@router.get("/public/status/webhook")
+async def webhook_daily_status(category: str = Query("webhook_incoming")):
+    return await get_daily_status(category)
+
+@router.get("/public/status/webhook/uptime")
+async def get_uptime(
+    category: str,
+    from_date: datetime = Query(default_factory=lambda: datetime.utcnow() - timedelta(days=30)),
+    to_date: datetime = Query(default_factory=lambda: datetime.utcnow()),
+):
+    uptime = await calculate_uptime(category, from_date, to_date)
+    return {"uptime": uptime}
+
