@@ -108,7 +108,7 @@ export default function AdminPage() {
           onClick={async () => {
             if (!accessToken) return;
             try {
-              const res = await authFetch('/admin/webhook/monitor', {
+              const res = await authFetch('/admin/webhook/monitor/admin', {
                 method: 'POST',
                 accessToken,
               });

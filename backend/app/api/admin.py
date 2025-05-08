@@ -138,3 +138,8 @@ async def run_webhook_monitor(user=Depends(verify_service_role_token)):
     await monitor_webhook_health()
     return {"status": "completed"}
 
+@router.post("/admin/webhook/monitor/admin", tags=["admin"])
+async def run_webhook_monitor_admin(user: dict = Depends(require_admin)):
+    """Run webhook monitor with admin Supabase role."""
+    await monitor_webhook_health()
+    return {"status": "completed"}
