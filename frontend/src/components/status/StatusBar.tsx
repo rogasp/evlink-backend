@@ -1,27 +1,62 @@
+// src/components/status/StatusBar.tsx
 'use client';
 
-type StatusLog = {
-  id: string;
+import { useEffect, useState } from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+type DailyStatus = {
+  date: string;
   status: boolean;
-  checked_at: string;
 };
 
-type Props = {
-  logs: StatusLog[];
-};
+export function StatusBar() {
+  const [days, setDays] = useState<DailyStatus[]>([]);
 
-export default function StatusBar({ logs }: Props) {
+  useEffect(() => {
+    const toDate = new Date().toISOString().slice(0, 10);
+    const fromDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch(
+          `/api/public/status/webhook?from_date=${fromDate}&to_date=${toDate}`
+        );
+        const data = await res.json();
+        setDays(data);
+      } catch (err) {
+        console.error('Failed to load status logs:', err);
+      }
+    };
+
+    fetchStatus();
+  }, []);
+
   return (
-    <div className="flex gap-2 p-2">
-      {logs.map((log) => (
-        <div
-          key={log.id}
-          title={`Checked: ${new Date(log.checked_at).toLocaleString()}`}
-          className={`w-4 h-4 rounded-full ${
-            log.status ? 'bg-green-500' : 'bg-red-500'
-          }`}
-        ></div>
-      ))}
-    </div>
+    <TooltipProvider delayDuration={200}>
+      <div className="flex gap-0.5 flex-wrap">
+        {days.map((day) => (
+          <Tooltip key={day.date}>
+            <TooltipTrigger asChild>
+              <div
+                className={`w-1.5 h-5 rounded-sm ${
+                  day.status ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs px-2 py-1">
+              <div className="font-medium">{day.date}</div>
+              <div>{day.status ? 'All OK' : 'Service outage'}</div>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 }
