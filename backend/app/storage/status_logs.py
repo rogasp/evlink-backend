@@ -17,3 +17,14 @@ async def log_status(category: str, status: bool, message: str = ""):
         print(f"[🟢] Status log saved: {category} - {status}")
     except Exception as e:
         print(f"[❌] Failed to log status: {e}")
+
+async def get_recent_status_logs(category: str, limit: int = 24):
+    result = supabase \
+        .table("status_logs") \
+        .select("*") \
+        .eq("category", category) \
+        .order("checked_at", desc=True) \
+        .limit(limit) \
+        .execute()
+
+    return result.data or []
