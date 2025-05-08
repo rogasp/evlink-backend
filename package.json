@@ -4,5 +4,8 @@
   },
   "scripts": {
     "supabase": "supabase"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0"
   }
 }
