@@ -2,11 +2,15 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
+from app.auth.service_role_auth import verify_service_role_token
 from app.auth.supabase_auth import get_supabase_user
-from app.enode import delete_enode_user, delete_webhook, get_all_vehicles, subscribe_to_webhooks
+from app.enode.user import delete_enode_user
+from app.enode.vehicle import get_all_vehicles
+from app.enode.webhook import subscribe_to_webhooks, delete_webhook
 from app.storage import settings
 from app.storage.user import get_all_users_with_enode_info
 from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, mark_webhook_as_inactive, save_webhook_subscription, sync_webhook_subscriptions_from_enode
+from app.storage.webhook_monitor import monitor_webhook_health
 
 router = APIRouter()
 
@@ -125,3 +129,17 @@ async def update_setting(setting_id: str, setting: dict, user=Depends(require_ad
 @router.delete("/admin/settings/{setting_id}")
 async def remove_setting(setting_id: str, user=Depends(require_admin)):
     return await settings.delete_setting(setting_id)
+
+@router.post("/admin/webhook/monitor")
+async def run_webhook_monitor(user=Depends(verify_service_role_token)):
+    """
+    Run webhook health monitoring manually (sync + check + auto test).
+    """
+    await monitor_webhook_health()
+    return {"status": "completed"}
+
+@router.post("/admin/webhook/monitor/admin", tags=["admin"])
+async def run_webhook_monitor_admin(user: dict = Depends(require_admin)):
+    """Run webhook monitor with admin Supabase role."""
+    await monitor_webhook_health()
+    return {"status": "completed"}

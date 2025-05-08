@@ -104,6 +104,27 @@ export default function AdminPage() {
         <Button onClick={handleSubscribe} variant="default">
           Subscribe to Webhooks
         </Button>
+        <Button
+          onClick={async () => {
+            if (!accessToken) return;
+            try {
+              const res = await authFetch('/admin/webhook/monitor/admin', {
+                method: 'POST',
+                accessToken,
+              });
+
+              if (res.error) throw res.error;
+              toast.success('Webhook health monitor executed');
+            } catch (err) {
+              toast.error('Failed to run health monitor');
+              console.error(err);
+            }
+          }}
+          variant="secondary"
+        >
+          Run Health Monitor
+        </Button>
+
         <Button onClick={fetchSubscriptions} variant="outline" disabled={loading}>
           {loading ? (
             <>

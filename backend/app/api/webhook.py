@@ -1,33 +1,42 @@
+import json
 from fastapi import APIRouter, Request, Header, HTTPException
 import logging
 
-from app.storage.webhook import save_webhook_event
+from app.config import ENODE_WEBHOOK_SECRET  # se till att du har detta i .env
 from app.lib.webhook_logic import process_event  # lagd i separat fil för logik
+from app.enode.verify import verify_signature
+from app.storage.webhook import save_webhook_event
 
 router = APIRouter()
 
 @router.post("/webhook/enode")
 async def handle_webhook(
     request: Request,
-    x_signature: str = Header(None),
+    x_enode_signature: str = Header(None),
 ):
     try:
-        payload = await request.json()
-        print("[📥 Incoming webhook payload]", payload)
+        raw_body = await request.body()
 
-        # Spara till DB
+        # ✅ Kontrollera signaturen först
+        if not verify_signature(raw_body, x_enode_signature):
+            print("❌ Invalid signature – possible spoofed webhook")
+            raise HTTPException(status_code=401, detail="Invalid signature")
+
+        # ✅ Konvertera till JSON efter verifiering
+        payload = json.loads(raw_body)
+        print("[📥 Verified webhook payload]", payload)
+
+        # ✅ Spara och processa
         save_webhook_event(payload)
 
         if isinstance(payload, list):
             handled = 0
             for event in payload:
                 handled += await process_event(event)
-            print(f"[✅ Processed batch] Total events handled: {handled}")
             return {"status": "ok", "handled": handled}
 
         handled = await process_event(payload)
-        print(f"[✅ Processed single] Handled: {handled}")
-        return {"status": "ok"}
+        return {"status": "ok", "handled": handled}
 
     except Exception as e:
         logging.exception("❌ Failed to handle webhook")
