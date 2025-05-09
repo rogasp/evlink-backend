@@ -10,11 +10,9 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`antialiased ${geistSans.variable} ${geistMono.variable}`}>
-        <Toaster position="top-center" richColors closeButton={false} />
-        <RegistrationProvider>{children}</RegistrationProvider>
-      </body>
-    </html>
+    <body className={`antialiased ${geistSans.variable} ${geistMono.variable}`}>
+      <Toaster position="top-center" richColors closeButton={false} />
+      <RegistrationProvider>{children}</RegistrationProvider>
+    </body>
   );
 }
