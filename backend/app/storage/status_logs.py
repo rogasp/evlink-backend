@@ -40,7 +40,6 @@ async def get_daily_status(category: str):
 
     logs = result.data or []
     print(f"[🟢] Daily status logs fetched: {len(logs)} entries")
-    print(logs)
     per_day = defaultdict(list)
 
     for row in logs:
