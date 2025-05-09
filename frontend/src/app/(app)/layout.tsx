@@ -1,21 +1,20 @@
-// app/(app)/layout.tsx
-import { redirect } from 'next/navigation';
-import { createSupabaseServerClient } from '@/lib/supabaseServer';
-import AppShell from '@/components/layout/AppShell';
+'use client';
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+import { Toaster } from 'sonner';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { SupabaseProvider } from '@/components/SupabaseProvider';
+import './../globals.css';
 
-  if (!session) {
-    redirect('/login');
-  }
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
-  return <AppShell>{children}</AppShell>;
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className={`antialiased ${geistSans.variable} ${geistMono.variable}`}>
+        <Toaster position="top-center" richColors closeButton={false} />
+        <SupabaseProvider>{children}</SupabaseProvider>
+      </body>
+    </html>
+  );
 }
