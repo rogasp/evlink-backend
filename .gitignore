@@ -80,3 +80,7 @@ supabase/staging/config.toml
 !frontend/src/app/(app)/admin/logs/**
 !src/app/(app)/admin/logs/**
 pr.md
+scripts/evlink-api-thunder-collection.json
+scripts/api_endpoint_report.json
+scripts/api_endpoint_report.csv
+thunder_collection.json
