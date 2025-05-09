@@ -16,5 +16,6 @@ CLIENT_ID = os.getenv("ENODE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("ENODE_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 USE_MOCK = os.getenv("MOCK_LINK_RESULT", "false").lower() == "true"
+IS_PROD = os.getenv("ENV", "prod") == "prod"
 
 CACHE_EXPIRATION_MINUTES = int(os.getenv("CACHE_EXPIRATION_MINUTES", 5))
