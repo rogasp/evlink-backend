@@ -8,7 +8,7 @@ from app.enode.user import delete_enode_user
 from app.enode.vehicle import get_all_vehicles
 from app.enode.webhook import subscribe_to_webhooks, delete_webhook
 from app.storage import settings
-from app.storage.user import get_all_users_with_enode_info
+from app.storage.user import get_all_users_with_enode_info, set_user_approval
 from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, mark_webhook_as_inactive, save_webhook_subscription, sync_webhook_subscriptions_from_enode
 from app.storage.webhook_monitor import monitor_webhook_health
 
@@ -143,3 +143,21 @@ async def run_webhook_monitor_admin(user: dict = Depends(require_admin)):
     """Run webhook monitor with admin Supabase role."""
     await monitor_webhook_health()
     return {"status": "completed"}
+
+@router.patch("/admin/users/{user_id}/approve", tags=["user"])
+async def update_user_approval(
+    user_id: str,
+    payload: dict,
+    current_user=Depends(require_admin),
+):
+    is_approved = payload.get("is_approved")
+    if is_approved is None:
+        raise HTTPException(status_code=400, detail="Missing is_approved")
+
+    try:
+        await set_user_approval(user_id, is_approved)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"success": True}
+

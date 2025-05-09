@@ -6,16 +6,22 @@ from fastapi.openapi.utils import get_openapi
 
 from app.api import admin, private, public, webhook
 from app.config import (
+    IS_PROD,
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY,
     SUPABASE_JWT_SECRET,
 )
 
+print("🚀 Starting EVLink Backend...")
+
 app = FastAPI(
     title="EVLink Backend",
     version="0.2.0",
     description="Minimal FastAPI backend for secured API access.",
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
+    openapi_url=None if IS_PROD else "/openapi.json",
 )
 
 # ✅ Lägg till CORS för localhost:3000 (Next.js)
