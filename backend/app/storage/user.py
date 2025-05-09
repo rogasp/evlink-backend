@@ -9,7 +9,7 @@ async def get_all_users_with_enode_info():
     
     try:
         print("🔎 Fetching Supabase users...")
-        res = supabase.table("users").select("id, email, name, role").limit(1000).execute()
+        res = supabase.table("users").select("id, email, name, role, is_approved").limit(1000).execute()
         users = res.data or []
         print(f"ℹ️ Found {len(users)} users in Supabase")
 
@@ -31,6 +31,7 @@ async def get_all_users_with_enode_info():
                 "is_admin": user.get("role") == "admin",
                 "linked_to_enode": enode_match is not None,
                 "linked_at": enode_match.get("createdAt") if enode_match else None,
+                "is_approved": user.get("is_approved"),
             })
 
         return enriched
@@ -39,7 +40,16 @@ async def get_all_users_with_enode_info():
         return []
 
 async def set_user_approval(user_id: str, is_approved: bool) -> None:
-    result = supabase.table("users").update({"is_approved": is_approved}).eq("id", user_id).execute()
+    try:
+        result = supabase.table("users") \
+            .update({"is_approved": is_approved}) \
+            .eq("id", user_id) \
+            .execute()
 
-    if result.error:
-        raise Exception(f"Failed to update approval status: {result.error.message}")
+        if not result.data:
+            raise Exception("No rows were updated")
+
+    except Exception as e:
+        print(f"[❌ set_user_approval] {e}")
+        raise
+
