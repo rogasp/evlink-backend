@@ -11,15 +11,11 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`antialiased ${geistSans.variable} ${geistMono.variable}`}>
-        <Toaster position="top-center" richColors closeButton={false} />
-        <SupabaseProvider>
-          <AppShell>
-            {children}
-          </AppShell>
-        </SupabaseProvider>
-      </body>
-    </html>
+    <body className={`antialiased ${geistSans.variable} ${geistMono.variable}`}>
+      <Toaster position="top-center" richColors closeButton={false} />
+      <SupabaseProvider>
+        <AppShell>{children}</AppShell>
+      </SupabaseProvider>
+    </body>
   );
 }
