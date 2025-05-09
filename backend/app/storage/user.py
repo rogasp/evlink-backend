@@ -37,3 +37,9 @@ async def get_all_users_with_enode_info():
     except Exception as e:
         print(f"[❌ get_all_users_with_enode_info] {e}")
         return []
+
+async def set_user_approval(user_id: str, is_approved: bool) -> None:
+    result = supabase.table("users").update({"is_approved": is_approved}).eq("id", user_id).execute()
+
+    if result.error:
+        raise Exception(f"Failed to update approval status: {result.error.message}")
