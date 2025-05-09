@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { authFetch } from '@/lib/authFetch';
-import { Switch } from '@radix-ui/react-switch';
+import { Switch } from '@/components/ui/switch';
 
 type AdminUserView = {
   id: string;
