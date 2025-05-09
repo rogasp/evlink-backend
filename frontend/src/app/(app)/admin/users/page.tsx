@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { authFetch } from '@/lib/authFetch';
+import { Switch } from '@radix-ui/react-switch';
 
 type AdminUserView = {
   id: string;
@@ -20,6 +21,7 @@ type AdminUserView = {
   is_admin: boolean;
   linked_to_enode: boolean;
   linked_at?: string | null;
+  is_approved: boolean;
 };
 
 export default function UserAdminPage() {
@@ -53,6 +55,27 @@ export default function UserAdminPage() {
   useEffect(() => {
     if (accessToken) fetchUsers();
   }, [accessToken, fetchUsers]);
+
+  const handleToggleApproval = async (userId: string, isApproved: boolean) => {
+    if (!accessToken) return;
+    try {
+      const res = await authFetch(`/admin/users/${userId}/approve`, {
+        method: 'PATCH',
+        accessToken,
+        body: JSON.stringify({ is_approved: isApproved }),
+      });
+
+      if (res.error) {
+        toast.error('Failed to update approval');
+      } else {
+        toast.success('Approval status updated');
+        fetchUsers();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not update approval');
+    }
+  };
 
   const confirmAndDelete = async () => {
     if (!confirmDeleteId || !accessToken) return;
@@ -104,6 +127,7 @@ export default function UserAdminPage() {
               <th className="px-4 py-2">Admin</th>
               <th className="px-4 py-2">Enode Connected</th>
               <th className="px-4 py-2">Connected At</th>
+              <th className="px-4 py-2">Approved</th>
               <th className="px-4 py-2">Actions</th>
             </tr>
           </thead>
@@ -130,6 +154,13 @@ export default function UserAdminPage() {
                 <td className="px-4 py-2">
                   {u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}
                 </td>
+                <td className="px-4 py-2">
+                  <Switch
+                    checked={u.is_approved}
+                    onCheckedChange={(value) => handleToggleApproval(u.id, value)}
+                  />
+                </td>
+
                 <td className="px-4 py-2">
                   <Button
                     size="icon"
