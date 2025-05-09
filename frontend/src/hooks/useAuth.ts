@@ -29,7 +29,7 @@ export function useAuth({
         setAccessToken(null);
 
         if (requireAuth) {
-          router.push(redirectTo); // 🚨 bara redirecta om det krävs
+          router.push(redirectTo); // 🚨 only redirect if required
         }
       } else {
         setUser(session.user);
