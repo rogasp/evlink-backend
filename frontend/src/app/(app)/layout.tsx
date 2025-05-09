@@ -1,13 +1,9 @@
 'use client';
 
-import { Toaster } from 'sonner';
-import { Geist, Geist_Mono } from 'next/font/google';
 import { SupabaseProvider } from '@/components/SupabaseProvider';
-import './../globals.css';
 import AppShell from '@/components/layout/AppShell';
+import { Toaster } from 'sonner';
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
