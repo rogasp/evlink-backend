@@ -5,7 +5,13 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
 
-export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {}) {
+export function useAuth({
+  redirectTo = '/login',
+  requireAuth = true,
+}: {
+  redirectTo?: string;
+  requireAuth?: boolean;
+} = {}) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,10 +24,13 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
         error,
       } = await supabase.auth.getSession();
 
-      if (error || !session) {
+      if (!session || error) {
         setUser(null);
         setAccessToken(null);
-        router.push(redirectTo);
+
+        if (requireAuth) {
+          router.push(redirectTo); // 🚨 only redirect if required
+        }
       } else {
         setUser(session.user);
         setAccessToken(session.access_token);
@@ -31,7 +40,7 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
     };
 
     fetchSession();
-  }, [router, redirectTo]);
+  }, [router, redirectTo, requireAuth]);
 
   return { user, accessToken, loading };
 }
