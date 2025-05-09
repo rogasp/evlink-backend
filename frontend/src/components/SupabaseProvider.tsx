@@ -18,7 +18,7 @@ export const SupabaseProvider = ({ children }: PropsWithChildren) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[🟢 AuthStateChange]', event);
+      console.log('[🟢 AuthStateChange]', event, session);
 
       if (event === 'TOKEN_REFRESHED') {
         console.log('[✅ Access token refreshed]');
