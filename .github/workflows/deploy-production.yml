@@ -3,7 +3,7 @@ name: Deploy to Production (Next.js and FastAPI)
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
