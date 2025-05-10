@@ -1,0 +1,9 @@
+# supabase/dev/config.toml
+
+[api]
+schemas = ["public"]
+extra_search_path = ["extensions"]
+
+[db]
+port = 54322
+shadow_port = 54323

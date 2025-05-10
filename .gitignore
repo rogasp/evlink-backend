@@ -1,34 +1,86 @@
-# .gitignore
-
+# ------------------------------
 # Python
+# ------------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.pyc
 *.env
+env/
 venv/
+.venv/
 
-# SQLite data
-data/
+# SQLite databases
 *.db
+*.sqlite3
 
-# VSCode / PyCharm
+# ------------------------------
+# Node.js (Next.js / Frontend)
+# ------------------------------
+node_modules/
+.next/
+out/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------
+# OS / Editor files
+# ------------------------------
+.DS_Store
+Thumbs.db
 .idea/
 .vscode/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Misc
-.env
-*.log
-
+# ------------------------------
 # FastAPI / Uvicorn artifacts
+# ------------------------------
 *.pid
 *.sock
 
-# Testing
+# ------------------------------
+# Logs / Coverage
+# ------------------------------
+*.log
+logs/
 htmlcov/
 .coverage
+coverage.xml
+
+# ------------------------------
+# Environment / Secrets
+# ------------------------------
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+.env.example
+
+# Supabase local dev artifacts
+supabase/**/.temp/
+supabase/**/.branches/
+supabase/**/.supabase/
+supabase/**/.snapshots/
+supabase/**/.log/
+
+# Ignore environment-specific files
+supabase/config.*.toml
+supabase/Makefile
+
+# Secrets
+passwords.md
+supabase/staging/config.toml
+
+
+!frontend/src/app/(app)/admin/logs/**
+!src/app/(app)/admin/logs/**
+pr.md
+scripts/evlink-api-thunder-collection.json
+scripts/api_endpoint_report.json
+scripts/api_endpoint_report.csv
+thunder_collection.json

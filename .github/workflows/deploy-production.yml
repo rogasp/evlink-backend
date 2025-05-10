@@ -1,0 +1,94 @@
+name: Deploy to Production (Next.js and FastAPI)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to evlink.se
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH with base64-decoded key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$PRODUCTION_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+          ssh-keyscan 144.91.124.233 >> ~/.ssh/known_hosts
+        env:
+          PRODUCTION_SSH_KEY_B64: ${{ secrets.PRODUCTION_SSH_KEY_B64 }}
+
+      - name: Prepare clean deploy folder
+        run: |
+          mkdir deploy_tmp
+          shopt -s extglob
+          cp -r !(deploy_tmp|.git|venv|node_modules|.next) deploy_tmp/
+
+      - name: Create archive
+        run: |
+          tar -czf app.tar.gz -C deploy_tmp .
+
+      - name: Upload to server
+        run: |
+          scp app.tar.gz fastapiuser@144.91.124.233:/tmp/app.tar.gz
+
+      - name: Deploy and restart production services
+        run: |
+          ssh fastapiuser@144.91.124.233 "DEPLOY_SHA=${GITHUB_SHA} bash -s" << 'EOF'
+            set -e
+            cd /opt/apps/evlink/
+
+            # 💾 Backup current deploy (keep 5 latest)
+            mkdir -p ~/deploy-backups/
+            ls -1t ~/deploy-backups/evlink-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm --
+            TIMESTAMP=$(date +%Y%m%d-%H%M)
+            tar czf ~/deploy-backups/evlink-$TIMESTAMP.tar.gz .
+
+            # 🔄 Clear old and deploy new
+            rm -rf *
+            tar xzf /tmp/app.tar.gz -C /opt/apps/evlink/
+            rm /tmp/app.tar.gz
+
+            # 🌱 Load environment files
+            echo "🌱 Copying production env files"
+
+            if [ -f /home/fastapiuser/envfiles/backend/.env.production ]; then
+              cp /home/fastapiuser/envfiles/backend/.env.production /opt/apps/evlink/backend/.env
+            fi
+
+            if [ -f /home/fastapiuser/envfiles/frontend/.env.production ]; then
+              cp /home/fastapiuser/envfiles/frontend/.env.production /opt/apps/evlink/frontend/.env
+            fi
+
+            # 📂 Ensure Next.js cache directory
+            mkdir -p /opt/apps/evlink/frontend/.next/cache/images
+            chmod -R 755 /opt/apps/evlink/frontend/.next
+
+            # 🐍 Backend dependencies
+            cd /opt/apps/evlink/backend
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            # 🧹 Frontend dependencies
+            cd /opt/apps/evlink/frontend
+            npm install
+            npm run build
+
+            # 📝 Log deploy
+            echo "$(date) - Deployed commit: $DEPLOY_SHA" >> /opt/apps/evlink/deploy.log
+            tail -n 150 /opt/apps/evlink/deploy.log > /opt/apps/evlink/deploy.log.tmp
+            mv /opt/apps/evlink/deploy.log.tmp /opt/apps/evlink/deploy.log
+
+            # 🔁 Restart services
+            sudo systemctl restart evlink
+            sudo systemctl restart evlink-frontend
+          EOF
