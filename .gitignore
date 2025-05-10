@@ -84,3 +84,4 @@ scripts/evlink-api-thunder-collection.json
 scripts/api_endpoint_report.json
 scripts/api_endpoint_report.csv
 thunder_collection.json
+frontend/next.config.mjs
