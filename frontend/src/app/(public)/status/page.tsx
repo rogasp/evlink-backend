@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { format, subMonths } from 'date-fns';
+import { subMonths, format } from 'date-fns';
 
-import { StatusPanel } from '@/components/status/StatusPanel';
 import { Badge } from '@/components/ui/badge';
+import { StatusPanel } from '@/components/status/StatusPanel';
+import { DateRangeSelector } from '@/components/status/DateRangeSelector';
 import type { DailyStatus } from '@/types/status';
 
 type StatusApiResponse = {
@@ -15,17 +16,23 @@ type StatusApiResponse = {
 
 export default function StatusPage() {
   const [statusItems, setStatusItems] = useState<StatusApiResponse[]>([]);
-  const toDate = format(new Date(), 'yyyy-MM-dd');
-  const fromDate = format(subMonths(new Date(), 3), 'yyyy-MM-dd');
+  const [toDate, setToDate] = useState(new Date());
+  const [fromDate, setFromDate] = useState(subMonths(new Date(), 3));
+
+  const updateDateRange = (from: Date, to: Date) => {
+    setFromDate(from);
+    setToDate(to);
+  };
 
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`/api/public/status/webhook`);
-        const data = await res.json();
+        const res = await fetch(
+      `/api/public/status/webhook?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`
+    );
+    const data = await res.json();
 
         console.log('[🟢 Raw status API response]', data);
-
         setStatusItems(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('[❌ Failed to load status data]', err);
@@ -33,7 +40,7 @@ export default function StatusPage() {
     };
 
     fetchStatus();
-  }, []);
+  }, [fromDate, toDate]);
 
   const categories = statusItems
     .filter((item) => {
@@ -64,6 +71,8 @@ export default function StatusPage() {
           </Badge>
         )}
       </div>
+
+      <DateRangeSelector fromDate={fromDate} toDate={toDate} onChange={updateDateRange} />
 
       {categories.length > 0 ? (
         <StatusPanel categories={categories} />
