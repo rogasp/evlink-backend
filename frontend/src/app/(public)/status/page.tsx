@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { subMonths, format } from 'date-fns';
+import { subMonths } from 'date-fns';
+import Link from 'next/link';
 
+import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { StatusPanel } from '@/components/status/StatusPanel';
 import { DateRangeSelector } from '@/components/status/DateRangeSelector';
@@ -15,6 +17,7 @@ type StatusApiResponse = {
 };
 
 export default function StatusPage() {
+  const { user } = useAuth();
   const [statusItems, setStatusItems] = useState<StatusApiResponse[]>([]);
   const [toDate, setToDate] = useState(new Date());
   const [fromDate, setFromDate] = useState(subMonths(new Date(), 3));
@@ -28,9 +31,9 @@ export default function StatusPage() {
     const fetchStatus = async () => {
       try {
         const res = await fetch(
-      `/api/public/status/webhook?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`
-    );
-    const data = await res.json();
+          `/api/public/status/webhook?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`
+        );
+        const data = await res.json();
 
         console.log('[🟢 Raw status API response]', data);
         setStatusItems(Array.isArray(data) ? data : []);
@@ -60,6 +63,17 @@ export default function StatusPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between pb-2 border-b">
+        <Link href="/" className="text-sm text-blue-600 hover:underline">
+          ← Back to Home
+        </Link>
+        {user && (
+          <Link href="/dashboard" className="text-sm text-blue-600 hover:underline">
+            Go to Dashboard →
+          </Link>
+        )}
+      </div>
+
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-bold text-indigo-700">Status Overview</h1>

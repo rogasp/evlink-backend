@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSidebar } from '@/contexts/SidebarContext';
 import {
   LayoutDashboard, Settings, Users, Zap,
-  ChevronLeft, ChevronRight, Car, Podcast, ScrollText
+  ChevronLeft, ChevronRight, Car, Podcast, ScrollText, Activity
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -21,6 +21,14 @@ const baseItems: NavItem[] = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: <LayoutDashboard className="w-5 h-5" />,
+  },
+];
+
+const publicItems: NavItem[] = [
+  {
+    href: '/status',
+    label: 'System status',
+    icon: <Activity className="w-5 h-5" />,
   },
 ];
 
@@ -100,10 +108,15 @@ export default function Sidebar() {
       >
         <nav className="space-y-2">
           {baseItems.map(renderNavItem)}
+          {publicItems.map(renderNavItem)}
 
           {isAdmin && (
             <div className="pt-4">
-              {!collapsed && <div className="text-xs font-semibold text-gray-500 px-2 mb-1">Admin</div>}
+              {!collapsed && (
+                <div className="text-xs font-semibold text-gray-500 px-2 mb-1">
+                  Admin
+                </div>
+              )}
               {adminItems.map(renderNavItem)}
             </div>
           )}
@@ -113,7 +126,11 @@ export default function Sidebar() {
           onClick={toggle}
           className="flex items-center gap-2 text-sm text-gray-600 hover:text-black hover:bg-gray-200 rounded px-3 py-2 transition-colors"
         >
-          {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          {collapsed ? (
+            <ChevronRight className="w-5 h-5" />
+          ) : (
+            <ChevronLeft className="w-5 h-5" />
+          )}
           {!collapsed && <span>Collapse</span>}
         </button>
       </aside>
