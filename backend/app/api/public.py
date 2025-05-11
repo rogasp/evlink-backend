@@ -75,8 +75,13 @@ async def is_registration_allowed():
     return {"allowed": setting.get("value") == "true"}
 
 @router.get("/public/status/webhook")
-async def webhook_status_panel(category: str = Query("webhook_incoming")):
-    return await get_status_panel_data(category)
+async def webhook_status_panel(
+    category: str = Query("webhook_incoming"),
+    from_date: datetime = Query(...),
+    to_date: datetime = Query(...)
+):
+    return await get_status_panel_data(category, from_date, to_date)
+
 
 @router.get("/public/status/webhook/uptime")
 async def get_uptime(
