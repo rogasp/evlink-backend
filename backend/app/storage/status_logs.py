@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.lib.supabase import get_supabase_admin_client
 
 supabase = get_supabase_admin_client()
@@ -78,4 +78,22 @@ async def calculate_uptime(category: str, from_date: str, to_date: str) -> float
         print(f"[❌] Failed to calculate uptime: {e}")
         return 0.0
     
+async def get_status_panel_data(category: str):
+    logs = await get_daily_status(category)
+    uptime = await calculate_uptime(
+        category,
+        datetime.utcnow() - timedelta(days=90),
+        datetime.utcnow()
+    )
+
+    print(f"[📊] Returning status panel data for {category} with {len(logs)} days and uptime {uptime}%")
+
+    return [{
+        "category": category,
+        "uptime": uptime,
+        "days": [
+            {"date": row["date"], "ok": row["status"]}
+            for row in logs
+        ]
+    }]
 

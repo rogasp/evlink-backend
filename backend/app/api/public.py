@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr
 from app.enode.link import get_link_result
 from app.lib.supabase import get_supabase_admin_client
 from app.storage.interest import save_interest
-from app.storage.status_logs import calculate_uptime, get_daily_status
+from app.storage.status_logs import calculate_uptime, get_daily_status, get_status_panel_data
 
 router = APIRouter()
 
@@ -75,8 +75,8 @@ async def is_registration_allowed():
     return {"allowed": setting.get("value") == "true"}
 
 @router.get("/public/status/webhook")
-async def webhook_daily_status(category: str = Query("webhook_incoming")):
-    return await get_daily_status(category)
+async def webhook_status_panel(category: str = Query("webhook_incoming")):
+    return await get_status_panel_data(category)
 
 @router.get("/public/status/webhook/uptime")
 async def get_uptime(
