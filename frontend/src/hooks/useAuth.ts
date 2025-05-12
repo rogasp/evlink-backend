@@ -3,7 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { authFetch } from '@/lib/authFetch';
 import type { User } from '@supabase/supabase-js';
+
+interface MergedUser {
+  id: string;
+  email: string;
+  role: string;
+  approved: boolean;
+  vendor?: string;
+  full_name?: string;
+  created_at?: string;
+}
 
 export function useAuth({
   redirectTo = '/login',
@@ -12,35 +23,55 @@ export function useAuth({
   redirectTo?: string;
   requireAuth?: boolean;
 } = {}) {
-  const [user, setUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<User | null>(null); // raw Supabase user
+  const [mergedUser, setMergedUser] = useState<MergedUser | null>(null); // enriched from /api/me
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchUserAndMe = async () => {
       const {
         data: { session },
         error,
       } = await supabase.auth.getSession();
 
       if (!session || error) {
-        setUser(null);
+        setAuthUser(null);
+        setMergedUser(null);
         setAccessToken(null);
 
         if (requireAuth) {
-          router.push(redirectTo); // 🚨 only redirect if required
+          router.push(redirectTo);
         }
       } else {
-        setUser(session.user);
+        setAuthUser(session.user);
         setAccessToken(session.access_token);
+
+        const { data, error } = await authFetch('/me', {
+          method: 'GET',
+          accessToken: session.access_token,
+        });
+
+        if (!error && data) {
+          setMergedUser(data); // contains approved, role, vendor etc
+        } else {
+          setMergedUser(null);
+        }
       }
 
       setLoading(false);
     };
 
-    fetchSession();
+    fetchUserAndMe();
   }, [router, redirectTo, requireAuth]);
 
-  return { user, accessToken, loading };
+  return {
+    user: authUser,
+    mergedUser,
+    accessToken,
+    loading,
+    isAdmin: mergedUser?.role === 'admin',
+    isApproved: mergedUser?.approved === true,
+  };
 }
