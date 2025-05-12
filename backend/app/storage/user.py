@@ -53,3 +53,8 @@ async def set_user_approval(user_id: str, is_approved: bool) -> None:
         print(f"[❌ set_user_approval] {e}")
         raise
 
+async def get_user_approved_status(user_id: str) -> bool:
+    result = supabase.table("users").select("is_approved").eq("id", user_id).maybe_single().execute()
+    if not result.data:
+        return False
+    return result.data.get("is_approved", False)
