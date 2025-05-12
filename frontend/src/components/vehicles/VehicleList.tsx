@@ -1,52 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import type { Vehicle } from '@/types/vehicle';
 
-type Vehicle = {
-  id: string;
-  brand: string;
-  model: string;
-  vin: string;
-  batteryLevel: number | null;
-  isReachable: boolean;
-};
-
-const mockVehicles: Vehicle[] = [
-  {
-    id: '1',
-    brand: 'XPENG',
-    model: 'G6',
-    vin: 'X1234567890',
-    batteryLevel: 76,
-    isReachable: true,
-  },
-  {
-    id: '2',
-    brand: 'Kia',
-    model: 'EV6',
-    vin: 'K9988776655',
-    batteryLevel: 54,
-    isReachable: false,
-  },
-  {
-    id: '3',
-    brand: 'Volkswagen',
-    model: 'ID.4',
-    vin: 'VW1122334455',
-    batteryLevel: null,
-    isReachable: false,
-  },
-];
-
-export default function VehicleList() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-
-  useEffect(() => {
-    // Simulera API-anrop
-    setVehicles(mockVehicles);
-  }, []);
-
+export default function VehicleList({ vehicles }: { vehicles: Vehicle[] }) {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-indigo-700">Your Vehicles</h2>
@@ -61,27 +18,31 @@ export default function VehicleList() {
             </tr>
           </thead>
           <tbody>
-            {vehicles.map((v) => (
-              <tr key={v.id} className="border-t">
-                <td className="px-4 py-2">
-                  {v.brand} / {v.model} / {v.vin}
-                </td>
-                <td className="px-4 py-2">
-                  {v.batteryLevel !== null ? `${v.batteryLevel}%` : '–'}
-                </td>
-                <td className="px-4 py-2">
-                  {v.isReachable ? (
-                    <span className="text-green-600 font-medium">Reachable</span>
-                  ) : (
-                    <span className="text-red-500 font-medium">Offline</span>
-                  )}
-                </td>
-                <td className="px-4 py-2 space-x-2">
-                  <Button size="sm" variant="outline">Details</Button>
-                  <Button size="sm" variant="destructive">Unlink</Button>
-                </td>
-              </tr>
-            ))}
+            {vehicles.map((v) => {
+              const { brand, model, vin } = v.information;
+              const name = `${brand} ${model} (${vin})`;
+              const battery = v.chargeState?.batteryLevel ?? null;
+
+              return (
+                <tr key={v.id} className="border-t">
+                  <td className="px-4 py-2">{name}</td>
+                  <td className="px-4 py-2">
+                    {battery !== null ? `${battery}%` : '–'}
+                  </td>
+                  <td className="px-4 py-2">
+                    {v.isReachable ? (
+                      <span className="text-green-600 font-medium">Reachable</span>
+                    ) : (
+                      <span className="text-red-500 font-medium">Offline</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 space-x-2">
+                    <Button size="sm" variant="outline">Details</Button>
+                    <Button size="sm" variant="destructive">Unlink</Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

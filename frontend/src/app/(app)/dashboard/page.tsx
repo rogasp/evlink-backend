@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/authFetch';
-import VehicleTable from '@/components/VehicleTable';
-import type { Vehicle } from '@/components/VehicleTable';
 import { useAuth } from '@/hooks/useAuth';
 import LinkVehicleDialog from '@/components/dashboard/LinkVehicleDialog';
 import VehicleList from '@/components/vehicles/VehicleList';
+import type { Vehicle } from '@/types/vehicle';
 
 export default function DashboardPage() {
   const { user, accessToken, loading } = useAuth();
@@ -59,8 +58,7 @@ export default function DashboardPage() {
         <LinkVehicleDialog accessToken={accessToken} />
       </div>
 
-      {/* 🚗 Vehicle Table */}
-      <VehicleList />
+      <VehicleList vehicles={vehicles} />
     </main>
   );
 }
