@@ -109,24 +109,26 @@ export default function DashboardPage() {
   if (!user || !accessToken) return null;
 
   return (
-    <main className="min-h-screen p-6 bg-gray-50">
-      <h1 className="mb-8 text-3xl font-bold text-indigo-700">
-        Welcome, {user.user_metadata?.name ?? 'User'}
-      </h1>
+    <main className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6">
+      <div className="space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-indigo-700">
+          Welcome, {user.user_metadata?.name ?? 'User'}
+        </h1>
 
-      <div className="mb-8">
-        <LinkVehicleDialog accessToken={accessToken} />
+        <div>
+          <LinkVehicleDialog accessToken={accessToken} />
+        </div>
+
+        <VehicleList vehicles={vehicles} onUnlinkVendor={openUnlinkDialog} />
+
+        <UnlinkVendorDialog
+          open={unlinkDialogOpen}
+          onOpenChange={setUnlinkDialogOpen}
+          vendor={selectedVendor ?? ''}
+          vehicles={vendorVehicles}
+          onConfirm={handleConfirmUnlink}
+        />
       </div>
-
-      <VehicleList vehicles={vehicles} onUnlinkVendor={openUnlinkDialog} />
-
-      <UnlinkVendorDialog
-        open={unlinkDialogOpen}
-        onOpenChange={setUnlinkDialogOpen}
-        vendor={selectedVendor ?? ''}
-        vehicles={vendorVehicles}
-        onConfirm={handleConfirmUnlink}
-      />
     </main>
   );
 }
