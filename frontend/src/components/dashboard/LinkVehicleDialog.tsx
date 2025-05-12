@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import VendorSelect from '@/components/VendorSelect';
 import { authFetch } from '@/lib/authFetch';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LinkVehicleDialogProps {
   accessToken: string;
@@ -23,6 +24,7 @@ interface LinkVehicleDialogProps {
 export default function LinkVehicleDialog({ accessToken }: LinkVehicleDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState('');
+  const { isApproved } = useAuth();
 
   const handleLinkVehicle = async () => {
     if (!selectedVendor || !accessToken) {
@@ -53,7 +55,7 @@ export default function LinkVehicleDialog({ accessToken }: LinkVehicleDialogProp
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Link Vehicle</Button>
+        <Button variant="default" disabled={!isApproved}>Link Vehicle</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
