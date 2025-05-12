@@ -6,15 +6,17 @@ import type { Vehicle } from '@/types/vehicle';
 interface VehicleListProps {
   vehicles: Vehicle[];
   onUnlinkVendor: (vendor: string) => void;
+  onDetailsClick: (vehicle: Vehicle) => void;
 }
 
 export default function VehicleList({
   vehicles,
   onUnlinkVendor,
+  onDetailsClick,
 }: VehicleListProps) {
   return (
     <div className="space-y-4">
-      {/* Mobilvy (kort) */}
+      {/* Mobilvy */}
       <div className="md:hidden flex flex-col gap-4">
         {vehicles.map((v) => {
           const info = v.information;
@@ -32,12 +34,12 @@ export default function VehicleList({
 
               <div className="text-sm text-gray-500 mb-2">
                 Battery:{' '}
-                {v.chargeState?.batteryLevel !== undefined
+                {v.chargeState?.batteryLevel != null
                   ? `${v.chargeState.batteryLevel}%`
                   : '–'}
-                {'  ·  '}
+                {' · '}
                 Range:{' '}
-                {v.chargeState?.range !== undefined
+                {v.chargeState?.range != null
                   ? `${Math.round(v.chargeState.range)} km`
                   : '–'}
               </div>
@@ -52,7 +54,7 @@ export default function VehicleList({
               </div>
 
               <div className="flex gap-2 mt-2">
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => onDetailsClick(v)}>
                   Details
                 </Button>
                 <Button
@@ -92,12 +94,12 @@ export default function VehicleList({
                       : 'Unnamed Vehicle'}
                   </td>
                   <td className="px-4 py-2">
-                    {v.chargeState?.batteryLevel !== undefined
+                    {v.chargeState?.batteryLevel != null
                       ? `${v.chargeState.batteryLevel}%`
                       : '–'}
                   </td>
                   <td className="px-4 py-2">
-                    {v.chargeState?.range !== undefined
+                    {v.chargeState?.range != null
                       ? `${Math.round(v.chargeState.range)} km`
                       : '–'}
                   </td>
@@ -109,7 +111,7 @@ export default function VehicleList({
                     )}
                   </td>
                   <td className="px-4 py-2 space-x-2">
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => onDetailsClick(v)}>
                       Details
                     </Button>
                     <Button

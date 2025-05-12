@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/authFetch';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,6 +10,7 @@ import { supabase } from '@/lib/supabaseClient';
 import LinkVehicleDialog from '@/components/dashboard/LinkVehicleDialog';
 import VehicleList from '@/components/vehicles/VehicleList';
 import UnlinkVendorDialog from '@/components/dashboard/UnlinkVendorDialog';
+import VehicleDetailsModal from '@/components/vehicles/VehicleDetailsModal';
 import type { Vehicle } from '@/types/vehicle';
 
 export default function DashboardPage() {
@@ -16,6 +18,8 @@ export default function DashboardPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [unlinkDialogOpen, setUnlinkDialogOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const justClosedRef = useRef(false);
 
   const fetchVehicles = useCallback(async () => {
     if (!accessToken) return;
@@ -37,6 +41,21 @@ export default function DashboardPage() {
           typeof v === 'string' ? [JSON.parse(v)] : [v]
         );
         setVehicles(parsed);
+
+        if (selectedVehicle && !justClosedRef.current) {
+          const updated = parsed.find((v) => v.id === selectedVehicle.id);
+
+          if (
+            updated &&
+            JSON.stringify(updated) !== JSON.stringify(selectedVehicle)
+          ) {
+            setSelectedVehicle(updated);
+          }
+        }
+
+        if (justClosedRef.current) {
+          justClosedRef.current = false;
+        }
       } else {
         toast.error('Unexpected vehicle data format');
         console.error('Vehicle fetch format error:', data);
@@ -45,7 +64,7 @@ export default function DashboardPage() {
       toast.error('Failed to parse vehicles');
       console.error('Vehicle parse error:', e);
     }
-  }, [accessToken]);
+  }, [accessToken, selectedVehicle]);
 
   useEffect(() => {
     fetchVehicles();
@@ -64,8 +83,7 @@ export default function DashboardPage() {
           table: 'vehicles',
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
-          console.log('[🔄 Realtime event]', payload);
+        () => {
           fetchVehicles();
         }
       )
@@ -101,6 +119,11 @@ export default function DashboardPage() {
     setUnlinkDialogOpen(false);
   };
 
+  const handleCloseModal = () => {
+    justClosedRef.current = true;
+    setSelectedVehicle(null);
+  };
+
   const vendorVehicles = selectedVendor
     ? vehicles.filter((v) => v.vendor === selectedVendor)
     : [];
@@ -119,7 +142,11 @@ export default function DashboardPage() {
           <LinkVehicleDialog accessToken={accessToken} />
         </div>
 
-        <VehicleList vehicles={vehicles} onUnlinkVendor={openUnlinkDialog} />
+        <VehicleList
+          vehicles={vehicles}
+          onUnlinkVendor={openUnlinkDialog}
+          onDetailsClick={setSelectedVehicle}
+        />
 
         <UnlinkVendorDialog
           open={unlinkDialogOpen}
@@ -128,6 +155,13 @@ export default function DashboardPage() {
           vehicles={vendorVehicles}
           onConfirm={handleConfirmUnlink}
         />
+
+        {selectedVehicle && (
+          <VehicleDetailsModal
+            vehicle={selectedVehicle}
+            onClose={handleCloseModal}
+          />
+        )}
       </div>
     </main>
   );
