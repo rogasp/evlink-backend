@@ -7,6 +7,7 @@ import VehicleTable from '@/components/VehicleTable';
 import type { Vehicle } from '@/components/VehicleTable';
 import { useAuth } from '@/hooks/useAuth';
 import LinkVehicleDialog from '@/components/dashboard/LinkVehicleDialog';
+import VehicleList from '@/components/vehicles/VehicleList';
 
 export default function DashboardPage() {
   const { user, accessToken, loading } = useAuth();
@@ -59,7 +60,7 @@ export default function DashboardPage() {
       </div>
 
       {/* 🚗 Vehicle Table */}
-      <VehicleTable vehicles={vehicles} />
+      <VehicleList />
     </main>
   );
 }
