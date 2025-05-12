@@ -14,5 +14,6 @@ export type Vehicle = {
     batteryLevel?: number | null;
     isCharging?: boolean;
     isPluggedIn?: boolean;
+    range?: number;
   };
 };
