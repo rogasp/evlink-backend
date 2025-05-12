@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/authFetch';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const [unlinkDialogOpen, setUnlinkDialogOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     if (!accessToken) return;
 
     const { data, error } = await authFetch('/user/vehicles', {
@@ -45,13 +45,12 @@ export default function DashboardPage() {
       toast.error('Failed to parse vehicles');
       console.error('Vehicle parse error:', e);
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
     fetchVehicles();
-  }, [accessToken]);
+  }, [fetchVehicles]);
 
-  // Realtime update from Supabase (vehicles)
   useEffect(() => {
     if (!user?.id) return;
 
@@ -75,7 +74,7 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, fetchVehicles]);
 
   const openUnlinkDialog = (vendor: string) => {
     setSelectedVendor(vendor);
