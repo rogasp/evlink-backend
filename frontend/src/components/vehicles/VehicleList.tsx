@@ -2,17 +2,20 @@
 
 import { Button } from '@/components/ui/button';
 import type { Vehicle } from '@/types/vehicle';
+import { toast } from 'sonner';
 
 interface VehicleListProps {
   vehicles: Vehicle[];
   onUnlinkVendor: (vendor: string) => void;
   onDetailsClick: (vehicle: Vehicle) => void;
+  onCopyIdClick: (vehicle: Vehicle) => void;
 }
 
 export default function VehicleList({
   vehicles,
   onUnlinkVendor,
   onDetailsClick,
+  onCopyIdClick,
 }: VehicleListProps) {
   return (
     <div className="space-y-4">
@@ -64,6 +67,14 @@ export default function VehicleList({
                 >
                   Unlink
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onCopyIdClick(v)}
+                >
+                  Copy ID
+                </Button>
+
               </div>
             </div>
           );
@@ -85,7 +96,7 @@ export default function VehicleList({
           <tbody>
             {vehicles.map((v) => {
               const info = v.information;
-
+              console.log(v);
               return (
                 <tr key={v.id} className="border-t text-sm">
                   <td className="px-4 py-2">
@@ -121,6 +132,13 @@ export default function VehicleList({
                     >
                       Unlink
                     </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onCopyIdClick(v)}
+                      >
+                        Copy ID
+                      </Button>
                   </td>
                 </tr>
               );
