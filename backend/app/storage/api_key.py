@@ -2,8 +2,11 @@
 
 from typing import Optional
 from uuid import uuid4
+
 from app.lib.api_key_utils import generate_api_key, hash_api_key
 from app.lib.supabase import get_supabase_admin_client
+from app.models.user import User
+from app.storage.user import get_user_by_id
 
 supabase = get_supabase_admin_client()
 
@@ -69,3 +72,22 @@ def get_api_key_info(user_id: str) -> Optional[dict]:
     except Exception as e:
         print(f"[❌ get_api_key_info] Exception for {user_id}: {e}")
         return None
+
+async def get_user_by_api_key(api_key: str) -> User | None:
+    # Hasha inkommande API-nyckel
+    hashed = hash_api_key(api_key)
+
+    # Hämta raden där hash matchar
+    response = supabase.table("api_keys") \
+        .select("user_id") \
+        .eq("key_hash", hashed) \
+        .eq("active", True) \
+        .maybe_single() \
+        .execute()
+
+    row = response.data
+    if not row:
+        return None
+
+    return await get_user_by_id(row["user_id"])
+

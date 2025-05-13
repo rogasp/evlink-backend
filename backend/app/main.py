@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
-from app.api import admin, me, private, public, webhook
+from app.api import admin, ha, me, private, public, webhook
 from app.config import (
     IS_PROD,
     SUPABASE_URL,
@@ -41,6 +41,9 @@ app.include_router(private.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(webhook.router, prefix="/api")
 app.include_router(me.router, prefix="/api")
+app.include_router(ha.router, prefix="/api")
+def method_name():
+    pass
 
 # 🔐 Swagger JWT support
 def custom_openapi():
