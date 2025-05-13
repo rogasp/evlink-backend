@@ -57,3 +57,16 @@ def save_vehicle_data_with_client(vehicle: dict):
 
     except Exception as e:
         print(f"[❌ save_vehicle_data_with_client] Exception: {e}")
+
+async def get_vehicle_by_id(vehicle_id: str):
+    supabase = get_supabase_admin_client()
+    response = supabase.table("vehicles") \
+        .select("*") \
+        .eq("id", vehicle_id) \
+        .maybe_single() \
+        .execute()
+
+    if not response or not response.data:
+        return None
+
+    return response.data

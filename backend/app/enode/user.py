@@ -30,3 +30,18 @@ async def delete_enode_user(user_id: str):
     async with httpx.AsyncClient() as client:
         res = await client.delete(url, headers=headers)
         return res.status_code
+
+async def unlink_vendor(user_id: str, vendor: str) -> tuple[bool, str | None]:
+    token = await get_access_token()
+    url = f"{ENODE_BASE_URL}/users/{user_id}/vendors/{vendor}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
+    async with httpx.AsyncClient() as client:
+        res = await client.delete(url, headers=headers)
+
+    if res.status_code == 204:
+        return True, None
+
+    return False, res.text
