@@ -3,7 +3,7 @@ name: Deploy to Staging (Next.js and FastAPI)
 on:
   push:
     branches:
-      - dev
+      - staging
 
 jobs:
   deploy:
