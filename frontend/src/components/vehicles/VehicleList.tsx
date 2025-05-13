@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import type { Vehicle } from '@/types/vehicle';
-import { toast } from 'sonner';
 
 interface VehicleListProps {
   vehicles: Vehicle[];
