@@ -8,7 +8,7 @@ router = APIRouter()
 
 @router.get("/me")
 async def get_me(user=Depends(get_supabase_user)):
-    print("[🔍 DEBUG user]", user)
+    print("[🔍 DEBUG user]")
 
     approved = await get_user_approved_status(user["id"])
 

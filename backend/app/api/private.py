@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
 from app.enode.link import create_link_session
-from app.enode.user import get_user_vehicles_enode
+from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.vehicle import get_all_cached_vehicles, save_vehicle_data_with_client
 
@@ -20,6 +20,9 @@ class LinkVehicleRequest(BaseModel):
 class LinkVehicleResponse(BaseModel):
     url: str
     linkToken: str 
+
+class UnlinkRequest(BaseModel):
+    vendor: str
 
 @router.get("/user/vehicles", response_model=list)
 async def get_user_vehicles(user=Depends(get_supabase_user)):
@@ -126,4 +129,14 @@ async def api_create_link_session(
     except Exception as e:
         print(f"[❌ ERROR] Failed to create link session: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create link session: {str(e)}")
-    
+
+@router.post("/user/unlink")
+async def unlink_vendor_route(payload: UnlinkRequest, user=Depends(get_supabase_user)):
+    user_id = user["id"]
+
+    success, error = await unlink_vendor(user_id=user_id, vendor=payload.vendor)
+
+    if not success:
+        raise HTTPException(status_code=500, detail=f"Unlink failed: {error}")
+
+    return {"success": True, "message": f"Vendor {payload.vendor} unlinked"}  

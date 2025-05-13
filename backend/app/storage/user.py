@@ -3,6 +3,8 @@ from app.lib.supabase import get_supabase_admin_client
 from app.enode.user import get_all_users as get_enode_users
 import asyncio
 
+from app.models.user import User
+
 supabase = get_supabase_admin_client()
 
 async def get_all_users_with_enode_info():
@@ -58,3 +60,16 @@ async def get_user_approved_status(user_id: str) -> bool:
     if not result.data:
         return False
     return result.data.get("is_approved", False)
+
+async def get_user_by_id(user_id: str) -> User | None:
+    response = supabase.table("users") \
+        .select("id, email, role") \
+        .eq("id", user_id) \
+        .maybe_single() \
+        .execute()
+
+    row = response.data
+    if not row:
+        return None
+
+    return User(**row)
