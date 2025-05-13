@@ -28,3 +28,33 @@ async def get_battery_status(vehicle_id: str, user: User = Depends(get_api_key_u
         battery_level = None
 
     return {"batteryLevel": battery_level}
+
+@router.get("/status/{vehicle_id}")
+async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_user)):
+    vehicle = await get_vehicle_by_id(vehicle_id)
+
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+    if vehicle["user_id"] != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    try:
+        cache = json.loads(vehicle["vehicle_cache"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Invalid vehicle cache: {e}")
+
+    charge = cache.get("chargeState", {})
+    info = cache.get("information", {})
+    location = cache.get("location", {})
+
+    return {
+        "batteryLevel": charge.get("batteryLevel"),
+        "range": charge.get("range"),
+        "isCharging": charge.get("isCharging"),
+        "isPluggedIn": charge.get("isPluggedIn"),
+        "chargingState": charge.get("powerDeliveryState"),
+        "vehicleName": f"{info.get('brand', '')} {info.get('model', '')}",
+        "latitude": location.get("latitude"),
+        "longitude": location.get("longitude")
+    }
