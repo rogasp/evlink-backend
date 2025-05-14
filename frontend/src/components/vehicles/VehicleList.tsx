@@ -95,7 +95,6 @@ export default function VehicleList({
           <tbody>
             {vehicles.map((v) => {
               const info = v.information;
-              console.log(v);
               return (
                 <tr key={v.id} className="border-t text-sm">
                   <td className="px-4 py-2">
