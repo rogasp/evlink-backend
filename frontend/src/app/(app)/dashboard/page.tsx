@@ -99,6 +99,44 @@ export default function DashboardPage() {
     setUnlinkDialogOpen(true);
   };
 
+const handleCopyID = useCallback(async (vehicle: Vehicle) => {
+  console.log('[🚀 handleCopyID] Triggered for vehicle:', vehicle);
+
+  if (!accessToken || !vehicle.id) {
+    toast.error('Missing access token or vehicle ID');
+    return;
+  }
+
+  const endpoint = `/vehicle/by_vid?vehicle_id=${vehicle.id}`;
+  console.log('[🌐 handleCopyID] Fetching from endpoint:', endpoint);
+
+  try {
+    const { data, error } = await authFetch(endpoint, {
+      method: 'GET',
+      accessToken,
+    });
+
+    console.log('[📦 handleCopyID] Response:', { data, error });
+
+    const vehicleDbId = data?.id;
+
+    if (!vehicleDbId || error) {
+      console.warn('[❌ handleCopyID] Failed to get internal vehicle ID');
+      toast.error('Could not fetch internal vehicle ID');
+      return;
+    }
+
+    await navigator.clipboard.writeText(vehicleDbId);
+    toast.success('Vehicle ID copied to clipboard!');
+    console.log('[✅ handleCopyID] Copied vehicle ID:', vehicleDbId);
+
+  } catch (err) {
+    console.error('[🔥 handleCopyID] Unexpected error:', err);
+    toast.error('Failed to copy vehicle ID');
+  }
+}, [accessToken]);
+
+
   const handleConfirmUnlink = async () => {
     if (!accessToken || !selectedVendor) return;
 
@@ -146,6 +184,7 @@ export default function DashboardPage() {
           vehicles={vehicles}
           onUnlinkVendor={openUnlinkDialog}
           onDetailsClick={setSelectedVehicle}
+          onCopyIdClick={handleCopyID}
         />
 
         <UnlinkVendorDialog

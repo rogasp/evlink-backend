@@ -70,3 +70,16 @@ async def get_vehicle_by_id(vehicle_id: str):
         return None
 
     return response.data
+
+async def get_vehicle_by_vehicle_id(vehicle_id: str):
+    supabase = get_supabase_admin_client()
+    response = supabase.table("vehicles") \
+        .select("*") \
+        .eq("vehicle_id", vehicle_id) \
+        .maybe_single() \
+        .execute()
+
+    if not response or not response.data:
+        return None
+
+    return response.data
