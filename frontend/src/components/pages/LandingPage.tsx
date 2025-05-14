@@ -21,45 +21,38 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-indigo-100 via-white to-white py-24">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <h1 className="text-5xl font-extrabold text-indigo-700 mb-6">
-            EVLink – Your smart EV gateway
-          </h1>
-          <p className="text-lg text-gray-600 mb-10">
-            Monitor, control and automate your electric vehicle with Home Assistant & Enode.
-          </p>
+      <section className="relative z-10 overflow-hidden text-white py-24 bg-indigo-700 min-h-[600px]">
+  <Image
+    src="/ev_car.png"
+    alt=""
+    fill
+    className="object-cover opacity-10 z-0"
+  />
 
-          <div className="flex justify-center flex-wrap gap-4 mb-6">
-            {clientReady && user ? (
-              <Button asChild>
-                <Link href="/dashboard">Go to Dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <Button asChild>
-                  <Link href="/register">Get Started</Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/login">Log In</Link>
-                </Button>
-              </>
-            )}
+  <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
+    <span className="inline-block text-sm font-semibold uppercase bg-yellow-400 text-black px-3 py-1 rounded-full mb-6">
+      Free to get started
+    </span>
 
-            <Button variant="ghost" asChild>
-              <Link href="/admin/status">
-                <Badge variant="outline" className="hover:bg-indigo-200 hover:text-indigo-900 transition">
-                  Service Status →
-                </Badge>
-              </Link>
-            </Button>
-          </div>
-        </div>
+    <h1 className="text-5xl font-extrabold leading-tight sm:text-6xl mb-4">
+      Connect your EV.<br />Automate everything.
+    </h1>
 
-        <div className="absolute right-10 bottom-0 w-96 opacity-20 -z-10 pointer-events-none">
-          <Image src="/ev_car.png" alt="EV Car" width={400} height={300} />
-        </div>
-      </section>
+    <p className="text-xl sm:text-2xl font-light mb-10">
+      EVLink links your electric vehicle with Home Assistant using Enode.
+      It's private, scalable, and ready for power users.
+    </p>
+
+    <div className="flex flex-wrap justify-center gap-4">
+      <Button size="lg" asChild>
+        <Link href="/register">Start Free</Link>
+      </Button>
+      <Button variant="ghost" size="lg" asChild className="border border-white text-white hover:bg-white/10">
+        <Link href="/roadmap">See Roadmap</Link>
+      </Button>
+    </div>
+  </div>
+</section>
 
       {/* Features Section */}
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-6 text-center">
