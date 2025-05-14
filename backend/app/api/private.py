@@ -1,6 +1,6 @@
 # 📄 backend/app/api/private.py
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from datetime import datetime, timezone, timedelta
 
 from pydantic import BaseModel
@@ -8,7 +8,7 @@ from app.auth.supabase_auth import get_supabase_user
 from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
-from app.storage.vehicle import get_all_cached_vehicles, save_vehicle_data_with_client
+from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
 
 router = APIRouter()
 
@@ -24,6 +24,9 @@ class LinkVehicleResponse(BaseModel):
 class UnlinkRequest(BaseModel):
     vendor: str
 
+class GetUserVehicleByVehIdResponse(BaseModel):
+    id: str
+    
 @router.get("/user/vehicles", response_model=list)
 async def get_user_vehicles(user=Depends(get_supabase_user)):
     """
@@ -68,6 +71,25 @@ async def get_user_vehicles(user=Depends(get_supabase_user)):
     except Exception as e:
         print(f"[❌ fetch_fresh] Failed to fetch or save vehicles: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch vehicles")
+
+@router.get("/vehicle/by_vid")
+async def get_vehicle_by_vid(
+    vehicle_id: str = Query(..., alias="vehicle_id"),
+    user=Depends(get_supabase_user)
+):
+    print(f"🔐 Authenticated user: {user['id']} ({user['email']})")
+    try:
+        vehicle = await get_vehicle_by_vehicle_id(vehicle_id)
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Vehicle not found")
+
+        if vehicle["user_id"] != user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to access this vehicle")
+
+        return vehicle
+    except Exception as e:
+        print(f"[❌ vehicle_by_vid] Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve vehicle")
 
 @router.post("/users/{user_id}/apikey")
 async def create_user_api_key(user_id: str = Path(...), user=Depends(get_supabase_user)):
