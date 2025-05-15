@@ -2,12 +2,19 @@
 
 import { Toaster } from 'sonner';
 import { RegistrationProvider } from '@/contexts/RegistrationContext';
+import { SupabaseProvider } from '@/components/SupabaseProvider'; // 👈 lägg till
+import Navbar from '@/components/layout/Navbar';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Toaster position="top-center" richColors closeButton={false} />
-      <RegistrationProvider>{children}</RegistrationProvider>
+      <RegistrationProvider>
+        <SupabaseProvider>
+          <Navbar />
+          {children}
+        </SupabaseProvider>
+      </RegistrationProvider>
     </>
   );
 }
