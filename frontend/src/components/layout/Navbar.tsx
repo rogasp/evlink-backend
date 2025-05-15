@@ -25,6 +25,7 @@ export default function Navbar() {
   const { registrationAllowed } = useRegistrationStatus();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // 👈 kontrollera mobilmeny
 
   useEffect(() => {
     const getUserData = async () => {
@@ -72,7 +73,7 @@ export default function Navbar() {
       <div className="flex items-center space-x-3 h-full">
         {/* Hamburger menu - mobile only */}
         <div className="md:hidden">
-          <Sheet>
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6 text-white" />
@@ -87,32 +88,43 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
+                    onClick={() => setMenuOpen(false)} // 👈 stänger meny
                     className="text-base font-medium hover:underline"
                   >
                     {link.label}
                   </Link>
                 ))}
+
                 {isLoggedIn && (
-                  <Button variant="outline" className="mt-6" onClick={handleLogout}>
+                  <Button
+                    variant="outline"
+                    className="mt-6"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleLogout();
+                    }}
+                  >
                     Log out
                   </Button>
                 )}
               </nav>
+
               {!isLoggedIn && (
                 <div className="mt-6 border-t pt-4">
                   <Link
                     href="/login"
+                    onClick={() => setMenuOpen(false)}
                     className="block text-base font-medium text-gray-800 hover:underline"
                   >
                     Log In
                   </Link>
                 </div>
               )}
-
             </SheetContent>
           </Sheet>
         </div>
 
+        {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 h-full">
           <Image
             src="/evlink-logo.png"
@@ -124,7 +136,7 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {/* Right side */}
+      {/* Right side - desktop */}
       <div className="hidden md:flex items-center gap-2">
         {navLinks.map((link) => (
           <Link
@@ -135,6 +147,7 @@ export default function Navbar() {
             {link.label}
           </Link>
         ))}
+
         {!isLoggedIn && (
           <Link
             href="/login"
@@ -143,8 +156,9 @@ export default function Navbar() {
             Log In
           </Link>
         )}
+
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-2">
             {registrationAllowed === false && (
               <Link href="/admin/settings">
                 <Badge
