@@ -115,7 +115,6 @@ export default function LandingPage() {
   </Card>
   </div>
 </section>
-
       <Separator />
       {/* Features Section */}
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-6 text-center">
