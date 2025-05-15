@@ -98,6 +98,17 @@ export default function Navbar() {
                   </Button>
                 )}
               </nav>
+              {!isLoggedIn && (
+                <div className="mt-6 border-t pt-4">
+                  <Link
+                    href="/login"
+                    className="block text-base font-medium text-gray-800 hover:underline"
+                  >
+                    Log In
+                  </Link>
+                </div>
+              )}
+
             </SheetContent>
           </Sheet>
         </div>
@@ -124,7 +135,14 @@ export default function Navbar() {
             {link.label}
           </Link>
         ))}
-
+        {!isLoggedIn && (
+          <Link
+            href="/login"
+            className="text-sm font-medium hover:underline text-gray-300 hover:text-white ml-4"
+          >
+            Log In
+          </Link>
+        )}
         {isAdmin && (
           <div className="flex items-center gap-2">
             {registrationAllowed === false && (
