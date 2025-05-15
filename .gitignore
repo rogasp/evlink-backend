@@ -87,3 +87,5 @@ thunder_collection.json
 frontend/next.config.mjs
 supabase/scripts/sync_staging_with_local.sh
 supabase/scripts/sync_staging_schema.sh
+create-backlog-issues.sh
+start-backend.sh
