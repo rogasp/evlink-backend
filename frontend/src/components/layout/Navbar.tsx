@@ -7,6 +7,15 @@ import { useEffect, useState } from 'react';
 import UserAvatarMenu from './UserAvatarMenu';
 import { Badge } from '@/components/ui/badge';
 import { useRegistrationStatus } from '@/contexts/RegistrationContext';
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
 
 export default function Navbar() {
   const { supabase } = useSupabase();
@@ -15,6 +24,8 @@ export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const { registrationAllowed } = useRegistrationStatus();
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
     const getUserData = async () => {
       const {
@@ -22,9 +33,12 @@ export default function Navbar() {
       } = await supabase.auth.getUser();
 
       if (user) {
+        setIsLoggedIn(true);
         setAvatarUrl(user.user_metadata?.avatar_url);
         setUserName(user.user_metadata?.name || user.email);
         setIsAdmin(user.user_metadata?.role === 'admin');
+      } else {
+        setIsLoggedIn(false);
       }
     };
 
@@ -39,9 +53,55 @@ export default function Navbar() {
         .toUpperCase()
     : '';
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
+
+  const navLinks = [
+    { href: '/status', label: 'Status' },
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/roadmap', label: 'Roadmap' },
+    { href: '/releasenotes', label: 'Release Notes' },
+    { href: '/terms', label: 'Terms' },
+  ];
+
   return (
     <nav className="w-full bg-[#0A2245] text-white px-4 py-2 flex items-center justify-between shadow-md h-14">
+      {/* Left side */}
       <div className="flex items-center space-x-3 h-full">
+        {/* Hamburger menu - mobile only */}
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6 text-white" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle className="text-lg">Menu</SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col space-y-4 mt-6">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-base font-medium hover:underline"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                {isLoggedIn && (
+                  <Button variant="outline" className="mt-6" onClick={handleLogout}>
+                    Log out
+                  </Button>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+
         <Link href="/" className="flex items-center space-x-2 h-full">
           <Image
             src="/evlink-logo.png"
@@ -53,7 +113,18 @@ export default function Navbar() {
         </Link>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Right side */}
+      <div className="hidden md:flex items-center gap-2">
+        {navLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="text-sm font-medium hover:underline"
+          >
+            {link.label}
+          </Link>
+        ))}
+
         {isAdmin && (
           <div className="flex items-center gap-2">
             {registrationAllowed === false && (
@@ -73,7 +144,10 @@ export default function Navbar() {
             </Link>
           </div>
         )}
-        <UserAvatarMenu avatarUrl={avatarUrl} fallback={fallback} />
+
+        {isLoggedIn && (
+          <UserAvatarMenu avatarUrl={avatarUrl} fallback={fallback} />
+        )}
       </div>
     </nav>
   );
