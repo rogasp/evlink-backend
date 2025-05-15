@@ -54,6 +54,69 @@ export default function LandingPage() {
   </div>
 </section>
 
+<section className="max-w-6xl mx-auto px-6 py-24 text-center">
+  <h2 className="text-3xl font-bold mb-12">Choose your plan</h2>
+  <div className="grid gap-6 md:grid-cols-3">
+  {/* Free plan */}
+  <Card className="border shadow-md">
+  <CardHeader>
+    <CardTitle className="text-2xl font-semibold">Free</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <ul className="text-sm text-left text-gray-600 space-y-2">
+      <li>✔ Connect 1 vehicle</li>
+      <li>✔ Real-time data</li>
+      <li>✔ Home Assistant support</li>
+    </ul>
+    <Button className="w-full" asChild>
+      <Link href="/register">Start for free</Link>
+    </Button>
+  </CardContent>
+  </Card>
+
+  {/* Basic plan - coming soon */}
+  <Card className="border bg-muted/50 opacity-60 relative">
+  <div className="absolute top-4 right-4">
+    <Badge variant="secondary">Coming soon</Badge>
+  </div>
+  <CardHeader>
+    <CardTitle className="text-2xl font-semibold">Basic</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <ul className="text-sm text-left text-gray-600 space-y-2">
+      <li>✔ Up to 3 vehicles</li>
+      <li>✔ Email alerts</li>
+      <li>✔ Smart charging control</li>
+    </ul>
+    <Button className="w-full" disabled>
+      Not available
+    </Button>
+  </CardContent>
+  </Card>
+
+  {/* Pro plan - coming soon */}
+  <Card className="border bg-muted/50 opacity-60 relative">
+  <div className="absolute top-4 right-4">
+    <Badge variant="secondary">Coming soon</Badge>
+  </div>
+  <CardHeader>
+    <CardTitle className="text-2xl font-semibold">Pro</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <ul className="text-sm text-left text-gray-600 space-y-2">
+      <li>✔ Unlimited vehicles</li>
+      <li>✔ Priority support</li>
+      <li>✔ Advanced automation</li>
+    </ul>
+    <Button className="w-full" disabled>
+      Not available
+    </Button>
+  </CardContent>
+  </Card>
+  </div>
+</section>
+
+      <Separator />
       {/* Features Section */}
       <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-6 text-center">
         <Card>
@@ -89,8 +152,6 @@ export default function LandingPage() {
           </CardContent>
         </Card>
       </section>
-
-      <Separator />
     </main>
   );
 }
