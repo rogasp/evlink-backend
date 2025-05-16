@@ -25,7 +25,7 @@ export default function Navbar() {
   const { registrationAllowed } = useRegistrationStatus();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false); // 👈 kontrollera mobilmeny
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -59,14 +59,6 @@ export default function Navbar() {
     window.location.href = '/login';
   };
 
-  const navLinks = [
-    { href: '/status', label: 'Status' },
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/roadmap', label: 'Roadmap' },
-    { href: '/releasenotes', label: 'Release Notes' },
-    { href: '/terms', label: 'Terms' },
-  ];
-
   return (
     <nav className="w-full bg-[#0A2245] text-white px-4 py-2 flex items-center justify-between shadow-md h-14">
       {/* Left side */}
@@ -84,16 +76,15 @@ export default function Navbar() {
                 <SheetTitle className="text-lg">Menu</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col space-y-4 mt-6">
-                {navLinks.map((link) => (
+                {isLoggedIn && (
                   <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)} // 👈 stänger meny
+                    href="/dashboard"
+                    onClick={() => setMenuOpen(false)}
                     className="text-base font-medium hover:underline"
                   >
-                    {link.label}
+                    Dashboard
                   </Link>
-                ))}
+                )}
 
                 {isLoggedIn && (
                   <Button
@@ -110,13 +101,20 @@ export default function Navbar() {
               </nav>
 
               {!isLoggedIn && (
-                <div className="mt-6 border-t pt-4">
+                <div className="mt-6 border-t pt-4 space-y-2">
                   <Link
                     href="/login"
                     onClick={() => setMenuOpen(false)}
                     className="block text-base font-medium text-gray-800 hover:underline"
                   >
                     Log In
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMenuOpen(false)}
+                    className="block text-base font-medium text-gray-800 hover:underline"
+                  >
+                    Register
                   </Link>
                 </div>
               )}
@@ -137,24 +135,22 @@ export default function Navbar() {
       </div>
 
       {/* Right side - desktop */}
-      <div className="hidden md:flex items-center gap-2">
-        {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="text-sm font-medium hover:underline"
-          >
-            {link.label}
-          </Link>
-        ))}
-
+      <div className="hidden md:flex items-center gap-4">
         {!isLoggedIn && (
-          <Link
-            href="/login"
-            className="text-sm font-medium hover:underline text-gray-300 hover:text-white ml-4"
-          >
-            Log In
-          </Link>
+          <>
+            <Link
+              href="/login"
+              className="text-sm font-medium hover:underline text-gray-300 hover:text-white"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/register"
+              className="text-sm font-medium hover:underline text-gray-300 hover:text-white"
+            >
+              Register
+            </Link>
+          </>
         )}
 
         {isAdmin && (

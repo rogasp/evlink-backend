@@ -11,6 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSupabase } from '@/lib/supabaseContext';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function UserAvatarMenu({
   avatarUrl,
@@ -38,6 +39,9 @@ export default function UserAvatarMenu({
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard">Dashboard</Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push('/profile')}>
           Profile
         </DropdownMenuItem>
