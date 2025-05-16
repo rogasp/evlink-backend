@@ -8,9 +8,9 @@ export default function LogoLink() {
     <Link href="/" className="flex items-center space-x-2 h-full">
       <Image
         src="/evlink-logo.png"
-        alt="EVLink Logo"
-        height={48}
-        width={120}
+        alt="EVLinkHA Logo"
+        height={96}
+        width={240}
         className="h-full w-auto object-contain"
       />
     </Link>

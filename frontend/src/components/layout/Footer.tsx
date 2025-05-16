@@ -333,7 +333,7 @@ export default function Footer() {
 
       {/* Bottom copyright */}
       <div className="text-center py-4 text-xs text-gray-400 border-t border-white/10">
-        © 2025 Roger Aspelin. All rights reserved.
+        © 2025 EVLinkHA/Roger Aspelin. All rights reserved.
       </div>
     </footer>
   );
