@@ -66,7 +66,7 @@ export default function Footer() {
         size="icon"
         className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
       >
-        <a href="https://github.com/rogasp/evlink/issues" target="_blank" rel="noopener noreferrer">
+        <a href="/contact" rel="noopener noreferrer">
           <Mail className="h-5 w-5" />
         </a>
       </Button>
@@ -133,7 +133,7 @@ export default function Footer() {
       size="icon"
       className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
     >
-      <a href="https://github.com/rogasp/evlink/issues" target="_blank" rel="noopener noreferrer">
+      <a href="/contact" rel="noopener noreferrer">
         <Mail className="h-5 w-5" />
       </a>
     </Button>
@@ -216,7 +216,7 @@ export default function Footer() {
       size="icon"
       className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
     >
-      <a href="https://github.com/rogasp/evlink/issues" target="_blank" rel="noopener noreferrer">
+      <a href="/contact" rel="noopener noreferrer">
         <Mail className="h-5 w-5" />
       </a>
     </Button>
@@ -301,7 +301,7 @@ export default function Footer() {
             size="icon"
             className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
             >
-            <a href="https://github.com/rogasp/evlink/issues" target="_blank" rel="noopener noreferrer">
+            <a href="/contact" rel="noopener noreferrer">
                 <Mail className="h-5 w-5" />
             </a>
             </Button>

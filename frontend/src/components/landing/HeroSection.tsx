@@ -21,7 +21,7 @@ export default function HeroSection() {
           Connect your EV.
         </h1>
         <p className="text-lg sm:text-xl font-light mb-6 leading-snug">
-          EVLink links your electric vehicle with Home Assistant using Enode. It&apos;s private, scalable, and ready for power users.
+          EVLinkHA links your electric vehicle with Home Assistant using Enode. It&apos;s private, scalable, and ready for power users.
         </p>
       </div>
     </section>

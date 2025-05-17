@@ -35,7 +35,7 @@ export default function FeaturesSection() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 text-sm">
-              Automate pre-heating, smart charging and schedules using Home Assistant routines and scenes.
+              Automate smart charging and schedules using Home Assistant routines and scenes.
             </p>
           </CardContent>
         </Card>

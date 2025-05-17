@@ -3,7 +3,7 @@
 export default function SupportSection() {
   return (
     <section className="max-w-4xl mx-auto px-6 py-10 text-center">
-      <h2 className="text-2xl font-bold mb-4">EVLink is open source & built for the community</h2>
+      <h2 className="text-2xl font-bold mb-4">EVLinkHA is open source & built for the community</h2>
       <p className="text-gray-600 text-base mb-4">
         This project is a personal hobby, built on evenings and weekends. If you find it useful, you can support its future.
       </p>
