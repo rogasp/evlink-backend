@@ -2,6 +2,7 @@
 
 import logging
 from app.lib.supabase import get_supabase_admin_client
+from datetime import datetime
 
 
 def save_interest(name: str, email: str) -> None:
@@ -20,3 +21,34 @@ def save_interest(name: str, email: str) -> None:
 
     except Exception as e:
         logging.exception(f"[❌ save_interest] Exception occurred while saving interest: {e}")
+
+async def get_uncontacted_interest_entries():
+    response = get_supabase_admin_client().table("interest") \
+        .select("*") \
+        .eq("contacted", False) \
+        .execute()
+    return response.data or []
+
+async def mark_interest_contacted(entry_id: str):
+    return get_supabase_admin_client().table("interest") \
+        .update({
+            "contacted": True,
+            "contacted_at": datetime.utcnow().isoformat()
+        }) \
+        .eq("id", entry_id) \
+        .execute()
+
+async def list_interest_entries():
+    response = get_supabase_admin_client().table("interest") \
+        .select("id, name, email, created_at, contacted, contacted_at") \
+        .order("created_at", desc=True) \
+        .execute()
+    return response.data or []
+
+async def count_uncontacted_interest():
+    response = get_supabase_admin_client().table("interest") \
+        .select("id", count="exact") \
+        .eq("contacted", False) \
+        .execute()
+    return response.count or 0
+
