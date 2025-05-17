@@ -1,10 +1,13 @@
 'use client';
 
+import { useAuth } from '@/hooks/useAuth';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  useAuth({ requireAuth: true }); // 🔐 skydd här
+
   return (
     <SidebarProvider>
       <div className="grid grid-rows-[auto_1fr] grid-cols-[auto_1fr] h-screen">
