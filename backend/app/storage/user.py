@@ -67,7 +67,7 @@ async def get_user_by_id(user_id: str) -> User | None:
         .eq("id", user_id) \
         .maybe_single() \
         .execute()
-
+    
     row = response.data
     if not row:
         return None
