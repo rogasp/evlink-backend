@@ -18,7 +18,7 @@ class MeResponse(BaseModel):
 async def get_me(user=Depends(get_supabase_user)):
     approved = await get_user_approved_status(user["id"])
     local_user = await get_user_by_id(user["id"])
-
+    print(f"local_user: {local_user}")
     # 1. Prefer name from user_metadata
     name = (user.get("user_metadata", {}) or {}).get("name")
 
