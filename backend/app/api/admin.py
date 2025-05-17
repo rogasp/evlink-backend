@@ -7,7 +7,9 @@ from app.auth.supabase_auth import get_supabase_user
 from app.enode.user import delete_enode_user
 from app.enode.vehicle import get_all_vehicles
 from app.enode.webhook import subscribe_to_webhooks, delete_webhook
+from app.services.email import send_interest_email
 from app.storage import settings
+from app.storage.interest import count_uncontacted_interest, get_uncontacted_interest_entries, list_interest_entries, mark_interest_contacted
 from app.storage.user import get_all_users_with_enode_info, set_user_approval
 from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, mark_webhook_as_inactive, save_webhook_subscription, sync_webhook_subscriptions_from_enode
 from app.storage.webhook_monitor import monitor_webhook_health
@@ -160,4 +162,28 @@ async def update_user_approval(
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"success": True}
+
+@router.post("/admin/interest/contact")
+async def contact_all_interested(user=Depends(require_admin)):
+    entries = await get_uncontacted_interest_entries()
+    contacted = 0
+
+    for entry in entries:
+        try:
+            await send_interest_email(email=entry["email"], name=entry.get("name", "friend"))
+            await mark_interest_contacted(entry["id"])
+            contacted += 1
+        except Exception as e:
+            print(f"[❌] Could not contact {entry['email']}: {e}")
+
+    return {"message": f"Contacted {contacted} interest submissions."}
+
+@router.get("/admin/interest")
+async def list_interest(user=Depends(require_admin)):
+    return await list_interest_entries()
+
+@router.get("/admin/interest/uncontacted/count")
+async def count_interest(user=Depends(require_admin)):
+    count = await count_uncontacted_interest()
+    return {"count": count}
 
