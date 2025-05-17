@@ -63,7 +63,7 @@ async def get_user_approved_status(user_id: str) -> bool:
 
 async def get_user_by_id(user_id: str) -> User | None:
     response = supabase.table("users") \
-        .select("id, email, role") \
+        .select("id, email, role, name") \
         .eq("id", user_id) \
         .maybe_single() \
         .execute()
