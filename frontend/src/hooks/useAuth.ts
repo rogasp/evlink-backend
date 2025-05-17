@@ -13,6 +13,7 @@ interface MergedUser {
   approved: boolean;
   vendor?: string;
   full_name?: string;
+  name?: string;
   created_at?: string;
 }
 
@@ -54,6 +55,7 @@ export function useAuth({
         });
 
         if (!error && data) {
+          
           setMergedUser(data); // contains approved, role, vendor etc
         } else {
           setMergedUser(null);

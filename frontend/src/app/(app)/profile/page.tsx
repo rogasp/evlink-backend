@@ -8,16 +8,16 @@ import UserInfoCard from '@/components/profile/UserInfoCard';
 import ApiKeySection from '@/components/profile/ApiKeySection';
 
 export default function ProfilePage() {
-  const { user, accessToken, loading: authLoading } = useAuth();
+  const { user, accessToken, loading: authLoading, mergedUser } = useAuth();
 
   const [name, setName] = useState('');
 
-  // Initiera namn när user laddas
+  // Initiera namn från mergedUser
   useEffect(() => {
-    if (user?.user_metadata?.name) {
-      setName(user.user_metadata.name);
+    if (mergedUser?.name) {
+      setName(mergedUser.name);
     }
-  }, [user]);
+  }, [mergedUser]);
 
   const saveName = async (newName: string) => {
     if (!newName.trim()) {
@@ -34,10 +34,8 @@ export default function ProfilePage() {
       return;
     }
 
-    // Uppdatera lokal state direkt
     setName(newName);
 
-    // Refetcha användaren från Supabase (valfritt om du har global auth context)
     const { data, error: fetchError } = await supabase.auth.getUser();
 
     if (fetchError || !data.user) {
