@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://evlink.se/admin/users</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/admin/vehicles</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/admin/webhooks</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/dashboard</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/profile</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/admin/settings</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/link-callback</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/login</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/register</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/auth/callback</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/admin/status</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://evlink.se/admin/logs</loc><lastmod>2025-05-09T20:58:24.278Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/admin/users</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/admin/vehicles</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/admin/webhooks</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/admin/settings</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/dashboard</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/profile</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/contact</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/link-callback</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/privacy</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/login</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/register</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/roadmap</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/auth/callback</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/terms</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/releasenotes</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/status</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/admin/logs</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://evlinkha.se/admin/interest</loc><lastmod>2025-05-17T12:50:56.874Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>

@@ -19,3 +19,6 @@ USE_MOCK = os.getenv("MOCK_LINK_RESULT", "false").lower() == "true"
 IS_PROD = os.getenv("ENV", "prod") == "prod"
 
 CACHE_EXPIRATION_MINUTES = int(os.getenv("CACHE_EXPIRATION_MINUTES", 5))
+
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+FROM_EMAIL = "noreply@evlinkha.se"

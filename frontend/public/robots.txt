@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://evlink.se
+Host: https://evlinkha.se
 
 # Sitemaps
-Sitemap: https://evlink.se/sitemap.xml
+Sitemap: https://evlinkha.se/sitemap.xml

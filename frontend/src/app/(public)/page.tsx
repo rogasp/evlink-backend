@@ -2,11 +2,11 @@
 import LandingPage from '@/components/pages/LandingPage';
 
 export const metadata = {
-  title: 'EVLink – Smarter EV integration for Home Assistant',
+  title: 'EVLinkHA – Smarter EV integration for Home Assistant',
   description:
-    'EVLink connects your electric vehicle to Home Assistant using Enode. Open-source, secure, and easy to use.',
+    'EVLinkHA connects your electric vehicle to Home Assistant using Enode. Open-source, secure, and easy to use.',
   keywords: [
-    'EVLink',
+    'EVLinkHA',
     'electric vehicle',
     'Home Assistant',
     'EV integration',
@@ -15,14 +15,14 @@ export const metadata = {
     'open source',
   ],
   openGraph: {
-    title: 'EVLink – Smarter EV integration for Home Assistant',
+    title: 'EVLinkHA – Smarter EV integration for Home Assistant',
     description:
-      'EVLink connects your EV to Home Assistant using Enode. Secure and open-source.',
-    url: 'https://evlink.se/',
-    siteName: 'EVLink',
+      'EVLinkHA connects your EV to Home Assistant using Enode. Secure and open-source.',
+    url: 'https://evlinkha.se/',
+    siteName: 'EVLinkHA',
     images: [
       {
-        url: 'https://evlink.se/og-image.png',
+        url: 'https://evlinkha.se/og-image.png',
         width: 1200,
         height: 630,
       },
