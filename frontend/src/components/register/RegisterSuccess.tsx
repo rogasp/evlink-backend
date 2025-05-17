@@ -9,7 +9,7 @@ export default function RegisterSuccess({ email }: Props) {
     <div className="text-center space-y-4 text-sm text-gray-700">
       <h2 className="text-lg font-semibold text-indigo-700">Almost there!</h2>
       <p>
-        We've sent a magic login link to <strong>{email}</strong>.
+        We&apos;ve sent a magic login link to <strong>{email}</strong>.
       </p>
       <p>Don’t forget to check your spam folder.</p>
       <p className="text-xs text-gray-500">

@@ -6,8 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import Image from 'next/image';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import {
   Dialog,
@@ -52,7 +50,7 @@ export default function RegisterForm({ setMagicLinkSent, setEmail }: Props) {
       toast.success('Magic link sent! Check your email.');
       setMagicLinkSent(true);
       setEmail(email);
-    } catch (err) {
+    } catch {
       toast.error('Failed to send magic link.');
     } finally {
       setLoading(false);

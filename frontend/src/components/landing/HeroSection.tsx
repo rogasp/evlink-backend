@@ -1,18 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
 
 export default function HeroSection() {
-  const { user } = useAuth({ requireAuth: false });
   const [clientReady, setClientReady] = useState(false);
 
   useEffect(() => {
     setClientReady(true);
-  }, []);
+  }, [clientReady]);
 
   return (
     <section className="relative overflow-hidden text-white py-8 bg-indigo-700 min-h-[600px]">
@@ -25,7 +21,7 @@ export default function HeroSection() {
           Connect your EV.
         </h1>
         <p className="text-lg sm:text-xl font-light mb-6 leading-snug">
-          EVLink links your electric vehicle with Home Assistant using Enode. It's private, scalable, and ready for power users.
+          EVLink links your electric vehicle with Home Assistant using Enode. It&apos;s private, scalable, and ready for power users.
         </p>
       </div>
     </section>

@@ -26,7 +26,7 @@ export default function RegisterInterestForm() {
       toast.success(res.data?.message || 'Thank you for your interest!');
       setName('');
       setEmail('');
-    } catch (err) {
+    } catch {
       toast.error('Something went wrong.');
     } finally {
       setLoading(false);

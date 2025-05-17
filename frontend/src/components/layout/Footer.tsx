@@ -5,28 +5,6 @@ import { Github, Facebook, Coffee, Mail } from 'lucide-react';
 import Link from 'next/link';
 
 
-const external = (href: string, label: string) => (
-  <a
-    key={label}
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="hover:underline text-gray-300 hover:text-white block"
-  >
-    {label}
-  </a>
-);
-
-const internal = (href: string, label: string) => (
-  <Link
-    key={label}
-    href={href}
-    className="hover:underline text-gray-300 hover:text-white block"
-  >
-    {label}
-  </Link>
-);
-
 export default function Footer() {
   return (
     <footer className="bg-[#0A2245] text-white text-sm">
