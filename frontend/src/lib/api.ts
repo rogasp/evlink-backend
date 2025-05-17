@@ -33,6 +33,7 @@ export async function apiFetchSafe(endpoint: string, options?: RequestInit) {
         data: null,
         error: {
           message: data?.detail || `Request failed with status ${response.status}`,
+          status: response.status, // 👈 här är tillägget
         },
       };
     }
@@ -41,7 +42,7 @@ export async function apiFetchSafe(endpoint: string, options?: RequestInit) {
   } catch (error: unknown) {
     console.error('[apiFetchSafe] error:', error);
 
-    const errorObj: { message: string } =
+    const errorObj: { message: string; status?: number } =
       error instanceof Error
         ? { message: error.message }
         : { message: 'Unknown error' };
