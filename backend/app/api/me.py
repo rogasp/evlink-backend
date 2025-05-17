@@ -1,41 +1,45 @@
 # backend/app/api/me.py
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
 from app.storage.user import get_user_approved_status, get_user_by_id
 
 router = APIRouter()
 
-@router.get("/me")
-async def get_me(user=Depends(get_supabase_user)):
-    print("[🔍 DEBUG user]", user)
+class MeResponse(BaseModel):
+    id: str
+    email: str
+    role: str
+    approved: bool
+    name: str
 
+@router.get("/me", response_model=MeResponse)
+async def get_me(user=Depends(get_supabase_user)):
     approved = await get_user_approved_status(user["id"])
     local_user = await get_user_by_id(user["id"])
 
-    # 1. Name från user_metadata
+    # 1. Prefer name from user_metadata
     name = (user.get("user_metadata", {}) or {}).get("name")
 
-    # 2. Om saknas → ta från local_user
+    # 2. If not present, fallback to local_user.name
     if not name and local_user:
-        name = local_user.get("name")
+        name = local_user.name  # not .get()
 
-    # 3. Om fortfarande tomt → ta från email
+    # 3. If still missing, use email
     if not name:
         name = user.get("email")
 
-    # 4. Om även email saknas → fallback till "unknown"
+    # 4. Final fallback
     name = (name or "").strip() or "unknown"
 
-    # Email separat (med samma fallback)
+    # Email handling
     email = (user.get("email") or "").strip() or "unknown"
 
-    return {
-        "id": user["id"],
-        "email": email,
-        "role": user.get("user_metadata", {}).get("role", "unknown"),
-        "approved": approved,
-        "name": name,
-    }
-
-
+    return MeResponse(
+        id=user["id"],
+        email=email,
+        role=user.get("user_metadata", {}).get("role", "unknown"),
+        approved=approved,
+        name=name,
+    )
