@@ -143,7 +143,7 @@ export default function AdminInterestPage() {
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <th className="px-4 py-2"></th>
+                <th className="px-4 py-2" aria-label="Select entries"></th>
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Email</th>
                 <th className="px-4 py-2">Created at</th>
