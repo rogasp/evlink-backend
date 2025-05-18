@@ -52,3 +52,11 @@ async def count_uncontacted_interest():
         .execute()
     return response.count or 0
 
+async def get_interest_by_access_code(code: str) -> dict | None:
+    result = get_supabase_admin_client().table("interest") \
+        .select("id, name, email, access_code, user_id") \
+        .eq("access_code", code) \
+        .maybe_single() \
+        .execute()
+    return result.data
+

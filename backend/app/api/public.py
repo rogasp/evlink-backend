@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr
 
 from app.enode.link import get_link_result
 from app.lib.supabase import get_supabase_admin_client
-from app.storage.interest import save_interest
+from app.storage.interest import get_interest_by_access_code, save_interest
 from app.storage.status_logs import calculate_uptime, get_daily_status, get_status_panel_data
 
 router = APIRouter()
@@ -92,3 +92,15 @@ async def get_uptime(
     uptime = await calculate_uptime(category, from_date, to_date)
     return {"uptime": uptime}
 
+@router.get("/public/access-code/{code}")
+async def validate_access_code(code: str):
+    row = await get_interest_by_access_code(code)
+
+    if not row or row.get("user_id") is not None:
+        raise HTTPException(status_code=404, detail="Invalid or used access code")
+
+    return {
+        "valid": True,
+        "email": row.get("email"),
+        "name": row.get("name"),
+    }
