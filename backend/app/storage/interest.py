@@ -86,3 +86,12 @@ async def generate_codes_for_interest_ids(interest_ids: list[str]) -> int:
             updated_count += 1
 
     return updated_count
+
+async def get_interest_by_id(interest_id: str):
+    result = get_supabase_admin_client().table("interest") \
+        .select("id, name, email, access_code, user_id") \
+        .eq("id", interest_id) \
+        .maybe_single() \
+        .execute()
+
+    return result.data
