@@ -1,6 +1,6 @@
 # 📄 backend/app/api/admin.py
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from app.auth.service_role_auth import verify_service_role_token
 from app.auth.supabase_auth import get_supabase_user

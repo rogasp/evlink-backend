@@ -40,7 +40,7 @@ async def mark_interest_contacted(entry_id: str):
 
 async def list_interest_entries():
     response = get_supabase_admin_client().table("interest") \
-        .select("id, name, email, created_at, contacted, contacted_at") \
+        .select("id, name, email, created_at, contacted, contacted_at, access_code") \
         .order("created_at", desc=True) \
         .execute()
     return response.data or []
