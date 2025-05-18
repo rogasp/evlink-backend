@@ -11,6 +11,7 @@ interface MergedUser {
   email: string;
   role: string;
   approved: boolean;
+  accepted_terms: boolean;
   vendor?: string;
   full_name?: string;
   name?: string;
@@ -75,5 +76,6 @@ export function useAuth({
     loading,
     isAdmin: mergedUser?.role === 'admin',
     isApproved: mergedUser?.approved === true,
+    hasAcceptedTerms: mergedUser?.accepted_terms === true,
   };
 }
