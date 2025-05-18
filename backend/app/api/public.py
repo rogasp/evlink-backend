@@ -111,15 +111,20 @@ async def use_access_code(request: Request):
     code = data.get("code")
     user_id = data.get("user_id")
 
+    print(f"[🔐 use_access_code] Incoming: code={code}, user_id={user_id}")
+
     if not code or not user_id:
         raise HTTPException(status_code=400, detail="Missing code or user_id")
 
     row = await get_interest_by_access_code(code)
+    print(f"[🔍 interest lookup] Found: {row}")
 
-    if not row or row.get("user_id") is not None:
+    if not row or row.get("user_id"):
         raise HTTPException(status_code=404, detail="Invalid or already used code")
 
     await assign_interest_user(code, user_id)
+    print(f"[✅ interest updated] {code} → {user_id}")
 
     return {"success": True}
+
 

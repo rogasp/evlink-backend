@@ -9,56 +9,56 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      // Initiera session (för cookie)
+      console.log('[📥 callback] Starting auth callback handler...');
+
       const {
         data: { session },
         error,
       } = await supabase.auth.getSession();
 
       if (error) {
-        console.error('Auth callback error:', error.message);
+        console.error('[❌ callback] Session fetch error:', error.message);
         router.replace('/login');
         return;
       }
 
-      if (!session) {
+      const user = session?.user;
+      if (!user) {
+        console.warn('[⚠️ callback] No user found in session');
         router.replace('/login');
         return;
       }
 
-      // Nu hämtar vi user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      console.log('[✅ callback] User signed in:', user.id, user.email);
 
-      if (user) {
-        const code = sessionStorage.getItem('access_code');
-        if (code) {
-          try {
-            const res = await fetch('/api/public/access-code/use', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ code, user_id: user.id }),
-            });
+      // 🧪 BACKUP access_code handling (should now be handled in SupabaseProvider)
+      const accessCode = sessionStorage.getItem('access_code');
+      console.log('[📦 callback] Found access code in sessionStorage:', accessCode);
 
-            if (res.ok) {
-              console.info('✅ Access code linked to user');
-              sessionStorage.removeItem('access_code');
-            } else {
-              console.warn('⚠️ Access code invalid or already used');
-            }
-          } catch (err) {
-            console.error('Error using access code:', err);
-          }
+      if (accessCode) {
+        try {
+          const res = await fetch('/api/public/access-code/use', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: accessCode, user_id: user.id }),
+          });
+
+          const json = await res.json();
+          console.log('[📤 callback] Access code used:', res.status, json);
+        } catch (err) {
+          console.error('[❌ callback] Failed to use access code:', err);
+        } finally {
+          sessionStorage.removeItem('access_code');
         }
       }
 
-      // Till dashboard
+      // ✅ Continue to dashboard
       router.replace('/dashboard');
     };
 
     handleCallback();
   }, [router]);
+
 
   return <p className="text-center p-8">Logging you in...</p>;
 }

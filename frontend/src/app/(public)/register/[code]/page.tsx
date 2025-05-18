@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import RegisterForm from '@/components/register/RegisterForm';
+import RegisterSuccess from '@/components/register/RegisterSuccess';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function RegisterWithCodePage({ params }: { params: Promise<{ code: string }> }) {
@@ -13,10 +14,11 @@ export default function RegisterWithCodePage({ params }: { params: Promise<{ cod
   const [codeValid, setCodeValid] = useState<boolean | null>(null);
   const [accessData, setAccessData] = useState<{ email?: string; name?: string } | null>(null);
   const [showError, setShowError] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
     const validate = async () => {
-      // 1. Kontrollera om registrering är öppen
       const regRes = await fetch('/api/public/registration-allowed');
       const regJson = await regRes.json();
       if (regJson.allowed === true) {
@@ -25,7 +27,6 @@ export default function RegisterWithCodePage({ params }: { params: Promise<{ cod
       }
       setAllowed(false);
 
-      // 2. Validera accesskod
       try {
         const codeRes = await fetch(`/api/public/access-code/${code}`);
         if (codeRes.ok) {
@@ -54,40 +55,43 @@ export default function RegisterWithCodePage({ params }: { params: Promise<{ cod
 
   return (
     <>
-        <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-white px-4">
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-white px-4">
         {codeValid && (
-            <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+          <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
             <h1 className="text-2xl font-extrabold text-indigo-700 mb-4 text-center">
-                Create Account (via invite)
+              Create Account (via invite)
             </h1>
 
-            <RegisterForm
-                setMagicLinkSent={() => {}}
-                setEmail={() => {}}
+            {magicLinkSent ? (
+              <RegisterSuccess email={email} />
+            ) : (
+              <RegisterForm
+                setMagicLinkSent={setMagicLinkSent}
+                setEmail={setEmail}
                 prefillEmail={accessData?.email}
                 prefillName={accessData?.name}
-            />
-            </div>
+              />
+            )}
+          </div>
         )}
-        </main>
+      </main>
 
-        {/* Modal shown if invalid code */}
-        <Dialog open={showError} onOpenChange={(open) => {
+      <Dialog open={showError} onOpenChange={(open) => {
         if (!open) {
-            setTimeout(() => router.push('/register'), 200);
+          setTimeout(() => router.push('/register'), 200);
         }
         setShowError(open);
-        }}>
+      }}>
         <DialogContent>
-            <DialogHeader>
+          <DialogHeader>
             <DialogTitle>Access denied</DialogTitle>
-            </DialogHeader>
-            <div className="text-sm text-gray-600 space-y-2">
+          </DialogHeader>
+          <div className="text-sm text-gray-600 space-y-2">
             <p>The invite code you used is either invalid or already used.</p>
             <p>You will be redirected to the main registration page shortly.</p>
-            </div>
+          </div>
         </DialogContent>
-        </Dialog>
+      </Dialog>
     </>
-    );
+  );
 }
