@@ -19,15 +19,15 @@ export default function IntegrationGuidePage() {
         <h2 className="text-2xl font-semibold">2. Create API Key</h2>
         <ul className="list-disc ml-6">
           <li>Go to your <a href="https://evlinkha.se/profile" className="text-blue-600 underline">Profile</a></li>
-          <li>Click <strong>"Create API Key"</strong> and copy the key</li>
+          <li>Click <strong>&quot;Create API Key&quot;</strong> and copy the key</li>
         </ul>
 
         <h2 className="text-2xl font-semibold">3. Link Your Vehicle</h2>
         <ul className="list-disc ml-6">
           <li>Go to the Dashboard</li>
-          <li>Click <strong>"Link Vehicle"</strong> and follow the manufacturer's login</li>
+          <li>Click <strong>&quot;Link Vehicle&quot;</strong> and follow the manufacturer&apos;s login</li>
           <li>Currently, only XPENG is supported. More brands will follow.</li>
-          <li>After linking, click <strong>"Copy ID"</strong> to get the Vehicle ID</li>
+          <li>After linking, click <strong>&quot;Copy ID&quot;</strong> to get the Vehicle ID</li>
         </ul>
 
         <h2 className="text-2xl font-semibold">4. Configure Home Assistant</h2>
@@ -62,8 +62,8 @@ template:
   - sensor:
       - name: "EV Battery Level"
         state: "{{ states('sensor.evlink_vehicle') }}"`}
-        language="yaml"
-      />
+          language="yaml"
+        />
 
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded">
           ⚠️ <strong>Important:</strong> Do <em>not</em> change <code>scan_interval</code> – it must stay at <strong>300</strong> seconds to avoid rate limits.
