@@ -4,7 +4,6 @@ import logging
 from app.lib.supabase import get_supabase_admin_client
 from datetime import datetime
 
-
 def save_interest(name: str, email: str) -> None:
     """
     Save interest submission to the Supabase 'interest' table.
@@ -60,3 +59,8 @@ async def get_interest_by_access_code(code: str) -> dict | None:
         .execute()
     return result.data
 
+async def assign_interest_user(code: str, user_id: str):
+    get_supabase_admin_client().table("interest") \
+        .update({"user_id": user_id}) \
+        .eq("access_code", code) \
+        .execute()
