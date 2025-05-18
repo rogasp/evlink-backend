@@ -9,6 +9,7 @@ import {
   ScrollText,
   Activity,
   Mail,
+  BookIcon,
 } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -33,6 +34,11 @@ export const publicItems: NavItem[] = [
     label: 'System status',
     icon: <Activity className="w-5 h-5" />,
   },
+  {
+    href: '/integration-guide',
+    label: 'Integration Guide',
+    icon: <BookIcon className="w-5 h-5" />,
+  }
 ];
 
 export function getAdminItems(uncontacted: number): NavItem[] {
