@@ -87,11 +87,38 @@ export default function AdminInterestPage() {
 
   if (!user) return null;
 
+  const handleSendInvites = async () => {
+    if (!accessToken || selectedIds.length === 0) return;
+
+    const res = await authFetch('/admin/interest/send-codes', {
+      method: 'POST',
+      accessToken,
+      body: JSON.stringify({ interest_ids: selectedIds }),
+    });
+
+    if (res.error) {
+      toast.error('Failed to send invites');
+    } else {
+      toast.success(`${res.data?.sent || 0} invite(s) sent`);
+      await fetchEntries();
+      setSelectedIds([]);
+    }
+  };
+
+
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-indigo-900">Interest Signups</h1>
         <div className="flex gap-4">
+          <Button
+            variant="outline"
+            disabled={selectedIds.length === 0}
+            onClick={handleSendInvites}
+          >
+            Send Access Codes
+          </Button>
+
           <Button onClick={handleGenerateCodes} disabled={selectedIds.length === 0}>
             Generate Access Codes
           </Button>

@@ -7,7 +7,7 @@ async def send_access_invite_email(email: str, name: str, code: str):
     registration_url = f"https://evlinkha.se/register/{code}"
 
     html = f"""
-    <p>Hi {{name}},</p>
+    <p>Hi {name},</p>
 
     <p>
     You’ve been invited to register for <strong>EVLinkHA</strong> and take part in our
@@ -21,7 +21,7 @@ async def send_access_invite_email(email: str, name: str, code: str):
 
     <p>
     Click the link below to begin your registration:<br />
-    <a href="{{registration_url}}">{{registration_url}}</a>
+    <a href="{registration_url}">{registration_url}</a>
     </p>
 
     <p>
@@ -44,15 +44,13 @@ async def send_access_invite_email(email: str, name: str, code: str):
 
     text = f"""Hi {name},
 
-Hi {{name}},
-
 You’ve been invited to register for EVLinkHA and take part in our public beta.
 
 As this is a beta version, some features may be incomplete, unavailable, or change frequently.
 Your feedback is very important to us.
 
 To register, visit the link below:
-{{registration_url}}
+{registration_url}
 
 Note: This access code can only be used once. Please don’t share it.
 
