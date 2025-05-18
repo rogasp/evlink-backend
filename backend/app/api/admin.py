@@ -9,7 +9,7 @@ from app.enode.vehicle import get_all_vehicles
 from app.enode.webhook import subscribe_to_webhooks, delete_webhook
 from app.services.email import send_interest_email
 from app.storage import settings
-from app.storage.interest import count_uncontacted_interest, get_uncontacted_interest_entries, list_interest_entries, mark_interest_contacted
+from app.storage.interest import count_uncontacted_interest, generate_codes_for_interest_ids, get_uncontacted_interest_entries, list_interest_entries, mark_interest_contacted
 from app.storage.user import get_all_users_with_enode_info, set_user_approval
 from app.storage.webhook import get_all_webhook_subscriptions, get_webhook_logs, mark_webhook_as_inactive, save_webhook_subscription, sync_webhook_subscriptions_from_enode
 from app.storage.webhook_monitor import monitor_webhook_health
@@ -187,3 +187,14 @@ async def count_interest(user=Depends(require_admin)):
     count = await count_uncontacted_interest()
     return {"count": count}
 
+@router.post("/admin/interest/generate-codes")
+async def generate_interest_codes(request: Request):
+    data = await request.json()
+    interest_ids = data.get("interest_ids", [])
+
+    if not interest_ids or not isinstance(interest_ids, list):
+        raise HTTPException(status_code=400, detail="Missing interest_ids")
+
+    updated = await generate_codes_for_interest_ids(interest_ids)
+
+    return {"updated": updated}

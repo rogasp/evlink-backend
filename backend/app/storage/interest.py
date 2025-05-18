@@ -1,6 +1,7 @@
 # 📄 backend/app/storage/interest.py
 
 import logging
+import uuid
 from app.lib.supabase import get_supabase_admin_client
 from datetime import datetime
 
@@ -64,3 +65,24 @@ async def assign_interest_user(code: str, user_id: str):
         .update({"user_id": user_id}) \
         .eq("access_code", code) \
         .execute()
+
+async def generate_codes_for_interest_ids(interest_ids: list[str]) -> int:
+    updated_count = 0
+
+    for interest_id in interest_ids:
+        result = get_supabase_admin_client().table("interest") \
+            .select("id, access_code") \
+            .eq("id", interest_id) \
+            .maybe_single() \
+            .execute()
+
+        row = result.data
+        if row and not row.get("access_code"):
+            new_code = uuid.uuid4().hex[:10]  # shorter code
+            get_supabase_admin_client().table("interest") \
+                .update({"access_code": new_code}) \
+                .eq("id", interest_id) \
+                .execute()
+            updated_count += 1
+
+    return updated_count
