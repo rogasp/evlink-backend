@@ -36,7 +36,7 @@ export default function RegisterWithCodePage({ params }: { params: Promise<{ cod
         } else {
           throw new Error('Invalid code');
         }
-      } catch (err) {
+      } catch {
         setCodeValid(false);
         setShowError(true);
       }
