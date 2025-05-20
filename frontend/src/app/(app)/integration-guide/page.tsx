@@ -42,6 +42,19 @@ evlink_status_url: "https://evlinkha.se/api/status/<VEHICLE_ID>"`}
         <CodeBlock
           code={`sensor:
   - platform: rest
+    name: "EVLink Location"
+    unique_id: "evlink_vehicle_location"
+    resource: !secret evlink_status_url
+    method: GET
+    headers:
+      Authorization: !secret evlink_api_key
+    value_template: "ok"
+    scan_interval: 300
+    json_attributes:
+      - latitude
+      - longitude
+
+  - platform: rest
     name: "EVLink Vehicle"
     unique_id: "evlink_vehicle_sensor"
     resource: !secret evlink_status_url
@@ -61,7 +74,32 @@ evlink_status_url: "https://evlinkha.se/api/status/<VEHICLE_ID>"`}
 template:
   - sensor:
       - name: "EV Battery Level"
-        state: "{{ states('sensor.evlink_vehicle') }}"`}
+        state: "{{ states('sensor.evlink_vehicle') }}"
+        
+        
+      - name: "EV Battery Range"
+        unique_id: "evlink_battery_range"
+        unit_of_measurement: "km"
+        state: "{{ state_attr('sensor.evlink_vehicle', 'range') }}"
+
+      - name: "EV Charging State"
+        unique_id: "evlink_charging_state"
+        state: "{{ state_attr('sensor.evlink_vehicle', 'chargingState') }}"
+
+      - name: "EV Vehicle Name"
+        unique_id: "evlink_vehicle_name"
+        state: "{{ state_attr('sensor.evlink_vehicle', 'vehicleName') }}"
+
+  - binary_sensor:
+      - name: "EV Is Charging"
+        unique_id: "evlink_is_charging"
+        state: "{{ state_attr('sensor.evlink_vehicle', 'isCharging') }}"
+        device_class: battery_charging
+
+      - name: "EV Is Plugged In"
+        unique_id: "evlink_is_plugged_in"
+        state: "{{ state_attr('sensor.evlink_vehicle', 'isPluggedIn') }}"
+        device_class: plug`}
           language="yaml"
         />
 
