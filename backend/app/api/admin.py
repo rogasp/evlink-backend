@@ -80,11 +80,19 @@ async def list_enode_webhooks(user=Depends(require_admin)):
 @router.get("/webhook/logs")
 def fetch_webhook_logs(
     event: str | None = Query(None),
+    user_q: str | None = Query(None),
+    vehicle_q: str | None = Query(None),
     limit: int = Query(50, ge=1, le=1000),
     user=Depends(require_admin),
 ):
     try:
-        logs = get_webhook_logs(limit=limit, event_filter=event)
+        print(f"[🔍] Fetching webhook logs with filters: event={event}, user={user_q}, vehicle={vehicle_q}, limit={limit}")
+        logs = get_webhook_logs(
+            limit=limit,
+            event_filter=event,
+            user_filter=user_q,
+            vehicle_filter=vehicle_q,
+        )
         print("[🐞 DEBUG] Webhook logs sample:", logs[:1])
         return logs
     except Exception as e:
@@ -126,7 +134,6 @@ async def update_setting(setting_id: str, setting: dict, user=Depends(require_ad
     if not update_data:
         raise HTTPException(status_code=400, detail="Only 'value' can be updated")
     return await settings.update_setting(setting_id, update_data)
-
 
 @router.delete("/admin/settings/{setting_id}")
 async def remove_setting(setting_id: str, user=Depends(require_admin)):

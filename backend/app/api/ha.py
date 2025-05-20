@@ -49,17 +49,20 @@ async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_u
     location = cache.get("location", {})
     lastSeen = cache.get("lastSeen", {})
     isReachable = cache.get("isReachable")
-    
 
     return {
+        # 👇 legacy keys (to be removed later)
         "batteryLevel": charge.get("batteryLevel"),
         "range": charge.get("range"),
         "isCharging": charge.get("isCharging"),
         "isPluggedIn": charge.get("isPluggedIn"),
         "chargingState": charge.get("powerDeliveryState"),
+        # 👇 old keys (to be used in Home Assistant)
         "vehicleName": f"{info.get('brand', '')} {info.get('model', '')}",
         "latitude": location.get("latitude"),
         "longitude": location.get("longitude"),
         "lastSeen": lastSeen,
         "isReachable": isReachable,
+        # 👇 new full block for future Home Assistant sensors
+        "chargeState": charge,
     }

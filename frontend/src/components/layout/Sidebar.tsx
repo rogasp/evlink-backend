@@ -1,4 +1,3 @@
-// src/components/layout/Sidebar.tsx
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -17,7 +16,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`h-full overflow-y-auto bg-gray-100 p-3 shadow-md flex flex-col justify-between transition-all duration-200 ${
+      className={`hidden sm:flex h-full overflow-y-auto bg-gray-100 p-3 shadow-md flex-col justify-between transition-all duration-200 ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >

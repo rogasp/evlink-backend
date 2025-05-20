@@ -33,6 +33,7 @@ export default function LinkVehicleDialog({ accessToken }: LinkVehicleDialogProp
     }
 
     try {
+      window.umami?.track('Link Vehicle');
       const { data, error } = await authFetch('/user/link-vehicle', {
         method: 'POST',
         accessToken,
