@@ -47,6 +47,9 @@ async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_u
     charge = cache.get("chargeState", {})
     info = cache.get("information", {})
     location = cache.get("location", {})
+    lastSeen = cache.get("lastSeen", {})
+    isReachable = cache.get("isReachable")
+    
 
     return {
         "batteryLevel": charge.get("batteryLevel"),
@@ -56,5 +59,7 @@ async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_u
         "chargingState": charge.get("powerDeliveryState"),
         "vehicleName": f"{info.get('brand', '')} {info.get('model', '')}",
         "latitude": location.get("latitude"),
-        "longitude": location.get("longitude")
+        "longitude": location.get("longitude"),
+        "lastSeen": lastSeen,
+        "isReachable": isReachable,
     }
