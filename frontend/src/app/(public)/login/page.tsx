@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import RegisterInterestForm from '@/components/register/RegisterInterestForm';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [allowRegister, setAllowRegister] = useState<boolean | null>(null);
@@ -116,9 +117,9 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-gray-500 mt-6">
           Don&apos;t have an account?{' '}
-          <a href="/register" className="text-indigo-600 hover:underline">
+          <Link href="/register" className="text-indigo-600 hover:underline">
             Click here to register
-          </a>
+          </Link>
         </p>
       </div>
     </main>

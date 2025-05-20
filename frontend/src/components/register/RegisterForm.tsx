@@ -21,11 +21,13 @@ import OAuthGithubButton from './OAuthGithubButton';
 interface Props {
   setMagicLinkSent: (v: boolean) => void;
   setEmail: (email: string) => void;
+  prefillEmail?: string;
+  prefillName?: string;
 }
 
-export default function RegisterForm({ setMagicLinkSent, setEmail }: Props) {
-  const [name, setName] = useState('');
-  const [email, setEmailValue] = useState('');
+export default function RegisterForm({ setMagicLinkSent, setEmail, prefillEmail, prefillName }: Props) {
+  const [name, setName] = useState(prefillName || '');
+  const [email, setEmailValue] = useState(prefillEmail || '');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
