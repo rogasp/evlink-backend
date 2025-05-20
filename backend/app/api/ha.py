@@ -63,7 +63,6 @@ async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_u
         "longitude": location.get("longitude"),
         "lastSeen": lastSeen,
         "isReachable": isReachable,
-
         # 👇 new full block for future Home Assistant sensors
         "chargeState": charge,
     }
