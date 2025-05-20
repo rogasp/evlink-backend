@@ -6,6 +6,8 @@ import { WebhookLogTable } from '@/components/webhooks/WebhookLogTable';
 import { EventFilterSelect } from '@/components/webhooks/EventFilterSelect';
 import { authFetch } from '@/lib/authFetch';
 
+import { Loader2 } from 'lucide-react';
+
 const FILTER_KEY = 'evlink-webhook-event-filter';
 
 type WebhookLog = {
@@ -24,6 +26,10 @@ export default function WebhookLogPage() {
   const [selectedEvent, setSelectedEvent] = useState<string>('__all__');
   const [logCount, setLogCount] = useState<number>(0);
   const [limit, setLimit] = useState<number>(50);
+  const [userId, setUserId] = useState('');
+  const [vehicleId, setVehicleId] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
 
   useEffect(() => {
     const saved = localStorage.getItem(FILTER_KEY);
@@ -33,16 +39,18 @@ export default function WebhookLogPage() {
   }, []);
 
   const fetchLogs = useCallback(
-    async (event: string | null, limitValue: number) => {
+    async (event: string | null, limitValue: number, userFilter: string, vehicleFilter: string) => {
       if (!accessToken) {
         console.warn('No access token found. Skipping fetch.');
         return;
       }
 
+      setIsLoading(true);
+
       let url = `/webhook/logs?limit=${limitValue}`;
-      if (event) {
-        url += `&event=${encodeURIComponent(event)}`;
-      }
+      if (event) url += `&event=${encodeURIComponent(event)}`;
+      if (userFilter) url += `&user_q=${encodeURIComponent(userFilter)}`;
+      if (vehicleFilter) url += `&vehicle_q=${encodeURIComponent(vehicleFilter)}`;
 
       try {
         const res = await authFetch(url, {
@@ -62,15 +70,21 @@ export default function WebhookLogPage() {
         console.error('❌ Exception during fetchLogs:', err);
         setLogs([]);
         setLogCount(0);
+      } finally {
+        setIsLoading(false);
       }
     },
     [accessToken]
   );
 
   useEffect(() => {
-    const event = selectedEvent === '__all__' ? null : selectedEvent;
-    fetchLogs(event, limit);
-  }, [selectedEvent, limit, fetchLogs]);
+    const timer = setTimeout(() => {
+      const event = selectedEvent === '__all__' ? null : selectedEvent;
+      fetchLogs(event, limit, userId, vehicleId);
+    }, 400); // 400 ms delay efter senaste tangenttryckning
+
+    return () => clearTimeout(timer); // avbryt tidigare "pågående" delay
+  }, [selectedEvent, limit, userId, vehicleId, fetchLogs]);
 
   const handleFilterChange = (value: string) => {
     localStorage.setItem(FILTER_KEY, value);
@@ -106,10 +120,35 @@ export default function WebhookLogPage() {
           </select>
         </div>
       </div>
-
-      <div className="text-sm text-muted-foreground mb-2">
-        Showing {logCount} log{logCount === 1 ? '' : 's'}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Filter by user_id"
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+          className="border border-gray-300 px-2 py-1 rounded text-sm w-[220px]"
+        />
+        <input
+          type="text"
+          placeholder="Filter by vehicle_id"
+          value={vehicleId}
+          onChange={(e) => setVehicleId(e.target.value)}
+          className="border border-gray-300 px-2 py-1 rounded text-sm w-[220px]"
+        />
       </div>
+
+      <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2 min-h-[1.5rem]">
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <span>Searching logs...</span>
+          </>
+        ) : (
+          <>Showing {logCount} log{logCount === 1 ? '' : 's'}</>
+        )}
+      </div>
+
+
 
       <WebhookLogTable logs={logs} />
     </main>

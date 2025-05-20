@@ -33,12 +33,20 @@ export const publicItems: NavItem[] = [
     href: '/status',
     label: 'System status',
     icon: <Activity className="w-5 h-5" />,
-  },
+  }
+];
+
+export const guideItems: NavItem[] = [
   {
     href: '/integration-guide',
     label: 'Integration Guide',
     icon: <BookIcon className="w-5 h-5" />,
-  }
+  },
+  {
+    href: '/docs/ha-api',
+    label: 'HA API',
+    icon: <BookIcon className="w-5 h-5" />,
+  },
 ];
 
 export function getAdminItems(uncontacted: number): NavItem[] {

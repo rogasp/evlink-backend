@@ -30,7 +30,7 @@ export default function ApiKeySection({ userId, accessToken }: ApiKeySectionProp
 
   const fetchApiKey = useCallback(async () => {
     if (!userId || !accessToken) return;
-
+    window.umami?.track('Create API Key');
     const { data, error } = await authFetch(`/users/${userId}/apikey`, {
       method: 'GET',
       accessToken,
