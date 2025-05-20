@@ -1,8 +1,8 @@
-// src/components/layout/SidebarNav.tsx
 'use client';
 
 import SidebarItem from './SidebarItem';
-import { baseItems, publicItems, getAdminItems, NavItem } from './SidebarItems';
+import SidebarSection from './SidebarSection';
+import { baseItems, publicItems, getAdminItems, guideItems, NavItem } from './SidebarItems';
 
 type Props = {
   collapsed: boolean;
@@ -36,6 +36,25 @@ export default function SidebarNav({ collapsed, pathname, isAdmin, uncontacted }
   return (
     <>
       {renderSection(baseItems)}
+
+      {!collapsed && (
+        <SidebarSection
+          label="Guides"
+          items={guideItems}
+          renderItem={(item) => (
+            <SidebarItem
+              key={typeof item.label === 'string' ? item.label : item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              collapsed={collapsed}
+              active={pathname.startsWith(item.href)}
+              badgeCount={item.badgeCount}
+            />
+          )}
+        />
+      )}
+
       {renderSection(publicItems)}
 
       {isAdmin && renderSection(getAdminItems(uncontacted), 'Admin')}
