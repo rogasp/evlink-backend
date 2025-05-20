@@ -36,7 +36,6 @@ async def sync_webhook_subscriptions_from_enode():
         except Exception as e:
             print(f"❌ Exception while upserting {item['id']}: {e}")
 
-
 async def get_all_webhook_subscriptions():
     
     try:
@@ -50,15 +49,19 @@ async def get_all_webhook_subscriptions():
         print(f"[❌ get_all_webhook_subscriptions] {e}")
         return []
 
-def get_webhook_logs(limit: int = 50, event_filter: Optional[str] = None) -> list[dict]:
+def get_webhook_logs(
+    limit: int = 50,
+    event_filter: Optional[str] = None,
+    user_filter: Optional[str] = None,
+    vehicle_filter: Optional[str] = None,
+) -> list[dict]:
     """
-    Return a list of recent webhook logs, optionally filtered by event name.
-    Uses admin Supabase client to bypass RLS.
+    Return a list of recent webhook logs from the view, with optional filtering.
     """
-    
+
     try:
         query = supabase \
-            .table("webhook_logs") \
+            .table("webhook_logs_view") \
             .select("*") \
             .order("created_at", desc=True) \
             .limit(limit)
@@ -67,13 +70,26 @@ def get_webhook_logs(limit: int = 50, event_filter: Optional[str] = None) -> lis
             print(f"[🔎 webhook_logs] Filtering by event: {event_filter}")
             query = query.eq("event", event_filter)
 
+        if user_filter:
+            cleaned = user_filter.strip()
+            if cleaned:
+                print(f"[🔎 webhook_logs] Filtering by user_id_text like: {cleaned}")
+                query = query.ilike("user_id_text", f"%{cleaned}%")
+
+        if vehicle_filter:
+            cleaned = vehicle_filter.strip()
+            if cleaned:
+                print(f"[🔎 webhook_logs] Filtering by vehicle_id_text like: {cleaned}")
+                query = query.ilike("vehicle_id_text", f"%{cleaned}%")
+
         res = query.execute()
         print(f"[✅ webhook_logs] Returned {len(res.data or [])} logs")
         return res.data or []
     except Exception as e:
         print(f"[❌ get_webhook_logs] {e}")
         return []
-    
+
+   
 async def save_webhook_subscription(enode_response: dict):
     """
     Save new webhook subscription returned from Enode to Supabase.
