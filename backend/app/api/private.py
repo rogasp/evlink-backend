@@ -9,7 +9,7 @@ from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
-from backend.app.storage.user import update_user_terms
+from app.storage.user import update_user_terms
 
 router = APIRouter()
 
