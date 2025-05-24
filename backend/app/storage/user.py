@@ -79,3 +79,29 @@ async def get_user_by_id(user_id: str) -> User | None:
         return None
 
     return User(**row)
+
+async def get_user_online_status(user_id: str) -> str:
+    result = supabase.table("vehicles").select("online").eq("user_id", user_id).execute()
+    vehicles = result.data or []
+
+    if not vehicles:
+        return "grey"
+
+    statuses = [v.get("online") for v in vehicles]
+
+    # Om alla är True
+    if all(statuses):
+        return "green"
+    # Om minst en är True och minst en är False
+    elif any(statuses) and any(s is False for s in statuses):
+        return "yellow"
+    # Om alla är False
+    elif all(s is False for s in statuses):
+        return "red"
+    else:
+        return "grey"  # fallback
+
+async def update_user_terms(user_id: str, accepted_terms: bool):
+    result = supabase.table("users").update({"accepted_terms": accepted_terms}).eq("id", user_id).execute()
+    return result
+

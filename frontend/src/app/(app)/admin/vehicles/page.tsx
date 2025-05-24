@@ -13,7 +13,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { authFetch } from '@/lib/authFetch';
-
 type Vehicle = {
   id: string;
   userId: string;
