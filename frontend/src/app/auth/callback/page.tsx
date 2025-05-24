@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { authFetch } from '@/lib/authFetch';
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -84,24 +85,42 @@ export default function AuthCallback() {
   const handleAcceptTerms = async () => {
     if (!userId) return;
 
-    const res = await fetch(`/api/user/${userId}`, {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) return;
+
+    const res = await authFetch(`/user/${userId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      accessToken: session.access_token,
       body: JSON.stringify({ accepted_terms: true }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
-    if (res.ok) {
+    if (!res.error) {
       setShowTermsModal(false);
       router.replace('/dashboard');
     } else {
-      console.error('[❌ callback] Failed to accept terms');
+      console.error('[❌ callback] Failed to accept terms:', res.error);
     }
   };
 
   const handleDeclineTerms = async () => {
     if (!userId) return;
 
-    await fetch(`/api/user/${userId}`, { method: 'DELETE' });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) return;
+
+    await authFetch(`/user/${userId}`, {
+      method: 'DELETE',
+      accessToken: session.access_token,
+    });
     await supabase.auth.signOut();
     router.replace('/');
   };
@@ -132,9 +151,21 @@ export default function AuthCallback() {
           <DialogHeader>
             <DialogTitle>Terms & Conditions</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">
-            To continue using EVLinkHA, you must accept the terms and conditions.
-          </p>
+          <div className="space-y-2 text-sm text-gray-600">
+            <p>To continue using EVLinkHA, you must accept the terms and conditions.</p>
+            <p>
+              Please read our{' '}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-500 hover:text-blue-600"
+              >
+                full terms and conditions here
+              </a>.
+            </p>
+          </div>
+
           <DialogFooter>
             <Button variant="ghost" onClick={handleDeclineTerms}>
               Decline

@@ -9,6 +9,7 @@ from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
+from app.storage.user import update_user_terms
 
 router = APIRouter()
 
@@ -162,3 +163,16 @@ async def unlink_vendor_route(payload: UnlinkRequest, user=Depends(get_supabase_
         raise HTTPException(status_code=500, detail=f"Unlink failed: {error}")
 
     return {"success": True, "message": f"Vendor {payload.vendor} unlinked"}  
+
+@router.patch("/user/{user_id}")
+async def patch_user_terms(user_id: str, payload: dict, user=Depends(get_supabase_user)):
+    if user["id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this user.")
+
+    accepted = payload.get("accepted_terms")
+    if not isinstance(accepted, bool):
+        raise HTTPException(status_code=400, detail="accepted_terms must be a boolean")
+
+    await update_user_terms(user_id=user_id, accepted_terms=accepted)
+    return {"status": "ok"}
+

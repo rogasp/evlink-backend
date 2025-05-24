@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
-from app.storage.user import get_user_accepted_terms, get_user_approved_status, get_user_by_id
+from app.storage.user import get_user_accepted_terms, get_user_approved_status, get_user_by_id, get_user_online_status
 
 router = APIRouter()
 
@@ -14,12 +14,15 @@ class MeResponse(BaseModel):
     approved: bool
     name: str
     accepted_terms: bool
+    online_status: str  # "red", "yellow", "green", "grey"
 
 @router.get("/me", response_model=MeResponse)
 async def get_me(user=Depends(get_supabase_user)):
     approved = await get_user_approved_status(user["id"])
     terms = await get_user_accepted_terms(user["id"])
     local_user = await get_user_by_id(user["id"])
+    online_status = await get_user_online_status(user["id"])
+
     print(f"local_user: {local_user}")
     # 1. Prefer name from user_metadata
     name = (user.get("user_metadata", {}) or {}).get("name")
@@ -45,4 +48,5 @@ async def get_me(user=Depends(get_supabase_user)):
         approved=approved,
         name=name,
         accepted_terms=terms,
+        online_status=online_status,
     )

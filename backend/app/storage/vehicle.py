@@ -30,6 +30,7 @@ def save_vehicle_data_with_client(vehicle: dict):
         vehicle_id = vehicle.get("id") or vehicle.get("vehicle_id")
         user_id = vehicle.get("userId") or vehicle.get("user_id")
         vendor = vehicle.get("vendor")
+        online = vehicle.get("isReachable", False)
         data_str = json.dumps(vehicle)
         updated_at = datetime.utcnow().isoformat()
 
@@ -40,6 +41,7 @@ def save_vehicle_data_with_client(vehicle: dict):
             "vehicle_id": vehicle_id,
             "user_id": user_id,
             "vendor": vendor,
+            "online": online,
             "vehicle_cache": data_str,
             "updated_at": updated_at
         }
