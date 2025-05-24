@@ -6,6 +6,7 @@ import { useRegistrationStatus } from '@/contexts/RegistrationContext';
 import NavbarMobile from '@/components/layout/NavbarMobile';
 import NavbarDesktop from '@/components/layout/NavbarDesktop';
 import LogoLink from '@/components/layout/LogoLink';
+import { OnlineStatusIcon } from '@/components/layout/OnlineStatusIcon';
 
 export default function Navbar() {
   const { supabase } = useSupabase();
@@ -19,8 +20,15 @@ export default function Navbar() {
   useEffect(() => {
     const getUserData = async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error('[🔴 Navbar] Supabase error:', error);
+      }
+
+      const user = session?.user;
 
       if (user) {
         setIsLoggedIn(true);
@@ -55,6 +63,7 @@ export default function Navbar() {
           }}
         />
         <LogoLink />
+        {isLoggedIn && <OnlineStatusIcon />}
       </div>
 
       <NavbarDesktop

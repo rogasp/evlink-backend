@@ -16,6 +16,7 @@ interface MergedUser {
   full_name?: string;
   name?: string;
   created_at?: string;
+  online_status?: 'green' | 'yellow' | 'red' | 'grey';
 }
 
 export function useAuth({
@@ -25,12 +26,14 @@ export function useAuth({
   redirectTo?: string;
   requireAuth?: boolean;
 } = {}) {
-  const [authUser, setAuthUser] = useState<User | null>(null); // raw Supabase user
-  const [mergedUser, setMergedUser] = useState<MergedUser | null>(null); // enriched from /api/me
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [mergedUser, setMergedUser] = useState<MergedUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [onlineStatus, setOnlineStatus] = useState<'green' | 'yellow' | 'red' | 'grey'>('grey');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Initial fetch of auth + /me
   useEffect(() => {
     const fetchUserAndMe = async () => {
       const {
@@ -42,6 +45,7 @@ export function useAuth({
         setAuthUser(null);
         setMergedUser(null);
         setAccessToken(null);
+        setOnlineStatus('grey');
 
         if (requireAuth) {
           router.push(redirectTo);
@@ -56,10 +60,11 @@ export function useAuth({
         });
 
         if (!error && data) {
-          
-          setMergedUser(data); // contains approved, role, vendor etc
+          setMergedUser(data);
+          setOnlineStatus(data.online_status ?? 'grey');
         } else {
           setMergedUser(null);
+          setOnlineStatus('grey');
         }
       }
 
@@ -69,6 +74,39 @@ export function useAuth({
     fetchUserAndMe();
   }, [router, redirectTo, requireAuth]);
 
+  // Realtime subscription for vehicle updates
+  useEffect(() => {
+    if (!mergedUser || !accessToken) return;
+
+    const channel = supabase
+      .channel('user-vehicle-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'vehicles',
+          filter: `user_id=eq.${mergedUser.id}`,
+        },
+        async () => {
+          const { data, error } = await authFetch('/me', {
+            method: 'GET',
+            accessToken,
+          });
+
+          if (!error && data) {
+            setMergedUser(data);
+            setOnlineStatus(data.online_status ?? 'grey');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [mergedUser, accessToken]);
+
   return {
     user: authUser,
     mergedUser,
@@ -77,5 +115,6 @@ export function useAuth({
     isAdmin: mergedUser?.role === 'admin',
     isApproved: mergedUser?.approved === true,
     hasAcceptedTerms: mergedUser?.accepted_terms === true,
+    onlineStatus,
   };
 }
