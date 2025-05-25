@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
+import { authFetch } from '@/lib/authFetch';
 import UserInfoCard from '@/components/profile/UserInfoCard';
 import ApiKeySection from '@/components/profile/ApiKeySection';
 
@@ -11,11 +12,15 @@ export default function ProfilePage() {
   const { user, accessToken, loading: authLoading, mergedUser } = useAuth();
 
   const [name, setName] = useState('');
+  const [notifyOffline, setNotifyOffline] = useState(false);
 
-  // Initiera namn från mergedUser
+  // Initiera namn + notifyOffline från mergedUser
   useEffect(() => {
     if (mergedUser?.name) {
       setName(mergedUser.name);
+    }
+    if (mergedUser?.notify_offline !== undefined) {
+      setNotifyOffline(mergedUser.notify_offline);
     }
   }, [mergedUser]);
 
@@ -45,6 +50,30 @@ export default function ProfilePage() {
     }
   };
 
+  const toggleNotify = async (checked: boolean) => {
+    if (!accessToken || !user?.id) return;
+
+    const { error } = await authFetch(`/user/${user.id}/notify`, {
+      method: 'PATCH',
+      accessToken,
+      body: JSON.stringify({ notify_offline: checked }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (error) {
+      toast.error('Failed to update notification setting');
+    } else {
+      setNotifyOffline(checked);
+      toast.success(
+        checked
+          ? 'You will now receive email when a vehicle goes offline.'
+          : 'Notifications disabled.'
+      );
+    }
+  };
+
   if (authLoading || !user || !accessToken || name === '') return null;
 
   return (
@@ -54,6 +83,8 @@ export default function ProfilePage() {
         email={user.email ?? ''}
         name={name}
         onNameSave={saveName}
+        notifyOffline={notifyOffline}
+        onToggleNotify={toggleNotify}
       />
       <ApiKeySection userId={user.id} accessToken={accessToken} />
     </div>

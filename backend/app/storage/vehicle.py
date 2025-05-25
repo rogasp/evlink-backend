@@ -3,6 +3,7 @@
 from datetime import datetime
 import json
 from app.lib.supabase import get_supabase_admin_client
+from app.logic.vehicle import handle_offline_notification_if_needed
 
 def get_all_cached_vehicles(user_id: str) -> list[dict]:
     """
@@ -21,7 +22,7 @@ def get_all_cached_vehicles(user_id: str) -> list[dict]:
         print(f"[❌ get_all_cached_vehicles] Exception: {e}")
         return []
 
-def save_vehicle_data_with_client(vehicle: dict):
+async def save_vehicle_data_with_client(vehicle: dict):
     """
     Save vehicle cache entry, overwriting if vehicle_id exists.
     """
@@ -45,6 +46,25 @@ def save_vehicle_data_with_client(vehicle: dict):
             "vehicle_cache": data_str,
             "updated_at": updated_at
         }
+
+        existing = supabase \
+            .table("vehicles") \
+            .select("online") \
+            .eq("vehicle_id", vehicle_id) \
+            .maybe_single() \
+            .execute()
+
+        if not existing.data:
+            print(f"[ℹ️] Vehicle {vehicle_id} is new – skipping notification logic")
+        else:
+            print(f"[ℹ️] Vehicle {vehicle_id} already exists – checking online status")
+            online_old = existing.data.get("online")
+            await handle_offline_notification_if_needed(
+                vehicle_id=vehicle_id,
+                user_id=user_id,
+                online_old=online_old,
+                online_new=online,
+            )
 
         print(f"[💾 save_vehicle_data_with_client] Saving vehicle {vehicle_id} for user {user_id}")
         res = supabase \
