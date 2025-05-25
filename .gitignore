@@ -68,6 +68,8 @@ supabase/**/.supabase/
 supabase/**/.snapshots/
 supabase/**/.log/
 
+supabase/scripts/*.sh
+
 # Ignore environment-specific files
 supabase/config.*.toml
 supabase/Makefile
