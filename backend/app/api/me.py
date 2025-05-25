@@ -15,6 +15,7 @@ class MeResponse(BaseModel):
     name: str
     accepted_terms: bool
     online_status: str  # "red", "yellow", "green", "grey"
+    notify_offline: bool
 
 @router.get("/me", response_model=MeResponse)
 async def get_me(user=Depends(get_supabase_user)):
@@ -49,4 +50,5 @@ async def get_me(user=Depends(get_supabase_user)):
         name=name,
         accepted_terms=terms,
         online_status=online_status,
+        notify_offline = getattr(local_user, "notify_offline", False) if local_user else False,
     )

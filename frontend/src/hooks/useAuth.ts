@@ -17,6 +17,7 @@ interface MergedUser {
   name?: string;
   created_at?: string;
   online_status?: 'green' | 'yellow' | 'red' | 'grey';
+  notify_offline?: boolean;
 }
 
 export function useAuth({

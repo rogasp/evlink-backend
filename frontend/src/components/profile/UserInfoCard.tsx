@@ -2,20 +2,25 @@
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import EditableField from '@/components/EditableField';
 
 interface UserInfoCardProps {
   userId: string;
   email: string;
   name: string;
+  notifyOffline: boolean;
   onNameSave: (newName: string) => void;
+  onToggleNotify: (checked: boolean) => void;
 }
 
 export default function UserInfoCard({
   userId,
   email,
   name,
+  notifyOffline,
   onNameSave,
+  onToggleNotify,
 }: UserInfoCardProps) {
   const getInitials = (email?: string) => {
     if (!email) return 'U';
@@ -37,6 +42,13 @@ export default function UserInfoCard({
           <Input value={email} readOnly disabled />
         </div>
         <EditableField label="Name" value={name} onSave={onNameSave} type="text" />
+
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox id="notify" checked={notifyOffline} onCheckedChange={onToggleNotify} />
+          <label htmlFor="notify" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed">
+            Notify me by email when a vehicle goes offline
+          </label>
+        </div>
       </div>
     </div>
   );

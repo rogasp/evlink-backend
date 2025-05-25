@@ -9,7 +9,7 @@ from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
-from app.storage.user import update_user_terms
+from app.storage.user import update_notify_offline, update_user_terms
 
 router = APIRouter()
 
@@ -27,6 +27,10 @@ class UnlinkRequest(BaseModel):
 
 class GetUserVehicleByVehIdResponse(BaseModel):
     id: str
+
+class UpdateNotifyRequest(BaseModel):
+    notify_offline: bool
+
     
 @router.get("/user/vehicles", response_model=list)
 async def get_user_vehicles(user=Depends(get_supabase_user)):
@@ -64,7 +68,7 @@ async def get_user_vehicles(user=Depends(get_supabase_user)):
 
         for vehicle in fresh_vehicles:
             vehicle["userId"] = user_id
-            save_vehicle_data_with_client(vehicle)
+            await save_vehicle_data_with_client(vehicle)
 
         print(f"💾 Saved {len(fresh_vehicles)} vehicle(s) to Supabase")
         return fresh_vehicles
@@ -176,3 +180,10 @@ async def patch_user_terms(user_id: str, payload: dict, user=Depends(get_supabas
     await update_user_terms(user_id=user_id, accepted_terms=accepted)
     return {"status": "ok"}
 
+@router.patch("/user/{user_id}/notify")
+async def update_notify(user_id: str, payload: UpdateNotifyRequest, user=Depends(get_supabase_user)):
+    if user["id"] != user_id:
+        raise HTTPException(status_code=403, detail="You can only modify your own settings.")
+
+    await update_notify_offline(user_id, payload.notify_offline)
+    return {"status": "ok"}
