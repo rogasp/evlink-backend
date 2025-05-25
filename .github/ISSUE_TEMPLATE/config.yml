@@ -1,0 +1,16 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Code of Conduct
+    url: ./CODE_OF_CONDUCT.md
+    about: Please read and follow our Code of Conduct
+issue_templates:
+  - name: Bug report
+    about: Create a report to help us improve
+    title: "[BUG]"
+    labels: [bug]
+    path: .github/ISSUE_TEMPLATE/bug_report.md
+  - name: Feature request
+    about: Suggest a new feature or enhancement
+    title: "[FEATURE]"
+    labels: [enhancement]
+    path: .github/ISSUE_TEMPLATE/feature_request.md
