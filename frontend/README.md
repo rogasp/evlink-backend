@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+![CI](https://github.com/rogasp/evlink-backend/actions/workflows/deploy-production.yml/badge.svg)
+![CodeQL](https://github.com/rogasp/evlink-backend/actions/workflows/codeql-analysis.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Getting Started
 
