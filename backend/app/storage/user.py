@@ -84,7 +84,7 @@ async def get_user_by_id(user_id: str) -> User | None:
 
 async def get_user_online_status(user_id: str) -> str:
     result = supabase.table("vehicles").select("online").eq("user_id", user_id).execute()
-                                                                                                                                    vehicles = result.data or []  
+    vehicles = result.data or []  
 
     if not vehicles:
         return "grey"
