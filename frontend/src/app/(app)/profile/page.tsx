@@ -14,7 +14,7 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [notifyOffline, setNotifyOffline] = useState(false);
 
-  // Initiera namn + notifyOffline från mergedUser
+  // Initialize name and notifyOffline from mergedUser
   useEffect(() => {
     if (mergedUser?.name) {
       setName(mergedUser.name);
