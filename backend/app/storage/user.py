@@ -84,11 +84,11 @@ async def get_user_by_id(user_id: str) -> User | None:
 
 async def get_user_online_status(user_id: str) -> str:
     result = supabase.table("vehicles").select("online").eq("user_id", user_id).execute()
-    vehicles = result.data or []
+                                                                                                                                    vehicles = result.data or []  
 
     if not vehicles:
         return "grey"
-
+                                                                                                                                                                                                                                                                                                                                                                                                                              
     statuses = [v.get("online") for v in vehicles]
 
     # Om alla är True
@@ -112,3 +112,4 @@ async def update_notify_offline(user_id: str, notify_offline: bool):
         .update({"notify_offline": notify_offline}) \
         .eq("id", user_id) \
         .execute()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
