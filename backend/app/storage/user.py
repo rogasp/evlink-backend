@@ -69,7 +69,7 @@ async def get_user_accepted_terms(user_id: str) -> bool:
 
 async def get_user_by_id(user_id: str) -> User | None:
     response = supabase.table("users") \
-        .select("id, email, role, name") \
+        .select("id, email, role, name, notify_offline") \
         .eq("id", user_id) \
         .maybe_single() \
         .execute()
@@ -77,16 +77,18 @@ async def get_user_by_id(user_id: str) -> User | None:
     row = response.data
     if not row:
         return None
-
-    return User(**row)
+    
+    user = User(**row)
+    
+    return user
 
 async def get_user_online_status(user_id: str) -> str:
     result = supabase.table("vehicles").select("online").eq("user_id", user_id).execute()
-    vehicles = result.data or []
+                                                                                                                                    vehicles = result.data or []  
 
     if not vehicles:
         return "grey"
-
+                                                                                                                                                                                                                                                                                                                                                                                                                              
     statuses = [v.get("online") for v in vehicles]
 
     # Om alla är True
@@ -105,3 +107,9 @@ async def update_user_terms(user_id: str, accepted_terms: bool):
     result = supabase.table("users").update({"accepted_terms": accepted_terms}).eq("id", user_id).execute()
     return result
 
+async def update_notify_offline(user_id: str, notify_offline: bool):
+    return supabase.table("users") \
+        .update({"notify_offline": notify_offline}) \
+        .eq("id", user_id) \
+        .execute()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

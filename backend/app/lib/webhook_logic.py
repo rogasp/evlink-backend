@@ -16,7 +16,7 @@ async def process_event(event: dict) -> int:
         if vehicle and user_id:
             vehicle["userId"] = user_id
             print(f"[🚗 Saving vehicle] Vehicle ID: {vehicle.get('id')} User ID: {user_id}")
-            save_vehicle_data_with_client(vehicle)
+            await save_vehicle_data_with_client(vehicle)
             return 1
         else:
             print(f"[⚠️ Missing data] vehicle or user_id missing in event: {event}")
