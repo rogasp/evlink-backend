@@ -1,5 +1,5 @@
 ![CI](https://github.com/rogasp/evlink-backend/actions/workflows/deploy-production.yml/badge.svg)
-![CodeQL](https://github.com/rogasp/evlink-backend/actions/workflows/codeql-analysis.yml/badge.svg)
+[![CodeQL](https://github.com/rogasp/evlink-backend/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/rogasp/evlink-backend/actions/workflows/github-code-scanning/codeql)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 # EVLinkHA
