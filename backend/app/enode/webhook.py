@@ -31,7 +31,8 @@ async def subscribe_to_webhooks():
             "user:vehicle:updated"
         ]
     }
-    print("[📡 ENODE] Subscribing to webhooks with payload:", payload)
+    sanitized_payload = {**payload, "secret": "REDACTED"}
+    print("[📡 ENODE] Subscribing to webhooks with payload:", sanitized_payload)
     
     url = f"{ENODE_BASE_URL}/webhooks"
     async with httpx.AsyncClient() as client:
