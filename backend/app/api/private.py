@@ -30,7 +30,6 @@ class GetUserVehicleByVehIdResponse(BaseModel):
 
 class UpdateNotifyRequest(BaseModel):
     notify_offline: bool
-
     
 @router.get("/user/vehicles", response_model=list)
 async def get_user_vehicles(user=Depends(get_supabase_user)):

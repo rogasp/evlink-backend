@@ -112,4 +112,70 @@ async def update_notify_offline(user_id: str, notify_offline: bool):
         .update({"notify_offline": notify_offline}) \
         .eq("id", user_id) \
         .execute()
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+async def get_sms_credits(user_id: str) -> int:
+    """
+    Fetch the current SMS credit balance for a given user from `public.users`.
+    Returns 0 om raden inte finns eller om fältet är null.
+    """
+    try:
+        resp = (
+            supabase.table("users")
+            .select("sms_credits")
+            .eq("id", user_id)
+            .single()
+            .execute()
+        )
+    except Exception as e:
+        raise Exception(f"Error fetching SMS credits for user {user_id}: {e}")
+
+    # Supabase-py: resp.data är raden eller None
+    row = getattr(resp, "data", None)
+    if not row:
+        return 0
+
+    return row.get("sms_credits") or 0
+
+async def decrement_sms_credits(user_id: str, amount: int) -> int:
+    """
+    Subtract `amount` credits from the user's balance in `public.users`.
+    Returns the new balance.
+    """
+    current = await get_sms_credits(user_id)
+    new_balance = current - amount
+
+    try:
+        supabase.table("users") \
+            .update({"sms_credits": new_balance}) \
+            .eq("id", user_id) \
+            .execute()
+    except Exception as e:
+        raise Exception(f"Error decrementing SMS credits for user {user_id}: {e}")
+
+    return new_balance
+
+async def log_sms(
+    user_id: str,
+    to_number: str,
+    body: str,
+    sid: str,
+    segments: int,
+    status: str
+) -> None:
+    """
+    Insert a record into `public.log_sms` for audit and reporting.
+    Non-blocking på fel.
+    """
+    record = {
+        "user_id": user_id,
+        "to_number": to_number,
+        "body": body,
+        "sid": sid,
+        "segments": segments,
+        "status": status
+    }
+    try:
+        supabase.table("log_sms").insert(record).execute()
+    except Exception as e:
+        print(f"⚠️ Failed to log SMS for user {user_id}: {e}")
+

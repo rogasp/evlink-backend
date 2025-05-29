@@ -1,13 +1,15 @@
 # app/api/public.py
+import re
 
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Query, Request
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, validator
 
 from app.enode.link import get_link_result
 from app.lib.supabase import get_supabase_admin_client
 from app.storage.interest import assign_interest_user, get_interest_by_access_code, save_interest
 from app.storage.status_logs import calculate_uptime, get_daily_status, get_status_panel_data
+from app.services.sms import SMSService, SMSServiceError
 
 router = APIRouter()
 
@@ -15,6 +17,18 @@ class InterestSubmission(BaseModel):
     name: str
     email: EmailStr
 
+class TestSMSRequest(BaseModel):
+    to: str = Field(..., description="Recipient phone number in E.164 format, e.g. +46737599968")
+    body: str = Field(..., description="Text message to send")
+
+    @validator("to")
+    def validate_e164(cls, v: str) -> str:
+        # E.164 regex: + followed by 10–15 digits
+        if not re.fullmatch(r"^\+\d{10,15}$", v):
+            raise ValueError("Phone number must be in E.164 format: '+' plus 10–15 digits")
+        return v
+
+sms_service = SMSService()
 
 @router.get("/status")
 async def status():
@@ -23,6 +37,20 @@ async def status():
 @router.get("/ping")
 async def ping():
     return {"message": "pong"}
+
+@router.post("/test/sms", status_code=201)
+async def test_send_sms(payload: TestSMSRequest):
+    """
+    Test endpoint for sending SMS via the hard-coded TEST_USER_ID.
+    """
+    try:
+        result = await sms_service.send_sms_for_test(payload.to, payload.body)
+        return {"message": "Test SMS sent", **result}
+    except SMSServiceError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"❌ SMS test error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/interest")
 async def submit_interest(data: InterestSubmission, request: Request):

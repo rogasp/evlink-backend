@@ -25,7 +25,7 @@ app = FastAPI(
 )
 
 # ✅ Lägg till CORS för localhost:3000 (Next.js)
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:3100"]
 
 app.add_middleware(
     CORSMiddleware,
