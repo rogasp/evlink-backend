@@ -1,9 +1,14 @@
-# backend/app/main.py
+"""
+backend/app/main.py
 
+FastAPI application entrypoint for EVLink backend.
+"""
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
+from app.logger import logger  # Initialize logging config
 from app.api import admin, ha, me, private, public, webhook
 from app.config import (
     IS_PROD,
@@ -13,7 +18,7 @@ from app.config import (
     SUPABASE_JWT_SECRET,
 )
 
-print("🚀 Starting EVLink Backend...")
+logger.info("🚀 Starting EVLink Backend...")
 
 app = FastAPI(
     title="EVLink Backend",
@@ -24,9 +29,8 @@ app = FastAPI(
     openapi_url=None if IS_PROD else "/openapi.json",
 )
 
-# ✅ Lägg till CORS för localhost:3000 (Next.js)
-origins = ["http://localhost:3000"]
-
+# Configure CORS for frontend origins
+origins = ["http://localhost:3100"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -35,17 +39,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
+# Include API routers
 app.include_router(public.router, prefix="/api")
 app.include_router(private.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(webhook.router, prefix="/api")
 app.include_router(me.router, prefix="/api")
 app.include_router(ha.router, prefix="/api")
-def method_name():
-    pass
 
-# 🔐 Swagger JWT support
+# Custom OpenAPI schema to enforce JWT security globally
+
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -57,22 +60,17 @@ def custom_openapi():
         routes=app.routes,
     )
 
-    # 👇 Ensure 'components' and 'securitySchemes' exist
-    if "components" not in openapi_schema:
-        openapi_schema["components"] = {}
-    if "securitySchemes" not in openapi_schema["components"]:
-        openapi_schema["components"]["securitySchemes"] = {}
-
-    openapi_schema["components"]["securitySchemes"]["bearerAuth"] = {
+    components = openapi_schema.setdefault("components", {})
+    security_schemes = components.setdefault("securitySchemes", {})
+    security_schemes["bearerAuth"] = {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
     }
 
-    for path in openapi_schema["paths"].values():
-        for method in path.values():
-            if "security" not in method:
-                method["security"] = [{"bearerAuth": []}]
+    for path_item in openapi_schema.get("paths", {}).values():
+        for operation in path_item.values():
+            operation.setdefault("security", [{"bearerAuth": []}])
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
