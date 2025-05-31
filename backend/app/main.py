@@ -55,14 +55,13 @@ async def telemetry_middleware(request: Request, call_next):
         except Exception:
             pass
 
-        # Extrahera vehicle_id från path_params om det finns
-        vehicle_id = request.path_params.get("vehicle_id")
-
     # Skicka vidare request till övrig routing
     response = await call_next(request)
     
     if is_ha_endpoint and start_time is not None:
         duration_ms = int((time.time() - start_time) * 1000)
+        # Extrahera vehicle_id från path_params om det finns
+        vehicle_id = request.path_params.get("vehicle_id")
         # Asynkront logga telemetridata utan att blockera svaret
         asyncio.create_task(
             log_api_telemetry(
