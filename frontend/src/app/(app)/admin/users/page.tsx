@@ -1,18 +1,16 @@
+// app/dashboard/UserAdminPage.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Loader2, Trash } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { authFetch } from '@/lib/authFetch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { authFetch } from '@/lib/authFetch';
 
 type AdminUserView = {
   id: string;
@@ -31,21 +29,16 @@ export default function UserAdminPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
+    if (!accessToken) return;
     setLoading(true);
     try {
-      if (!accessToken) return;
-      const res = await authFetch('/admin/users', {
-        method: 'GET',
-        accessToken,
-      });
-
+      const res = await authFetch('/admin/users', { method: 'GET', accessToken });
       if (res.error) {
         toast.error('Failed to fetch users');
-      } else {
-        setUsers(res.data || []);
+        return;
       }
-    } catch (err) {
-      console.error('Failed to fetch users', err);
+      setUsers(res.data || []);
+    } catch {
       toast.error('Could not load users');
     } finally {
       setLoading(false);
@@ -53,8 +46,8 @@ export default function UserAdminPage() {
   }, [accessToken]);
 
   useEffect(() => {
-    if (accessToken) fetchUsers();
-  }, [accessToken, fetchUsers]);
+    if (user) fetchUsers();
+  }, [user, fetchUsers]);
 
   const handleToggleApproval = async (userId: string, isApproved: boolean) => {
     if (!accessToken) return;
@@ -64,110 +57,85 @@ export default function UserAdminPage() {
         accessToken,
         body: JSON.stringify({ is_approved: isApproved }),
       });
-
       if (res.error) {
         toast.error('Failed to update approval');
       } else {
         toast.success('Approval status updated');
         fetchUsers();
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error('Could not update approval');
     }
   };
 
   const confirmAndDelete = async () => {
     if (!confirmDeleteId || !accessToken) return;
+    setLoading(true);
     try {
-      const res = await authFetch(`/admin/users/${confirmDeleteId}`, {
-        method: 'DELETE',
-        accessToken,
-      });
-
+      const res = await authFetch(`/admin/users/${confirmDeleteId}`, { method: 'DELETE', accessToken });
       if (res.error) {
         toast.error('Failed to delete user');
       } else {
         toast.success('User deleted');
-        fetchUsers(); // Refresh list
+        fetchUsers();
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error('Could not delete user');
     } finally {
       setConfirmDeleteId(null);
+      setLoading(false);
     }
   };
 
   if (!user) return null;
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-indigo-700">User Admin</h1>
-        <Button onClick={fetchUsers} disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="animate-spin mr-2 h-4 w-4" />
-              Refreshing...
-            </>
-          ) : (
-            'Refresh'
-          )}
+    <div className="p-4 space-y-4">
+      <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
+        <h1 className="text-xl lg:text-2xl font-bold text-indigo-700">User Admin</h1>
+        <Button onClick={fetchUsers} disabled={loading} className="mt-2 lg:mt-0">
+          {loading ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />Refreshing...</> : 'Refresh'}
         </Button>
-      </div>
+      </header>
 
-      <div className="border rounded-lg overflow-hidden mt-4">
-        <table className="w-full text-sm text-left">
-          <thead>
+      {/* Desktop Table */}
+      <Card className="hidden lg:block overflow-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2">User ID</th>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Email</th>
-              <th className="px-4 py-2">Admin</th>
-              <th className="px-4 py-2">Enode Connected</th>
-              <th className="px-4 py-2">Connected At</th>
-              <th className="px-4 py-2">Approved</th>
-              <th className="px-4 py-2">Actions</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">User ID</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Enode Connected</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Connected At</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Approved</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-t">
-                <td className="px-4 py-2">{u.id}</td>
-                <td className="px-4 py-2">{u.full_name || '–'}</td>
-                <td className="px-4 py-2">{u.email}</td>
-                <td className="px-4 py-2">
-                  {u.is_admin ? (
-                    <span className="text-green-600 font-semibold">Yes</span>
-                  ) : (
-                    <span className="text-gray-500">No</span>
-                  )}
+          <tbody className="bg-white divide-y divide-gray-200">
+            {users.map(u => (
+              <tr key={u.id} className="hover:bg-gray-50">
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                  <Tooltip>
+                    <TooltipTrigger>
+                      {`${u.id.slice(0, 8)}...`}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <pre className="text-xs text-white">{u.id}</pre>
+                    </TooltipContent>
+                  </Tooltip>
                 </td>
-                <td className="px-4 py-2">
-                  {u.linked_to_enode ? (
-                    <span className="text-green-600 font-bold">✓</span>
-                  ) : (
-                    <span className="text-red-500 font-bold">✗</span>
-                  )}
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.full_name ?? '–'}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.email}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.is_admin ? 'Yes' : 'No'}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.linked_to_enode ? '✓' : '✗'}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                  <Switch checked={u.is_approved} onCheckedChange={val => handleToggleApproval(u.id, val)} />
                 </td>
-                <td className="px-4 py-2">
-                  {u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}
-                </td>
-                <td className="px-4 py-2">
-                  <Switch
-                    checked={u.is_approved}
-                    onCheckedChange={(value) => handleToggleApproval(u.id, value)}
-                  />
-                </td>
-
-                <td className="px-4 py-2">
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    onClick={() => setConfirmDeleteId(u.id)}
-                    title="Delete user"
-                  >
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                  <Button size="icon" variant="destructive" onClick={() => setConfirmDeleteId(u.id)}>
                     <Trash className="w-4 h-4" />
                   </Button>
                 </td>
@@ -175,31 +143,69 @@ export default function UserAdminPage() {
             ))}
             {!loading && users.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
-                  No users found.
-                </td>
+                <td colSpan={8} className="px-4 py-4 text-center text-sm text-gray-500">No users found.</td>
               </tr>
             )}
           </tbody>
         </table>
+      </Card>
+
+      {/* Mobile Cards */}
+      <div className="space-y-4 lg:hidden">
+        {users.map(u => (
+          <Card key={u.id} className="p-4">
+            <div className="flex justify-between items-center mb-2">
+              <div className="font-semibold text-gray-900">
+                <Tooltip>
+                  <TooltipTrigger>
+                    {u.full_name ?? u.email}
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <pre className="text-xs text-gray-700">{u.id}</pre>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="icon" variant="secondary" onClick={() => setConfirmDeleteId(u.id)}>
+                    <Trash className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Confirm Deletion</DialogTitle></DialogHeader>
+                  <p>Delete user {u.email}?</p>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="ghost" onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
+                    <Button variant="destructive" onClick={confirmAndDelete}>Delete</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <div className="space-y-1 text-sm text-gray-700">
+              <div><strong>ID:</strong> <Tooltip><TooltipTrigger>{`${u.id.slice(0,8)}...`}</TooltipTrigger><TooltipContent><pre className="text-xs text-gray-700">{u.id}</pre></TooltipContent></Tooltip></div>
+              <div><strong>Email:</strong> {u.email}</div>
+              <div><strong>Admin:</strong> {u.is_admin ? 'Yes' : 'No'}</div>
+              <div><strong>Enode:</strong> {u.linked_to_enode ? '✓' : '✗'}</div>
+              <div><strong>Connected:</strong> {u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}</div>
+              <div className="flex items-center"><strong>Approved:</strong>
+                <Switch checked={u.is_approved} onCheckedChange={val => handleToggleApproval(u.id, val)} className="ml-2" />
+              </div>
+            </div>
+          </Card>
+        ))}
+        {!loading && users.length === 0 && (
+          <div className="text-center text-gray-500 text-sm">No users found.</div>
+        )}
       </div>
 
-      <Dialog
-        open={!!confirmDeleteId}
-        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
-      >
+      {/* Confirm Delete Dialog */}
+      <Dialog open={!!confirmDeleteId} onOpenChange={open => !open && setConfirmDeleteId(null)}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Confirm Deletion</DialogTitle></DialogHeader>
           <p>Are you sure you want to delete this user?</p>
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" onClick={() => setConfirmDeleteId(null)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmAndDelete}>
-              Yes, Delete
-            </Button>
+            <Button variant="ghost" onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmAndDelete}>Yes, Delete</Button>
           </div>
         </DialogContent>
       </Dialog>

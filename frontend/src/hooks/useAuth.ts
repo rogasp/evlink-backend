@@ -34,33 +34,36 @@ export function useAuth({
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Initial fetch of auth + /me
+  // Sync accessToken when session changes
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.access_token) {
+        setAccessToken(session.access_token);
+      }
+    });
+    return () => { listener.subscription.unsubscribe(); };
+  }, []);
+
+  // Initial session + /me fetch
   useEffect(() => {
     const fetchUserAndMe = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
 
       if (!session || error) {
         setAuthUser(null);
         setMergedUser(null);
         setAccessToken(null);
         setOnlineStatus('grey');
-
-        if (requireAuth) {
-          router.push(redirectTo);
-        }
+        if (requireAuth) router.push(redirectTo);
       } else {
         setAuthUser(session.user);
         setAccessToken(session.access_token);
 
-        const { data, error } = await authFetch('/me', {
+        const { data, error: meError } = await authFetch('/me', {
           method: 'GET',
           accessToken: session.access_token,
         });
-
-        if (!error && data) {
+        if (!meError && data) {
           setMergedUser(data);
           setOnlineStatus(data.online_status ?? 'grey');
         } else {
@@ -71,30 +74,19 @@ export function useAuth({
 
       setLoading(false);
     };
-
     fetchUserAndMe();
   }, [router, redirectTo, requireAuth]);
 
-  // Realtime subscription for vehicle updates
+  // Realtime vehicle updates
   useEffect(() => {
-    if (!mergedUser || !accessToken) return;
-
+    if (!mergedUser?.id || !accessToken) return;
     const channel = supabase
       .channel('user-vehicle-updates')
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'vehicles',
-          filter: `user_id=eq.${mergedUser.id}`,
-        },
+        { event: 'UPDATE', schema: 'public', table: 'vehicles', filter: `user_id=eq.${mergedUser.id}` },
         async () => {
-          const { data, error } = await authFetch('/me', {
-            method: 'GET',
-            accessToken,
-          });
-
+          const { data, error } = await authFetch('/me', { method: 'GET', accessToken });
           if (!error && data) {
             setMergedUser(data);
             setOnlineStatus(data.online_status ?? 'grey');
@@ -103,9 +95,7 @@ export function useAuth({
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [mergedUser, accessToken]);
 
   return {
