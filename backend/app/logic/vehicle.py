@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from app.lib.supabase import get_supabase_admin_client
-from app.services.email import send_offline_notification
+from app.services.email_utils import send_offline_notification
 
 async def handle_offline_notification_if_needed(vehicle_id: str, user_id: str, online_old: bool | None, online_new: bool):
     if online_old is True and online_new is False:

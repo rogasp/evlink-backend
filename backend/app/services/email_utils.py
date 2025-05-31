@@ -1,6 +1,11 @@
 import httpx
+import brevo_python
+from brevo_python.rest import ApiException
 
-from app.config import FROM_EMAIL, RESEND_API_KEY
+from app.config import FROM_EMAIL, RESEND_API_KEY, BREVO_API_KEY
+
+configuration = brevo_python.Configuration()
+configuration.api_key['api-key'] = BREVO_API_KEY
 
 async def send_offline_notification(email: str, name: str, vehicle_name: str):
     html = f"""
@@ -141,3 +146,4 @@ async def send_interest_email(email: str, name: str):
             },
             headers={"Authorization": f"Bearer {RESEND_API_KEY}"}
         )
+

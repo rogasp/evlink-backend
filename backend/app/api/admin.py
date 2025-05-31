@@ -7,7 +7,7 @@ from app.auth.supabase_auth import get_supabase_user
 from app.enode.user import delete_enode_user
 from app.enode.vehicle import get_all_vehicles
 from app.enode.webhook import subscribe_to_webhooks, delete_webhook
-from app.services.email import send_access_invite_email, send_interest_email
+from app.services.email_utils import send_access_invite_email, send_interest_email
 from app.storage import settings
 from app.storage.interest import count_uncontacted_interest, generate_codes_for_interest_ids, get_interest_by_id, get_uncontacted_interest_entries, list_interest_entries, mark_interest_contacted
 from app.storage.user import get_all_users_with_enode_info, set_user_approval

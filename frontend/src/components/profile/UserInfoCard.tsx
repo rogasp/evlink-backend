@@ -1,3 +1,5 @@
+// frontend/app/components/UserInfoCard.tsx
+
 'use client';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -10,8 +12,10 @@ interface UserInfoCardProps {
   email: string;
   name: string;
   notifyOffline: boolean;
+  isSubscribed: boolean;               // NEW: whether the user is subscribed to the newsletter
   onNameSave: (newName: string) => void;
   onToggleNotify: (checked: boolean) => void;
+  onToggleSubscribe: (checked: boolean) => void; // NEW: handler for newsletter toggle
 }
 
 export default function UserInfoCard({
@@ -19,9 +23,14 @@ export default function UserInfoCard({
   email,
   name,
   notifyOffline,
+  isSubscribed,
   onNameSave,
   onToggleNotify,
+  onToggleSubscribe,
 }: UserInfoCardProps) {
+  /**
+   * Utility to extract the first initial from the email for the avatar fallback.
+   */
   const getInitials = (email?: string) => {
     if (!email) return 'U';
     return email.charAt(0).toUpperCase();
@@ -43,10 +52,33 @@ export default function UserInfoCard({
         </div>
         <EditableField label="Name" value={name} onSave={onNameSave} type="text" />
 
+        {/* Existing toggle: Notify offline */}
         <div className="flex items-center space-x-2 pt-2">
-          <Checkbox id="notify" checked={notifyOffline} onCheckedChange={onToggleNotify} />
-          <label htmlFor="notify" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed">
+          <Checkbox
+            id="notify"
+            checked={notifyOffline}
+            onCheckedChange={onToggleNotify}
+          />
+          <label
+            htmlFor="notify"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed"
+          >
             Notify me by email when a vehicle goes offline
+          </label>
+        </div>
+
+        {/* NEW toggle: Newsletter subscription */}
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="subscribe"
+            checked={isSubscribed}
+            onCheckedChange={onToggleSubscribe}
+          />
+          <label
+            htmlFor="subscribe"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed"
+          >
+            Subscribe to newsletter
           </label>
         </div>
       </div>
