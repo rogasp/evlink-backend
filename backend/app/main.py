@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
 from app.logger import logger
-from app.api import admin, ha, me, private, public, webhook
+from app.api import admin, ha, me, private, public, webhook, newsletter
 from app.storage.telemetry import log_api_telemetry
 from app.auth.api_key_auth import get_api_key_user
 from app.config import (
@@ -55,14 +55,13 @@ async def telemetry_middleware(request: Request, call_next):
         except Exception:
             pass
 
-        # Extrahera vehicle_id från path_params om det finns
-        vehicle_id = request.path_params.get("vehicle_id")
-
     # Skicka vidare request till övrig routing
     response = await call_next(request)
     
     if is_ha_endpoint and start_time is not None:
         duration_ms = int((time.time() - start_time) * 1000)
+        # Extrahera vehicle_id från path_params om det finns
+        vehicle_id = request.path_params.get("vehicle_id")
         # Asynkront logga telemetridata utan att blockera svaret
         asyncio.create_task(
             log_api_telemetry(
@@ -99,6 +98,7 @@ app.include_router(admin.router, prefix="/api")
 app.include_router(webhook.router, prefix="/api")
 app.include_router(me.router, prefix="/api")
 app.include_router(ha.router, prefix="/api")
+app.include_router(newsletter.router, prefix="/api")
 
 # -------------------------
 # Swagger / OpenAPI JWT-support

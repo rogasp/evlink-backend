@@ -1,3 +1,5 @@
+// frontend/app/hooks/useAuth.ts
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,6 +8,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { authFetch } from '@/lib/authFetch';
 import type { User } from '@supabase/supabase-js';
 
+/**
+ * Extend MergedUser to include `is_subscribed`.
+ */
 interface MergedUser {
   id: string;
   email: string;
@@ -18,6 +23,7 @@ interface MergedUser {
   created_at?: string;
   online_status?: 'green' | 'yellow' | 'red' | 'grey';
   notify_offline?: boolean;
+  is_subscribed?: boolean;  // NEW: whether the user is subscribed to the newsletter
 }
 
 export function useAuth({
@@ -34,39 +40,51 @@ export function useAuth({
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Sync accessToken when session changes
+  // 1) Sync accessToken when the Supabase session changes
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.access_token) {
         setAccessToken(session.access_token);
+      } else {
+        setAccessToken(null);
       }
     });
-    return () => { listener.subscription.unsubscribe(); };
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
-  // Initial session + /me fetch
+  // 2) On initial mount, fetch the Supabase session and then GET /me to populate mergedUser
   useEffect(() => {
     const fetchUserAndMe = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
       if (!session || error) {
+        // No active session or an error occurred: clear everything and optionally redirect
         setAuthUser(null);
         setMergedUser(null);
         setAccessToken(null);
         setOnlineStatus('grey');
         if (requireAuth) router.push(redirectTo);
       } else {
+        // We have a valid Supabase session
         setAuthUser(session.user);
         setAccessToken(session.access_token);
 
+        // Fetch “/me” from your backend to get roles, profile fields, etc.
         const { data, error: meError } = await authFetch('/me', {
           method: 'GET',
           accessToken: session.access_token,
         });
+
         if (!meError && data) {
-          setMergedUser(data);
-          setOnlineStatus(data.online_status ?? 'grey');
+          setMergedUser(data as MergedUser);
+          setOnlineStatus((data as MergedUser).online_status ?? 'grey');
         } else {
+          // If backend /me failed, clear mergedUser
           setMergedUser(null);
           setOnlineStatus('grey');
         }
@@ -74,28 +92,41 @@ export function useAuth({
 
       setLoading(false);
     };
+
     fetchUserAndMe();
   }, [router, redirectTo, requireAuth]);
 
-  // Realtime vehicle updates
+  // 3) Subscribe to realtime vehicle updates for “/me” refresh on change
   useEffect(() => {
     if (!mergedUser?.id || !accessToken) return;
+
     const channel = supabase
       .channel('user-vehicle-updates')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'vehicles', filter: `user_id=eq.${mergedUser.id}` },
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'vehicles',
+          filter: `user_id=eq.${mergedUser.id}`,
+        },
         async () => {
-          const { data, error } = await authFetch('/me', { method: 'GET', accessToken });
+          // On any vehicle change, re-fetch "/me" to refresh mergedUser (and online_status)
+          const { data, error } = await authFetch('/me', {
+            method: 'GET',
+            accessToken,
+          });
           if (!error && data) {
-            setMergedUser(data);
-            setOnlineStatus(data.online_status ?? 'grey');
+            setMergedUser(data as MergedUser);
+            setOnlineStatus((data as MergedUser).online_status ?? 'grey');
           }
         }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [mergedUser, accessToken]);
 
   return {
