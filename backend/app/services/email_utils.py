@@ -1,11 +1,9 @@
 import httpx
-import brevo_python
-from brevo_python.rest import ApiException
+import logging
 
-from app.config import FROM_EMAIL, RESEND_API_KEY, BREVO_API_KEY
+from app.config import FROM_EMAIL, RESEND_API_KEY
 
-configuration = brevo_python.Configuration()
-configuration.api_key['api-key'] = BREVO_API_KEY
+logger = logging.getLogger(__name__)
 
 async def send_offline_notification(email: str, name: str, vehicle_name: str):
     html = f"""
@@ -147,3 +145,75 @@ async def send_interest_email(email: str, name: str):
             headers={"Authorization": f"Bearer {RESEND_API_KEY}"}
         )
 
+async def send_newsletter_verification_email(
+    email: str,
+    name: str | None,
+    verification_link: str,
+    expires_at: str
+):
+    """
+    Send a newsletter verification email using Resend.
+
+    Parameters:
+      - email: recipient's email address
+      - name: recipient's name (or None)
+      - verification_link: URL that the user must click to verify
+      - expires_at: ISO string of when the link expires
+    """
+    # Compose HTML content
+    html = f"""
+    <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+        <h2>Confirm your newsletter subscription</h2>
+        <p>Hi {name or 'there'},</p>
+        <p>
+          Thank you for requesting to subscribe to our EVLinkHA newsletter. Please click the button below to verify your email address:
+        </p>
+        <p style="text-align: center; margin: 24px 0;">
+          <a href="{verification_link}"
+             style="background-color: #283593; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            Verify Email Address
+          </a>
+        </p>
+        <p>This verification link will expire on <strong>{expires_at}</strong>.</p>
+        <p>If the button above does not work, copy and paste this URL into your browser:</p>
+        <p><a href="{verification_link}" style="color: #283593; word-break: break-all;">{verification_link}</a></p>
+        <hr style="margin: 32px 0; border: none; border-top: 1px solid #ddd;" />
+        <p>
+          This email was sent by EVLinkHA. If you did not request a newsletter subscription, you can ignore this message.
+        </p>
+      </body>
+    </html>
+    """
+
+    # Compose plaintext fallback
+    text = f"""Hi {name or 'there'},
+
+Thank you for requesting to subscribe to our EVLinkHA newsletter. Please verify your email by clicking the link below:
+
+{verification_link}
+
+This link will expire on {expires_at}.
+
+If you did not request this, you can ignore this email.
+
+– EVLinkHA
+"""
+
+    async with httpx.AsyncClient() as client:
+        try:
+            await client.post(
+                "https://api.resend.com/emails",
+                json={
+                    "from": f"EVLinkHA <{FROM_EMAIL}>",
+                    "to": [email],
+                    "subject": "Please confirm your EVLinkHA newsletter subscription",
+                    "html": html,
+                    "text": text,
+                },
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}"}
+            )
+            logger.info("✉️ Verification email sent to %s", email)
+        except Exception as e:
+            logger.error("❌ Failed to send verification email to %s: %s", email, e, exc_info=True)
+            raise

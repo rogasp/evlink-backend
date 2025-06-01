@@ -26,6 +26,7 @@ class MeResponse(BaseModel):
     online_status: str  # "red", "yellow", "green", "grey"
     notify_offline: bool
     is_subscribed: bool  # NEW: whether the user is subscribed to the newsletter
+    
 
 @router.get("/me", response_model=MeResponse)
 async def get_me(user=Depends(get_supabase_user)):
