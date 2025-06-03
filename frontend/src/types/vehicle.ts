@@ -1,5 +1,6 @@
 export type Vehicle = {
   id: string;
+  db_id: string;
   userId: string;
   vendor: string;
   isReachable: boolean;
