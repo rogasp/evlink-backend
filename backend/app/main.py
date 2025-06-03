@@ -9,6 +9,7 @@ import asyncio
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+import sentry_sdk
 
 from app.logger import logger
 from app.api import admin, ha, me, private, public, webhook, newsletter
@@ -20,6 +21,13 @@ from app.config import (
     SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY,
     SUPABASE_JWT_SECRET,
+)
+
+sentry_sdk.init(
+    dsn="https://caaa043682e259d0aeeefe72ad2ad6d1@o4507631072182272.ingest.de.sentry.io/4509305537036368",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
 )
 
 logger.info("🚀 Starting EVLink Backend...")

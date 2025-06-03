@@ -19,7 +19,7 @@ export default function VehicleList({
   return (
     <div className="space-y-4">
       {/* Mobilvy */}
-      <div className="md:hidden flex flex-col gap-4">
+      <div className="lg:hidden flex flex-col gap-4">
         {vehicles.map((v) => {
           const info = v.information;
 
@@ -32,6 +32,9 @@ export default function VehicleList({
                 {info
                   ? `${info.brand} ${info.model} (${info.vin})`
                   : 'Unnamed Vehicle'}
+              </div>
+              <div className="text-xs text-gray-400 break-all">
+                Vehicle id: {v.db_id}
               </div>
 
               <div className="text-sm text-gray-500 mb-2">
@@ -81,7 +84,7 @@ export default function VehicleList({
       </div>
 
       {/* Desktop-tabell */}
-      <div className="hidden md:block overflow-x-auto rounded-md border bg-white shadow-sm">
+      <div className="hidden lg:block overflow-x-auto rounded-md border bg-white shadow-sm">
         <table className="min-w-full table-auto border-collapse">
           <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-600">
             <tr>
@@ -101,6 +104,9 @@ export default function VehicleList({
                     {info
                       ? `${info.brand} ${info.model} (${info.vin})`
                       : 'Unnamed Vehicle'}
+                    <div className="text-xs text-gray-400 break-all">
+                      Vehicle id: {v.db_id}
+                    </div>
                   </td>
                   <td className="px-4 py-2">
                     {v.chargeState?.batteryLevel != null
