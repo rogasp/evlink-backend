@@ -14,7 +14,7 @@ def get_all_cached_vehicles(user_id: str) -> list[dict]:
     try:
         response = supabase \
             .table("vehicles") \
-            .select("vehicle_cache, updated_at") \
+            .select("id, vehicle_cache, updated_at") \
             .eq("user_id", user_id) \
             .execute()
         return response.data or []
@@ -75,7 +75,7 @@ async def save_vehicle_data_with_client(vehicle: dict):
         upsert_q = supabase.table("vehicles").upsert(payload, on_conflict=["vehicle_id"])
         print(f"[🔍 DEBUG] upsert query repr: {upsert_q!r}")
         res = upsert_q.execute()
-        print(f"[🔍 DEBUG] upsert response repr: {res!r}")
+        # print(f"[🔍 DEBUG] upsert response repr: {res!r}")
         print(f"[🔍 DEBUG] upsert.data type: {type(getattr(res, 'data', None))}, data: {getattr(res,'data',None)}")
 
         if not getattr(res, "data", None):

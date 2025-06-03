@@ -7,7 +7,7 @@ anyio==4.9.0
 attrs==25.3.0
 bcrypt==4.3.0
 black==24.4.0
-brevo-python==1.1.2
+brevo_python==1.1.2
 certifi==2025.1.31
 charset-normalizer==3.4.2
 click==8.1.8
