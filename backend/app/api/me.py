@@ -33,6 +33,7 @@ async def get_me(user=Depends(get_supabase_user)):
     """
     Retrieves the current user's merged data, including subscription status.
     """
+
     user_id = user["id"]
     try:
         # 1) Fetch approval and terms status
