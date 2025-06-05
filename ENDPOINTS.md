@@ -14,6 +14,9 @@ This document describes the available API endpoints in the EVLink backend, group
 | POST   | `/api/confirm-link`     | Accept link token from Enode    |
 | GET    | `/api/public/user/{user_id}` | Check if user exists         |
 | GET    | `/api/public/user/{user_id}/apikey` | Fetch user’s API key (login flow) |
+| POST   | `/api/newsletter/subscribe` | Request to join the newsletter |
+| POST   | `/api/newsletter/unsubscribe` | Remove address from newsletter |
+| GET    | `/api/newsletter/verify` | Confirm newsletter subscription |
 
 ---
 
