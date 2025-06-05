@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { SidebarProvider } from '@/contexts/SidebarContext';
+import NewsletterModal from '../NewsletterModal';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   useAuth({ requireAuth: true }); // 🔐 skydd här
@@ -21,6 +22,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+      <NewsletterModal />
     </SidebarProvider>
   );
 }

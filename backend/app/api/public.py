@@ -13,6 +13,8 @@ from app.services.brevo import add_or_update_brevo_contact, remove_brevo_contact
 from app.storage.newsletter import create_newsletter_request, remove_public_subscriber, verify_newsletter_request
 from app.services.email_utils import send_newsletter_verification_email
 
+from brevo_python.rest import ApiException
+
 router = APIRouter()
 
 logger = logging.getLogger(__name__)

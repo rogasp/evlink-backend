@@ -17,6 +17,7 @@ from app.storage.telemetry import log_api_telemetry
 from app.auth.api_key_auth import get_api_key_user
 from app.config import (
     IS_PROD,
+    SENTRY_DSN,
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY,
@@ -24,7 +25,7 @@ from app.config import (
 )
 
 sentry_sdk.init(
-    dsn="https://caaa043682e259d0aeeefe72ad2ad6d1@o4507631072182272.ingest.de.sentry.io/4509305537036368",
+    dsn=SENTRY_DSN,
     # Add data like request headers and IP for users,
     # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
     send_default_pii=True,
