@@ -19,10 +19,10 @@ export default function NewsletterModal() {
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<'idle' | 'pending' | 'subscribed'>('idle');
 
-  // Check localStorage flag for anonymous users
-  const hasDismissedLocal = typeof window !== 'undefined'
-    ? localStorage.getItem('newsletterModalDismissed') === 'true'
-    : false;
+  // Check localStorage flag on the client
+  const hasDismissedLocal =
+    typeof window !== 'undefined' &&
+    localStorage.getItem('newsletterModalDismissed') === 'true';
 
   // If logged-in user is already subscribed (mergedUser.is_subscribed), hide modal
   const isAlreadySubscribed = mergedUser?.is_subscribed === true;
@@ -36,8 +36,8 @@ export default function NewsletterModal() {
       return;
     }
 
-    // Not logged-in & already dismissed → never show
-    if (!user && hasDismissedLocal) {
+    // Hide if it was dismissed locally
+    if (hasDismissedLocal) {
       setVisible(false);
       return;
     }
@@ -57,10 +57,8 @@ export default function NewsletterModal() {
 
   const handleClose = () => {
     setVisible(false);
-    // Mark as dismissed for anonymous users so modal does not reappear
-    if (!user) {
-      localStorage.setItem('newsletterModalDismissed', 'true');
-    }
+    // Persist dismissal so modal does not reappear
+    localStorage.setItem('newsletterModalDismissed', 'true');
   };
 
   const handleSubscribe = async () => {
@@ -100,16 +98,14 @@ export default function NewsletterModal() {
       }
 
         // Prevent modal from showing again
-        if (!user) {
-        localStorage.setItem('newsletterModalDismissed', 'true');
-        }
-        } catch (e) {
-        console.error('[NewsletterSubscribe]', e);
-        toast.error((e as Error).message || 'Could not subscribe. Try again later.');
-        } finally {
-        setSubmitting(false);
-        }
-    };
+      localStorage.setItem('newsletterModalDismissed', 'true');
+    } catch (e) {
+      console.error('[NewsletterSubscribe]', e);
+      toast.error((e as Error).message || 'Could not subscribe. Try again later.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed bottom-4 left-0 right-0 flex justify-center z-50">

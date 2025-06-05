@@ -50,6 +50,10 @@ async def add_or_update_brevo_contact(email: str, first_name: str | None):
         else:
             logger.error("❌ Brevo API error creating contact for %s: %s", email, e)
             raise
+        
+    if brevo_response is None:
+        return None
+
     return brevo_response.to_dict()
 
 
@@ -58,7 +62,8 @@ async def remove_brevo_contact_from_list(email: str):
     Remove the Customers list ID from an existing Brevo contact, leaving other list IDs intact.
 
     - email: subscriber's email address
-    Returns the Brevo API response (dict) on success, or None if contact not in list.
+    Returns the Brevo API response (dict) on success, or None if the contact was
+    not in the list or Brevo returned no response.
     Raises ApiException on Brevo errors.
     """
     try:
