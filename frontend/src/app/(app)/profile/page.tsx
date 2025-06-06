@@ -89,7 +89,7 @@ export default function ProfilePage() {
     try {
       if (checked) {
         // Subscribe to newsletter
-        const { error } = await authFetch('/newsletter/subscribe', {
+        const { error } = await authFetch('/newsletter/manage/subscribe', {
           method: 'POST',
           accessToken,
           body: JSON.stringify({ email: user.email }),
@@ -104,7 +104,7 @@ export default function ProfilePage() {
         toast.success('Subscribed to newsletter');
       } else {
         // Unsubscribe from newsletter
-        const { error } = await authFetch('/newsletter/unsubscribe', {
+        const { error } = await authFetch('/newsletter/manage/unsubscribe', {
           method: 'POST',
           accessToken,
           body: JSON.stringify({ email: user.email }),
