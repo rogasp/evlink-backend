@@ -72,20 +72,21 @@ async def verify_newsletter_request(code: str):
     now_iso = datetime.now(timezone.utc).isoformat()
 
     # 1) Try to select a single row matching the code and not expired
-    query = supabase.table("interest") \
-        .select("*") \
-        .eq("newsletter_verification_code", code) \
-        .eq("newsletter_verified", False) \
-        .gte("newsletter_code_expires_at", now_iso) \
-        .maybe_single() \
+    result = (
+        supabase.table("interest")
+        .select("*")
+        .eq("newsletter_verification_code", code)
+        .eq("newsletter_verified", False)
+        .gte("newsletter_code_expires_at", now_iso)
+        .maybe_single()
         .execute()
+    )
 
-    result = query
-    row = result.data
-
-    if not row:
+    if not result or not result.data:
         # No row or code expired / already verified
         return None
+
+    row = result.data
 
     # 2) Update that row: set both flags true, and clear the code fields
     update_payload = {
@@ -169,11 +170,16 @@ async def set_subscriber(email: str, is_subscribed: bool):
 async def is_subscriber(email: str) -> bool:
     """Return ``True`` if a verified newsletter subscriber exists."""
     email = email.strip().lower()
-    result = supabase.table("interest") \
-        .select("is_newsletter, newsletter_verified") \
-        .eq("email", email) \
-        .maybe_single() \
+    result = (
+        supabase.table("interest")
+        .select("is_newsletter, newsletter_verified")
+        .eq("email", email)
+        .maybe_single()
         .execute()
+    )
+
+    if not result or not result.data:
+        return False
 
     row = result.data
-    return bool(row and row.get("is_newsletter") and row.get("newsletter_verified"))
+    return bool(row.get("is_newsletter") and row.get("newsletter_verified"))

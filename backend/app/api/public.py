@@ -182,7 +182,7 @@ async def public_subscribe(request: PublicSubscriptionRequest):
 
     # Send verification email
     try:
-        verification_link = f"https://evlinkha.se/api/newsletter/verify?code={code}"
+        verification_link = f"https://evlinkha.se/newsletter/verify?code={code}"
         await send_newsletter_verification_email(
             email=email,
             name=name,

@@ -40,7 +40,7 @@ class UnsubscribeRequest(BaseModel):
 # Endpoint: Subscribe a user
 # -------------------------------------------------------------------
 
-@router.post("/subscribe", summary="Subscribe a user to the newsletter")
+@router.post("/manage/subscribe", summary="Subscribe an existing user")
 async def subscribe(request: SubscriptionRequest):
     """
     1) Fetch the user in Supabase by email.
@@ -86,7 +86,7 @@ async def subscribe(request: SubscriptionRequest):
 # Endpoint: Unsubscribe a user
 # -------------------------------------------------------------------
 
-@router.post("/unsubscribe", summary="Unsubscribe a user from the newsletter")
+@router.post("/manage/unsubscribe", summary="Unsubscribe an existing user")
 async def unsubscribe(request: UnsubscribeRequest):
     """
     1) Fetch the user in Supabase by email.
