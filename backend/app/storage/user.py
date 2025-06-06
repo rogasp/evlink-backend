@@ -132,7 +132,7 @@ async def is_subscriber(user_id: str) -> bool:
             .maybe_single()
             .execute()
         )
-        if not result.data:
+        if not result or not result.data:
             return False
         return bool(result.data.get("is_newsletter"))
     except Exception as e:
