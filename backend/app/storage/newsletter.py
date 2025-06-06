@@ -170,11 +170,17 @@ async def set_subscriber(email: str, is_subscribed: bool):
 async def is_subscriber(email: str) -> bool:
     """Return ``True`` if a verified newsletter subscriber exists."""
     email = email.strip().lower()
-    result = supabase.table("interest") \
-        .select("is_newsletter, newsletter_verified") \
-        .eq("email", email) \
-        .maybe_single() \
+    result = (
+        supabase.table("interest")
+        .select("is_newsletter, newsletter_verified")
+        .eq("email", email)
+        .maybe_single()
         .execute()
+    )
+
+    if not result or not result.data:
+        return False
 
     row = result.data
-    return bool(row and row.get("is_newsletter") and row.get("newsletter_verified"))
+
+    return bool(row.get("is_newsletter") and row.get("newsletter_verified"))
