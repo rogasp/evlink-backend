@@ -31,6 +31,11 @@ Full documentation is available in the `docs/` folder:
 * [Integration guide](docs/guides/INTEGRATION.md)
 * [Architecture Decisions](docs/decisions/README.md)
 
+## Architecture Decisions
+
+* [0001-record-architecture.md](docs/decisions/0001-record-architecture.md) - Initial architecture overview
+* [0002-stripe-payments.md](docs/decisions/0002-stripe-payments.md) - Stripe Checkout integration and webhook handling options
+
 ---
 
 ## Repository Structure
