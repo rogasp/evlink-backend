@@ -72,20 +72,21 @@ async def verify_newsletter_request(code: str):
     now_iso = datetime.now(timezone.utc).isoformat()
 
     # 1) Try to select a single row matching the code and not expired
-    query = supabase.table("interest") \
-        .select("*") \
-        .eq("newsletter_verification_code", code) \
-        .eq("newsletter_verified", False) \
-        .gte("newsletter_code_expires_at", now_iso) \
-        .maybe_single() \
+    result = (
+        supabase.table("interest")
+        .select("*")
+        .eq("newsletter_verification_code", code)
+        .eq("newsletter_verified", False)
+        .gte("newsletter_code_expires_at", now_iso)
+        .maybe_single()
         .execute()
+    )
 
-    result = query
-    row = result.data
-
-    if not row:
+    if not result or not result.data:
         # No row or code expired / already verified
         return None
+
+    row = result.data
 
     # 2) Update that row: set both flags true, and clear the code fields
     update_payload = {

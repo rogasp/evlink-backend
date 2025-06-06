@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function NewsletterVerifyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const code = searchParams.get('code');
+    const code = new URLSearchParams(window.location.search).get('code');
     if (!code) {
       toast.error('Missing verification code');
       router.replace('/');
@@ -35,7 +34,7 @@ export default function NewsletterVerifyPage() {
     };
 
     verify();
-  }, [searchParams, router]);
+  }, [router]);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-white">

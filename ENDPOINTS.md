@@ -16,6 +16,8 @@ This document describes the available API endpoints in the EVLink backend, group
 | GET    | `/api/public/user/{user_id}/apikey` | Fetch user’s API key (login flow) |
 | POST   | `/api/newsletter/subscribe` | Request to join the newsletter |
 | POST   | `/api/newsletter/unsubscribe` | Remove address from newsletter |
+| POST   | `/api/newsletter/manage/subscribe` | Subscribe an existing user |
+| POST   | `/api/newsletter/manage/unsubscribe` | Unsubscribe an existing user |
 | GET    | `/api/newsletter/verify` | Confirm newsletter subscription |
 
 ---
