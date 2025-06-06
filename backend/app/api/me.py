@@ -8,6 +8,7 @@ from app.storage.user import (
     get_user_approved_status,
     get_user_by_id,
     get_user_online_status,
+    is_subscriber,
 )
 from app.logger import logger
 
@@ -40,7 +41,7 @@ async def get_me(user=Depends(get_supabase_user)):
         approved = await get_user_approved_status(user_id)
         terms = await get_user_accepted_terms(user_id)
 
-        # 2) Fetch local user row, which now includes is_subscribed
+        # 2) Fetch local user row (basic user info)
         local_user = await get_user_by_id(user_id)
 
         # 3) Fetch online status
@@ -66,8 +67,8 @@ async def get_me(user=Depends(get_supabase_user)):
         # 7) Determine notify_offline (fall back to False if local_user missing)
         notify_offline = getattr(local_user, "notify_offline", False) if local_user else False
 
-        # 8) Determine is_subscribed (fall back to False if local_user missing or field not set)
-        is_subscribed = getattr(local_user, "is_subscribed", False) if local_user else False
+        # 8) Determine is_subscribed using helper
+        is_subscribed = await is_subscriber(user_id)
 
         # 9) Return the assembled response
         return MeResponse(

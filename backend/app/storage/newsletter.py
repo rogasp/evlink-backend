@@ -72,20 +72,21 @@ async def verify_newsletter_request(code: str):
     now_iso = datetime.now(timezone.utc).isoformat()
 
     # 1) Try to select a single row matching the code and not expired
-    query = supabase.table("interest") \
-        .select("*") \
-        .eq("newsletter_verification_code", code) \
-        .eq("newsletter_verified", False) \
-        .gte("newsletter_code_expires_at", now_iso) \
-        .maybe_single() \
+    result = (
+        supabase.table("interest")
+        .select("*")
+        .eq("newsletter_verification_code", code)
+        .eq("newsletter_verified", False)
+        .gte("newsletter_code_expires_at", now_iso)
+        .maybe_single()
         .execute()
+    )
 
-    result = query
-    row = result.data
-
-    if not row:
+    if not result or not result.data:
         # No row or code expired / already verified
         return None
+
+    row = result.data
 
     # 2) Update that row: set both flags true, and clear the code fields
     update_payload = {
@@ -141,3 +142,39 @@ async def remove_public_subscriber(email: str):
         .execute()
 
     return result.data
+
+async def set_subscriber(email: str, is_subscribed: bool):
+    """Upsert a subscriber row and set newsletter flags.
+
+    If a row with ``email`` exists in the ``interest`` table it will be
+    updated. Otherwise a new row is inserted. ``is_newsletter`` and
+    ``newsletter_verified`` are both set to ``is_subscribed``.
+
+    Returns the inserted/updated row(s) from Supabase.
+    """
+    email = email.strip().lower()
+
+    payload = {
+        "email": email,
+        "is_newsletter": is_subscribed,
+        "newsletter_verified": is_subscribed,
+    }
+
+    result = supabase.table("interest") \
+        .upsert(payload, on_conflict="email") \
+        .execute()
+
+    return result.data
+
+
+async def is_subscriber(email: str) -> bool:
+    """Return ``True`` if a verified newsletter subscriber exists."""
+    email = email.strip().lower()
+    result = supabase.table("interest") \
+        .select("is_newsletter, newsletter_verified") \
+        .eq("email", email) \
+        .maybe_single() \
+        .execute()
+
+    row = result.data
+    return bool(row and row.get("is_newsletter") and row.get("newsletter_verified"))

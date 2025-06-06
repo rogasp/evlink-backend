@@ -102,11 +102,10 @@ async def get_user_accepted_terms(user_id: str) -> bool:
 async def get_user_by_id(user_id: str) -> User | None:
     """
     Fetch a single user by ID. Returns an instance of `User` model or None.
-    Includes 'is_subscribed' in the selected fields.
     """
     try:
         response = supabase.table("users") \
-            .select("id, email, role, name, notify_offline, is_subscribed") \
+            .select("id, email, role, name, notify_offline") \
             .eq("id", user_id) \
             .maybe_single() \
             .execute()
@@ -123,6 +122,22 @@ async def get_user_by_id(user_id: str) -> User | None:
         logger.error(f"[❌ get_user_by_id] {e}")
         return None
 
+async def is_subscriber(user_id: str) -> bool:
+    """Return True if the user has `is_newsletter` flag set in interest."""
+    try:
+        result = (
+            supabase.table("interest")
+            .select("is_newsletter")
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+        if not result.data:
+            return False
+        return bool(result.data.get("is_newsletter"))
+    except Exception as e:
+        logger.error(f"[❌ is_newsletter] {e}")
+        return False
 
 async def get_user_online_status(user_id: str) -> str:
     """
@@ -207,10 +222,10 @@ async def get_user_by_email(email: str) -> dict | None:
         return None
 
 async def set_user_subscription(email: str, is_subscribed: bool) -> dict:
-    """
-    Update the `is_subscribed` flag for a given user by email.
-    Returns the updated user record as a dict.
-    Raises on failure.
+    """DEPRECATED: use :func:`app.storage.newsletter.set_subscriber` instead.
+
+    Update the ``is_subscribed`` flag for a given user by email and return the
+    updated user record. Raises on failure.
     """
     try:
         # 1) Perform the update

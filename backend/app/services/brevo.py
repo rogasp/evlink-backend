@@ -36,7 +36,7 @@ async def add_or_update_brevo_contact(email: str, first_name: str | None):
         email=email,
         attributes={"FIRSTNAME": name_attr},
         list_ids=[BREVO_CUSTOMERS_LIST_ID],
-        update_enabled=True
+        update_enabled=True,
     )
     try:
         brevo_response = _contacts_api.create_contact(body)
@@ -50,7 +50,15 @@ async def add_or_update_brevo_contact(email: str, first_name: str | None):
         else:
             logger.error("❌ Brevo API error creating contact for %s: %s", email, e)
             raise
-    return brevo_response.to_dict()
+
+    if not brevo_response:
+        return None
+
+    return (
+        brevo_response.to_dict()
+        if hasattr(brevo_response, "to_dict")
+        else brevo_response
+    )
 
 
 async def remove_brevo_contact_from_list(email: str):
@@ -58,7 +66,8 @@ async def remove_brevo_contact_from_list(email: str):
     Remove the Customers list ID from an existing Brevo contact, leaving other list IDs intact.
 
     - email: subscriber's email address
-    Returns the Brevo API response (dict) on success, or None if contact not in list.
+    Returns the Brevo API response (dict) on success, or None if the contact was
+    not in the list or Brevo returned no response.
     Raises ApiException on Brevo errors.
     """
     try:
@@ -75,8 +84,9 @@ async def remove_brevo_contact_from_list(email: str):
         logger.info("ℹ️ Contact %s not in Customers list, skipping removal.", email)
         return None
 
-    new_list_ids = [lid for lid in existing_list_ids if lid != BREVO_CUSTOMERS_LIST_ID]
-    update_body = UpdateContact(list_ids=new_list_ids)
+    # Brevo requires unlink_list_ids to remove list associations without
+    # overwriting the contact's existing lists.
+    update_body = UpdateContact(unlink_list_ids=[BREVO_CUSTOMERS_LIST_ID])
     try:
         brevo_response = _contacts_api.update_contact(email, update_body)
         logger.info("✅ Removed Customers list ID from Brevo contact %s", email)
@@ -84,4 +94,11 @@ async def remove_brevo_contact_from_list(email: str):
         logger.error("❌ Brevo API error removing list ID for %s: %s", email, e)
         raise
 
-    return brevo_response.to_dict()
+    if not brevo_response:
+        return None
+
+    return (
+        brevo_response.to_dict()
+        if hasattr(brevo_response, "to_dict")
+        else brevo_response
+    )

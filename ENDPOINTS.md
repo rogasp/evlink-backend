@@ -14,6 +14,11 @@ This document describes the available API endpoints in the EVLink backend, group
 | POST   | `/api/confirm-link`     | Accept link token from Enode    |
 | GET    | `/api/public/user/{user_id}` | Check if user exists         |
 | GET    | `/api/public/user/{user_id}/apikey` | Fetch user’s API key (login flow) |
+| POST   | `/api/newsletter/subscribe` | Request to join the newsletter |
+| POST   | `/api/newsletter/unsubscribe` | Remove address from newsletter |
+| POST   | `/api/newsletter/manage/subscribe` | Subscribe an existing user |
+| POST   | `/api/newsletter/manage/unsubscribe` | Unsubscribe an existing user |
+| GET    | `/api/newsletter/verify` | Confirm newsletter subscription |
 
 ---
 
@@ -38,38 +43,3 @@ This document describes the available API endpoints in the EVLink backend, group
 ---
 
 ## 🔒 Admin Endpoints
-
-| Method | Endpoint                | Description                     |
-|--------|--------------------------|---------------------------------|
-| GET    | `/api/admin/apikeys`   | List all API keys               |
-| GET    | `/api/events`          | View webhook events (future)    |
-
----
-
-## 🧪 Dev Tools (Local only)
-
-| Method | Endpoint      | Description                         |
-|--------|----------------|-------------------------------------|
-| GET    | `/api/token` | Get mock access token (localhost only) |
-
-> Note: Access control is enforced via API key or IP address depending on the endpoint.
-
----
-
-## 🔑 Authentication
-
-All protected endpoints require an API key in the request header:
-
-```
-X-API-Key: your-user-api-key
-```
-
-Future support for JWT will replace or complement API keys.
-
----
-
-## 🧼 Notes
-
-- All responses are JSON-formatted.
-- External Enode calls are mocked in test mode.
-- Versioning via `/api/` prefix; no numeric versions used yet.
