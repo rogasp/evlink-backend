@@ -1,93 +1,131 @@
-"""
-backend/app/api/payments.py
-
-Endpoints for Stripe integration: create a Checkout Session and handle Stripe webhooks.
-"""
-
-import os
-from pydantic import BaseModel
-import stripe
+# backend/app/api/payments.py
+# New unified Stripe payment endpoint: subscriptions and SMS packages
 import logging
-import json
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, Field
+import stripe
+from stripe import StripeObject
+from app.config import STRIPE_SECRET_KEY, SUCCESS_URL,CANCEL_URL
+from app.auth.supabase_auth import get_supabase_user
+from app.storage.user import add_user_sms_credits, get_user_by_id, update_user_stripe_id, update_user_subscription
 
-from fastapi import APIRouter, HTTPException, Request, Header
-from fastapi.responses import JSONResponse
-from app.config import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+logger = logging.getLogger(__name__)
 
-# Initialize Stripe with secret key
 stripe.api_key = STRIPE_SECRET_KEY
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
-# 1. Create a Checkout Session
-class CreateCheckoutSessionRequest(BaseModel):
-    price_id: str
-    customer_email: str
+PRICE_ID_MAP = {
+    "pro_monthly": "price_1RXQdD2eNxz0Cd159No3fXOs",  # byt ut mot ditt riktiga price ID
+    "sms_50":      "price_1RXQgk2eNxz0Cd15RfQt2cOZ",  # ditt SMS‐50‐pris
+    "sms_100":     "price_1RXQid2eNxz0Cd15kRjG1tiy",  # ditt SMS‐100‐pris
+}
 
-class CreateCheckoutSessionResponse(BaseModel):
-    session_id: str
+# Request: choose action and plan
+class PaymentRequest(BaseModel):
+    action: str = Field(..., description="'subscribe', 'cancel', 'purchase_sms'")
+    plan_id: str = Field(None, alias="planId")
 
-@router.post("/create-checkout-session", response_model=CreateCheckoutSessionResponse)
-async def create_checkout_session(payload: CreateCheckoutSessionRequest):
-    """
-    Create a Stripe Checkout Session for a one-time payment or subscription.
-    Frontend must send `price_id` (e.g. "price_XXXXXXXX") and `customer_email`.
-    """
-    try:
-        # Example: one-time payment
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            mode="payment",  # "subscription" om ni gör abonnemang
-            line_items=[{
-                "price": payload.price_id,
-                "quantity": 1,
-            }],
-            customer_email=payload.customer_email,
-            success_url=os.getenv("FRONTEND_BASE_URL") + "/success?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=os.getenv("FRONTEND_BASE_URL") + "/cancelled",
-        )
-        return CreateCheckoutSessionResponse(session_id=checkout_session.id)
-    except Exception as e:
-        logger.error(f"Failed to create Stripe Checkout Session: {e}")
-        raise HTTPException(status_code=500, detail="Unable to create checkout session")
+    class Config:
+        allow_population_by_field_name = True
 
+class PaymentResponse(BaseModel):
+    clientSecret: str | None = None
+    status: str
 
-# 2. Handle Stripe Webhook
-@router.post("/stripe-webhook")
-async def stripe_webhook(
-    request: Request,
-    stripe_signature: str = Header(None, alias="Stripe-Signature")
+@router.post("/checkout", response_model=PaymentResponse)
+async def handle_checkout(
+    req: PaymentRequest,
+    user=Depends(get_supabase_user),
 ):
-    """
-    Verify incoming Stripe webhook, then process relevant events.
-    """
-    payload = await request.body()
-    sig_header = stripe_signature
+    # 1) Hämta användarpost
+    user_record = await get_user_by_id(user["id"])
+    if not user_record:
+        raise HTTPException(404, "User not found")
 
-    try:
-        event = stripe.Webhook.construct_event(
-            payload=payload, sig_header=sig_header, secret=STRIPE_WEBHOOK_SECRET
+    # 2) Säkerställ Stripe Customer
+    customer_id = user_record.stripe_customer_id
+    if not customer_id:
+        customer = stripe.Customer.create(
+            email=user_record.email,
+            metadata={"user_id": user_record.id},
         )
-    except stripe.error.SignatureVerificationError as e:
-        logger.error(f"⚠️ Webhook signature verification failed: {e}")
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        await update_user_stripe_id(user_record.id, customer.id)
+        customer_id = customer.id
 
-    # Hantera olika event-typer från Stripe
-    event_type = event["type"]
-    data_object = event["data"]["object"]
+    # 3) Hantera olika actions
+    if req.action == "subscribe":
+        price = PRICE_ID_MAP.get(req.plan_id or "")
+        if not price:
+            raise HTTPException(
+                400,
+                f"Invalid plan_id '{req.plan_id}', must be one of {list(PRICE_ID_MAP.keys())}",
+            )
+        session = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=["card"],
+            mode="subscription",
+            line_items=[{"price": price, "quantity": 1}],
+            success_url=SUCCESS_URL,
+            cancel_url=CANCEL_URL,
+            metadata={"user_id": user_record.id, "plan_id": req.plan_id},
+        )
+        return {"clientSecret": session.id, "status": "subscription_created"}
 
-    if event_type == "checkout.session.completed":
-        # Här kan ni uppdatera databasen: markera order som betald, ge användare åtkomst etc.
-        session = data_object
-        logger.info(f"🪙 Checkout session succeeded: {session['id']}")
-        # EXEMPEL: call a service function, t.ex. process_successful_payment(session)
-        # await process_successful_payment(session)
-    elif event_type == "invoice.payment_succeeded":
-        invoice = data_object
-        logger.info(f"🪙 Invoice paid: {invoice['id']}")
-        # EXEMPEL: hantera återkommande betalning
+    elif req.action == "cancel":
+        subs = stripe.Subscription.list(customer=customer_id, limit=1)
+        if not subs.data:
+            raise HTTPException(400, "No subscription to cancel")
+        stripe.Subscription.delete(subs.data[0].id)
+        # Ingen clientSecret behövs vid cancel
+        return {"clientSecret": None, "status": "subscription_canceled"}
+
+    elif req.action == "purchase_sms":
+        price = PRICE_ID_MAP.get(req.plan_id or "")
+        if not price:
+            raise HTTPException(400, f"Invalid SMS package '{req.plan_id}'")
+        session = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[{"price": price, "quantity": 1}],
+            success_url=SUCCESS_URL,
+            cancel_url=CANCEL_URL,
+            metadata={"user_id": user_record.id, "plan_id": req.plan_id},
+        )
+        return {"clientSecret": session.id, "status": "sms_purchase_initiated"}
+
+    # 4) Ogiltig action
+    raise HTTPException(400, f"Invalid action '{req.action}'")
+
+async def process_successful_payment_intent(
+    user_id: str,
+    payment_intent: StripeObject
+) -> None:
+    """
+    Business logic for Stripe payment_intent.succeeded.
+    Expects payment_intent.metadata to include:
+      - user_id: the Supabase user ID
+      - plan_id: one of 'pro_monthly', 'sms_50', 'sms_100'
+    """
+    metadata = getattr(payment_intent, "metadata", {}) or {}
+    plan_id = metadata.get("plan_id")
+
+    if not plan_id:
+        logger.warning("No plan_id in payment_intent.metadata, skipping")
+        return
+
+    if plan_id == "pro_monthly":
+        # Activate or renew subscription
+        await update_user_subscription(user_id=user_id, tier="pro")
+        logger.info(f"Activated Pro subscription for user {user_id}")
+    elif plan_id == "sms_50":
+        # Add 50 SMS credits
+        await add_user_sms_credits(user_id=user_id, credits=50)
+        logger.info(f"Added 50 SMS credits to user {user_id}")
+    elif plan_id == "sms_100":
+        # Add 100 SMS credits
+        await add_user_sms_credits(user_id=user_id, credits=100)
+        logger.info(f"Added 100 SMS credits to user {user_id}")
     else:
-        logger.info(f"⚠️ Unhandled event type: {event_type}")
-
-    return JSONResponse(status_code=200, content={"status": "received"})
+        logger.warning(f"Unknown plan_id '{plan_id}' in payment_intent.metadata")

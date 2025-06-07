@@ -33,7 +33,7 @@ export default function PricingSection() {
           return { label: 'Current Plan', href: '#', disabled: true, badge: 'Current plan' };
         }
         // logged in & on Pro/Fleet
-        return { label: 'Downgrade to Free', href: '/app/billing', disabled: false, badge: null };
+        return { label: 'Downgrade to Free', href: '/billing', disabled: false, badge: null };
       },
     },
     pro: {
@@ -47,10 +47,10 @@ export default function PricingSection() {
           return { label: 'Register', href: '/register?plan=pro', disabled: false, badge: null };
         }
         if (tier === 'free') {
-          return { label: 'Upgrade to Pro', href: '/app/billing', disabled: false, badge: null };
+          return { label: 'Upgrade to Pro', href: '/billing', disabled: false, badge: null };
         }
         // logged in & Pro or Fleet
-        return { label: 'Manage Subscription', href: '/app/billing', disabled: false, badge: null };
+        return { label: 'Manage Subscription', href: '/billing', disabled: false, badge: null };
       },
     },
     fleet: {

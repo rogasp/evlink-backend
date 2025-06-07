@@ -6,6 +6,7 @@ class User(BaseModel):
     role: str | None = None
     name: str | None = None
     notify_offline: bool = False
+    stripe_customer_id: str | None = None
 
     class Config:
         extra = "allow" 
