@@ -1,4 +1,4 @@
-// src/lib/api.tsx
+// src/lib/api.ts
 
 import { toast } from "sonner";
 
