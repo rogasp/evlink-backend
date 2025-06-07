@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
  * submitted, it will not show again.
  */
 export default function NewsletterModal() {
-  const { user, mergedUser, loading: authLoading } = useAuth();
+  const { user, mergedUser, loading: authLoading } = useAuth({ requireAuth: false });
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState<string>('');
   const [name, setName] = useState<string>(''); // optional

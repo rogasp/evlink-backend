@@ -17,7 +17,7 @@ type StatusApiResponse = {
 };
 
 export default function StatusPage() {
-  const { user } = useAuth();
+  const { user } = useAuth({ requireAuth: false });
   const [statusItems, setStatusItems] = useState<StatusApiResponse[]>([]);
   const [toDate, setToDate] = useState(new Date());
   const [fromDate, setFromDate] = useState(subMonths(new Date(), 3));
