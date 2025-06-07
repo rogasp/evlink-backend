@@ -1,5 +1,7 @@
+// src/components/layout/AppShell.tsx
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -7,7 +9,15 @@ import { SidebarProvider } from '@/contexts/SidebarContext';
 import NewsletterModal from '../NewsletterModal';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  useAuth({ requireAuth: true }); // 🔐 skydd här
+  const pathname = usePathname();
+
+  // Definiera vilka rutter som är publika
+  const publicRoutes = ['/', '/login', '/register'];
+  // Om vi är på en public route ska vi inte kräva auth
+  const requireAuth = !publicRoutes.includes(pathname);
+
+  // Kör auth-kollen endast när requireAuth = true
+  useAuth({ requireAuth });
 
   return (
     <SidebarProvider>
