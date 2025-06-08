@@ -9,8 +9,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { authFetch } from '@/lib/authFetch';
 import UserInfoCard from '@/components/profile/UserInfoCard';
 import ApiKeySection from '@/components/profile/ApiKeySection';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 
 export default function ProfilePage() {
   const { user, accessToken, loading: authLoading, mergedUser } = useAuth();
@@ -145,11 +143,6 @@ export default function ProfilePage() {
         onToggleSubscribe={toggleSubscribe}       // Pass newsletter handler
       />
       <ApiKeySection userId={user.id} accessToken={accessToken} />
-       <div className="text-center mt-6">
-        <Link href="/billing" passHref>
-          <Button size="lg">Manage subscription</Button>
-        </Link>
-      </div>
     </div>
   );
 }
