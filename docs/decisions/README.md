@@ -17,6 +17,7 @@ This directory contains the Architecture Decision Records (ADRs) for EVLinkHA. A
 ## Existing ADRs
 
 * [0001-record-architecture.md](0001-record-architecture.md) - Initial architecture overview and technology choices
+* [0002-stripe-payments.md](0002-stripe-payments.md) - Stripe Checkout integration and webhook handling options
 
 ---
 
