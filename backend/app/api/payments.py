@@ -16,9 +16,9 @@ stripe.api_key = STRIPE_SECRET_KEY
 router = APIRouter()
 
 PRICE_ID_MAP = {
-    "pro_monthly": "price_1RXQdD2eNxz0Cd159No3fXOs",  # byt ut mot ditt riktiga price ID
-    "sms_50":      "price_1RXQgk2eNxz0Cd15RfQt2cOZ",  # ditt SMS‐50‐pris
-    "sms_100":     "price_1RXQid2eNxz0Cd15kRjG1tiy",  # ditt SMS‐100‐pris
+    "pro_monthly": "price_1RXjHnKFf1mB4Qj4Tsmtgdh5",  # byt ut mot ditt riktiga price ID
+    "sms_50":      "price_1RXjHwKFf1mB4Qj450G5U4WF",  # ditt SMS‐50‐pris
+    "sms_100":     "price_1RXjI2KFf1mB4Qj4Vs096snt",  # ditt SMS‐100‐pris
 }
 
 # Request: choose action and plan
