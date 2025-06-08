@@ -12,7 +12,8 @@ from postgrest.exceptions import APIError
 from app.auth.api_key_auth import get_api_key_user
 from app.models.user import User
 from app.storage.vehicle import get_vehicle_by_id
-from app.enode.vehicle import set_vehicle_charging  # Uppdaterad så den kastar HTTPException vid 4xx/5xx
+from app.enode.vehicle import set_vehicle_charging
+from app.api.dependencies import api_key_rate_limit 
 
 # Create a module-specific logger
 logger = logging.getLogger(__name__)
@@ -48,66 +49,10 @@ def _handle_api_error(e: APIError, vehicle_id: str, context: str):
     logger.error("[%s] API error fetching vehicle %s: %s", context, vehicle_id, payload, exc_info=True)
     raise HTTPException(status_code=502, detail="Error fetching vehicle data")
 
-
-@router.get("/status/{vehicle_id}/battery")
-async def get_battery_status(vehicle_id: str, user: User = Depends(get_api_key_user)):
-    logger.info(
-        "[get_battery_status] Fetching battery status for vehicle_id=%s, user_id=%s",
-        vehicle_id,
-        user.id,
-    )
-
-    try:
-        vehicle = await get_vehicle_by_id(vehicle_id)
-    except APIError as e:
-        _handle_api_error(e, vehicle_id, "get_battery_status")
-    except Exception as e:
-        logger.error(
-            "[get_battery_status] Unexpected error fetching vehicle %s: %s",
-            vehicle_id,
-            e,
-            exc_info=True,
-        )
-        raise HTTPException(status_code=502, detail="Error fetching vehicle data")
-
-    if not vehicle:
-        logger.warning("[get_battery_status] Vehicle not found: %s", vehicle_id)
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-
-    if vehicle.get("user_id") != user.id:
-        logger.warning(
-            "[get_battery_status] Access denied for user_id=%s on vehicle_id=%s",
-            user.id,
-            vehicle_id,
-        )
-        raise HTTPException(status_code=403, detail="Access denied")
-
-    try:
-        parsed_cache = json.loads(vehicle["vehicle_cache"])
-        battery_level = parsed_cache.get("chargeState", {}).get("batteryLevel")
-    except json.JSONDecodeError as e:
-        logger.error(
-            "[get_battery_status] JSON decode error for vehicle_cache %s: %s",
-            vehicle_id,
-            e,
-            exc_info=True,
-        )
-        raise HTTPException(status_code=500, detail="Corrupt vehicle cache")
-    except Exception as e:
-        logger.error(
-            "[get_battery_status] Unexpected error parsing battery level for %s: %s",
-            vehicle_id,
-            e,
-            exc_info=True,
-        )
-        battery_level = None
-
-    return {"batteryLevel": battery_level}
-
-
-@router.get("/status/{vehicle_id}")
+@router.get("/status/{vehicle_id}",
+            dependencies=[Depends(api_key_rate_limit)],)
 async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_user)):
-    logger.info(
+    logger.info(                                                                                                                                                                                                                                            
         "[get_vehicle_status] Fetching full status for vehicle_id=%s, user_id=%s",
         vehicle_id,
         user.id,

@@ -8,11 +8,12 @@ from app.auth.supabase_auth import get_supabase_user
 from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
-from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
+from app.storage.subscription import get_user_record 
 from app.storage.user import update_notify_offline, update_user_terms
+from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
 
 import json
-import logging 
+import logging
 
 # Create a module-specific logger
 logger = logging.getLogger(__name__)
@@ -36,6 +37,11 @@ class GetUserVehicleByVehIdResponse(BaseModel):
 
 class UpdateNotifyRequest(BaseModel):
     notify_offline: bool
+
+class SubscriptionStatusResponse(BaseModel):
+    tier: str
+    linked_vehicle_count: int
+    subscription_status: str
 
 @router.get("/user/vehicles", response_model=list)
 async def get_user_vehicles(user=Depends(get_supabase_user)):
@@ -202,3 +208,16 @@ async def update_notify(user_id: str, payload: UpdateNotifyRequest, user=Depends
 
     await update_notify_offline(user_id, payload.notify_offline)
     return {"status": "ok"}
+
+@router.get("/user/subscription-status", response_model=SubscriptionStatusResponse)
+async def user_subscription_status(user=Depends(get_supabase_user)):
+    """
+    Returns the current user's subscription tier and status.
+    """
+    user_id = user["id"]
+    record = await get_user_record(user_id)
+    return SubscriptionStatusResponse(
+        tier=record.get("tier", "free"),
+        linked_vehicle_count=record.get("linked_vehicle_count", 0),
+        subscription_status=record.get("subscription_status", ""),
+    )

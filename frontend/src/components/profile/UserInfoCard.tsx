@@ -11,6 +11,8 @@ interface UserInfoCardProps {
   userId: string;
   email: string;
   name: string;
+  tier: string;
+  smsCredits: number;
   notifyOffline: boolean;
   isSubscribed: boolean;               // NEW: whether the user is subscribed to the newsletter
   onNameSave: (newName: string) => void;
@@ -24,6 +26,8 @@ export default function UserInfoCard({
   name,
   notifyOffline,
   isSubscribed,
+  tier,
+  smsCredits,
   onNameSave,
   onToggleNotify,
   onToggleSubscribe,
@@ -51,7 +55,15 @@ export default function UserInfoCard({
           <Input value={email} readOnly disabled />
         </div>
         <EditableField label="Name" value={name} onSave={onNameSave} type="text" />
-
+        {/* Show current tier and SMS credits */}
+        <div className="pt-2">
+          <span className="text-sm font-medium">Plan:</span>{' '}
+          <span className="capitalize">{tier}</span>
+        </div>
+        <div>
+          <span className="text-sm font-medium">SMS Credits:</span>{' '}
+          <span>{smsCredits}</span>
+        </div>
         {/* Existing toggle: Notify offline */}
         <div className="flex items-center space-x-2 pt-2">
           <Checkbox

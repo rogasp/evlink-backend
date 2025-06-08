@@ -1,5 +1,6 @@
 # backend/app/api/me.py
 
+from typing import Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
@@ -26,6 +27,9 @@ class MeResponse(BaseModel):
     accepted_terms: bool
     online_status: str  # "red", "yellow", "green", "grey"
     notify_offline: bool
+    tier: str
+    sms_credits: int = 0
+    stripe_customer_id: Optional[str] = None
     is_subscribed: bool  # NEW: whether the user is subscribed to the newsletter
     
 
@@ -43,7 +47,7 @@ async def get_me(user=Depends(get_supabase_user)):
 
         # 2) Fetch local user row (basic user info)
         local_user = await get_user_by_id(user_id)
-
+        logger.info(f"[ℹ️] local_user fetched: {local_user}")
         # 3) Fetch online status
         online_status = await get_user_online_status(user_id)
 
@@ -80,6 +84,9 @@ async def get_me(user=Depends(get_supabase_user)):
             accepted_terms=terms,
             online_status=online_status,
             notify_offline=notify_offline,
+            tier=local_user.tier if local_user else "free",
+            sms_credits=local_user.sms_credits if local_user else 0,
+            stripe_customer_id=local_user.stripe_customer_id,
             is_subscribed=is_subscribed,  # NEW field
         )
 

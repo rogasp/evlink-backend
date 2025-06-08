@@ -12,7 +12,7 @@ from fastapi.openapi.utils import get_openapi
 import sentry_sdk
 
 from app.logger import logger
-from app.api import admin, ha, me, private, public, webhook, newsletter
+from app.api import admin, ha, me, private, public, webhook, newsletter, payments
 from app.storage.telemetry import log_api_telemetry
 from app.auth.api_key_auth import get_api_key_user
 from app.config import (
@@ -108,6 +108,7 @@ app.include_router(webhook.router, prefix="/api")
 app.include_router(me.router, prefix="/api")
 app.include_router(ha.router, prefix="/api")
 app.include_router(newsletter.router, prefix="/api")
+app.include_router(payments.router, prefix="/api/payments")
 
 # -------------------------
 # Swagger / OpenAPI JWT-support

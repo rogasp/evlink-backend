@@ -105,10 +105,12 @@ async def get_user_by_id(user_id: str) -> User | None:
     """
     try:
         response = supabase.table("users") \
-            .select("id, email, role, name, notify_offline") \
+            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits") \
             .eq("id", user_id) \
             .maybe_single() \
             .execute()
+
+        print(f"Response data: {response.data}")  # Debugging line
 
         row = response.data
         if not row:
@@ -121,6 +123,23 @@ async def get_user_by_id(user_id: str) -> User | None:
     except Exception as e:
         logger.error(f"[❌ get_user_by_id] {e}")
         return None
+
+async def update_user_stripe_id(user_id: str, stripe_customer_id: str) -> None:
+    """
+    Update the `stripe_customer_id` column for a given user.
+    """
+    try:
+        result = supabase.table("users") \
+            .update({"stripe_customer_id": stripe_customer_id}) \
+            .eq("id", user_id) \
+            .execute()
+
+        if not result.data:
+            raise Exception("No rows were updated for stripe_customer_id")
+        logger.info(f"✅ Updated stripe_customer_id={stripe_customer_id} for user_id={user_id}")
+    except Exception as e:
+        logger.error(f"[❌ update_user_stripe_id] {e}")
+        raise
 
 async def is_subscriber(user_id: str) -> bool:
     """Return True if the user has `is_newsletter` flag set in interest."""
@@ -194,7 +213,6 @@ async def update_notify_offline(user_id: str, notify_offline: bool):
         logger.error(f"[❌ update_notify_offline] {e}")
         raise
 
-
 # -------------------------------------------------------------------
 # NEW FUNCTIONS: get_user_by_email & set_user_subscription
 # -------------------------------------------------------------------
@@ -251,4 +269,52 @@ async def set_user_subscription(email: str, is_subscribed: bool) -> dict:
     except Exception as e:
         logger.error(f"[❌ set_user_subscription] {e}")
         raise
+    
+async def update_user_subscription(
+    user_id: str,
+    tier: str,
+    status: str = "active"
+) -> None:
+    """
+    Uppdatera användarens prenumerationstyp och status i Supabase.
+    - tier: t.ex. "free", "pro", "fleet"
+    - status: "active", "canceled", "past_due" osv.
+    """
+    try:
+        result = supabase.table("users") \
+            .update({
+                "tier": tier,
+                "subscription_status": status
+            }) \
+            .eq("id", user_id) \
+            .execute()
+        if result.error:
+            raise Exception(result.error.message)
+        logger.info(f"✅ Updated subscription for user {user_id}: tier={tier}, status={status}")
+    except Exception as e:
+        logger.error(f"[❌ update_user_subscription] {e}")
+        raise
+    
+async def add_user_sms_credits(user_id: str, credits: int) -> None:
+    """
+    Addera SMS‐krediter till användarens saldo i en kolumn `sms_credits`.
+    """
+    from app.lib.supabase import get_supabase_admin_client
+    supabase = get_supabase_admin_client()
+
+    # Läs nuvarande kredit
+    resp = supabase \
+        .table("users") \
+        .select("sms_credits") \
+        .eq("id", user_id) \
+        .maybe_single() \
+        .execute()
+    current = resp.data.get("sms_credits", 0) if resp.data else 0
+
+    # Uppdatera med nya credits
+    supabase \
+        .table("users") \
+        .update({"sms_credits": current + credits}) \
+        .eq("id", user_id) \
+        .execute()
     
