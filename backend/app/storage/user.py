@@ -105,10 +105,12 @@ async def get_user_by_id(user_id: str) -> User | None:
     """
     try:
         response = supabase.table("users") \
-            .select("id, email, role, name, notify_offline,stripe_customer_id") \
+            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits") \
             .eq("id", user_id) \
             .maybe_single() \
             .execute()
+
+        print(f"Response data: {response.data}")  # Debugging line
 
         row = response.data
         if not row:
@@ -268,19 +270,31 @@ async def set_user_subscription(email: str, is_subscribed: bool) -> dict:
         logger.error(f"[❌ set_user_subscription] {e}")
         raise
     
-async def update_user_subscription(user_id: str, tier: str) -> None:
+async def update_user_subscription(
+    user_id: str,
+    tier: str,
+    status: str = "active"
+) -> None:
     """
-    Uppdatera användarens tier (e.g. free, pro, fleet).
+    Uppdatera användarens prenumerationstyp och status i Supabase.
+    - tier: t.ex. "free", "pro", "fleet"
+    - status: "active", "canceled", "past_due" osv.
     """
-    from app.lib.supabase import get_supabase_admin_client
-    supabase = get_supabase_admin_client()
-
-    supabase \
-        .table("users") \
-        .update({"tier": tier, "subscription_status": "active"}) \
-        .eq("id", user_id) \
-        .execute()
-
+    try:
+        result = supabase.table("users") \
+            .update({
+                "tier": tier,
+                "subscription_status": status
+            }) \
+            .eq("id", user_id) \
+            .execute()
+        if result.error:
+            raise Exception(result.error.message)
+        logger.info(f"✅ Updated subscription for user {user_id}: tier={tier}, status={status}")
+    except Exception as e:
+        logger.error(f"[❌ update_user_subscription] {e}")
+        raise
+    
 async def add_user_sms_credits(user_id: str, credits: int) -> None:
     """
     Addera SMS‐krediter till användarens saldo i en kolumn `sms_credits`.

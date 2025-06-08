@@ -9,4 +9,6 @@ class User(BaseModel):
     role: str
     name: Optional[str] = None
     notify_offline: Optional[bool] = False
+    tier: str
+    sms_credits: int = 0
     stripe_customer_id: Optional[str] = None 

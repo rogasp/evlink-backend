@@ -24,6 +24,9 @@ interface MergedUser {
   online_status?: 'green' | 'yellow' | 'red' | 'grey';
   notify_offline?: boolean;
   is_subscribed?: boolean;  // NEW: whether the user is subscribed to the newsletter
+  stripe_customer_id?: string;
+  sms_credits?: number;
+  tier?: 'free' | 'pro';
 }
 
 export function useAuth({
