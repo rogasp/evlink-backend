@@ -147,7 +147,7 @@ export default function ProfilePage() {
       <ApiKeySection userId={user.id} accessToken={accessToken} />
        <div className="text-center mt-6">
         <Link href="/billing" passHref>
-          <Button size="lg">Hantera prenumeration</Button>
+          <Button size="lg">Manage subscription</Button>
         </Link>
       </div>
     </div>
