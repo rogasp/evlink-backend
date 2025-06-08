@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import EditableField from '@/components/EditableField';
+import { Button } from '../ui/button';
+import Link from 'next/link';
 
 interface UserInfoCardProps {
   userId: string;
@@ -46,6 +48,11 @@ export default function UserInfoCard({
         <AvatarFallback>{getInitials(email)}</AvatarFallback>
       </Avatar>
       <div className="flex-1 space-y-4 w-full">
+        <div className=" mt-6">
+        <Link href="/billing" passHref>
+          <Button size="lg">Manage subscription</Button>
+        </Link>
+      </div>
         <div>
           <label className="text-sm font-medium text-gray-700">User ID</label>
           <Input value={userId} readOnly disabled />

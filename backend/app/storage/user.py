@@ -270,10 +270,12 @@ async def set_user_subscription(email: str, is_subscribed: bool) -> dict:
         logger.error(f"[❌ set_user_subscription] {e}")
         raise
     
+# backend/app/storage/user.py
+
 async def update_user_subscription(
     user_id: str,
     tier: str,
-    status: str = "active"
+    status: str = "active",
 ) -> None:
     """
     Uppdatera användarens prenumerationstyp och status i Supabase.
@@ -281,16 +283,18 @@ async def update_user_subscription(
     - status: "active", "canceled", "past_due" osv.
     """
     try:
-        result = supabase.table("users") \
-            .update({
-                "tier": tier,
-                "subscription_status": status
-            }) \
-            .eq("id", user_id) \
+        resp = (
+            supabase.table("users")
+            .update({"tier": tier, "subscription_status": status})
+            .eq("id", user_id)
             .execute()
-        if result.error:
-            raise Exception(result.error.message)
-        logger.info(f"✅ Updated subscription for user {user_id}: tier={tier}, status={status}")
+        )
+        # Kontrollera att någon rad uppdaterades
+        if not resp.data:
+            raise Exception(f"No rows updated for user {user_id}")
+        logger.info(
+            f"✅ Updated subscription for user {user_id}: tier={tier}, status={status}"
+        )
     except Exception as e:
         logger.error(f"[❌ update_user_subscription] {e}")
         raise
