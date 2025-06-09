@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,9 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { authFetch } from '@/lib/authFetch';
+import { useAuth } from '@/hooks/useAuth';
 import type { Vehicle } from '@/types/vehicle';
 
 interface VehicleDetailsModalProps {
@@ -22,6 +26,52 @@ export default function VehicleDetailsModal({
   onClose,
 }: VehicleDetailsModalProps) {
   const { information, chargeState, smartChargingPolicy, odometer, isReachable } = vehicle;
+  const { mergedUser, accessToken } = useAuth({ requireAuth: false });
+  const isPro = mergedUser?.tier === 'pro';
+
+  // Loading state for start/stop actions
+  const [starting, setStarting] = useState(false);
+  const [stopping, setStopping] = useState(false);
+
+  // Determine availability of actions
+  const isPlugged = Boolean(chargeState?.isPluggedIn);
+  const isCharging = Boolean(chargeState?.isCharging);
+  const canStart = isPro && isPlugged && !isCharging;
+  const canStop = isPro && isPlugged && isCharging;
+
+  /**
+   * Handles starting or stopping charging via API
+   */
+  const handleCharging = async (action: 'START' | 'STOP'): Promise<void> => {
+    if (!accessToken) return;
+
+    const isStart = action === 'START';
+    setStarting(isStart);
+    setStopping(!isStart);
+
+    try {
+      const { error } = await authFetch(`/charging/${vehicle.db_id}`, {
+        method: 'POST',
+        accessToken,
+        body: JSON.stringify({ action }),
+      });
+
+      if (error) {
+        throw new Error(error.message || `Failed to ${action.toLowerCase()} charging`);
+      }
+
+      toast.success(
+        `${isStart ? 'Started' : 'Stopped'} charging for ${information?.model} (${information?.vin})`
+      );
+    } catch (err: unknown) {
+      console.error('Charging action failed', err);
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+      toast.error(message);
+    } finally {
+      setStarting(false);
+      setStopping(false);
+    }
+  };
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -35,6 +85,7 @@ export default function VehicleDetailsModal({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Vehicle details */}
         <div className="space-y-4 text-sm">
           <div>
             <strong>Status:</strong>{' '}
@@ -64,20 +115,18 @@ export default function VehicleDetailsModal({
             </div>
             <div>
               <strong>Plugged in:</strong>{' '}
-              {chargeState?.isPluggedIn ? 'Yes' : 'No'}
+              {isPlugged ? 'Yes' : 'No'}
             </div>
             <div>
               <strong>Charging:</strong>{' '}
-              {chargeState?.isCharging ? 'Yes' : 'No'}
+              {isCharging ? 'Yes' : 'No'}
             </div>
           </div>
 
           <div>
             <strong>Smart charging:</strong>{' '}
             {smartChargingPolicy?.isEnabled ? (
-              <>
-                Enabled (Deadline: {smartChargingPolicy.deadline ?? '–'})
-              </>
+              <>Enabled (Deadline: {smartChargingPolicy.deadline ?? '–'})</>
             ) : (
               'Disabled'
             )}
@@ -87,6 +136,29 @@ export default function VehicleDetailsModal({
             <div>
               <strong>Odometer:</strong> {Math.round(odometer.distance)} km
             </div>
+          )}
+        </div>
+
+        {/* Charging controls */}
+        <div className="mt-6">
+          <strong>Charging controls:</strong>
+          <div className="flex space-x-2 mt-2">
+            <Button
+              onClick={() => handleCharging('START')}
+              disabled={!canStart || starting}
+            >
+              {starting ? 'Starting…' : 'Start'}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleCharging('STOP')}
+              disabled={!canStop || stopping}
+            >
+              {stopping ? 'Stopping…' : 'Stop'}
+            </Button>
+          </div>
+          {!isPro && (
+            <p className="text-xs text-gray-500 mt-1">Available for Pro users only</p>
           )}
         </div>
 
