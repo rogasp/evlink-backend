@@ -1,9 +1,9 @@
 // src/app/(app)/docs/ha-api/page.tsx
-
 'use client';
 
 import React from 'react';
 import { CodeBlock } from '@/components/CodeBlock';
+import { Badge } from '@/components/ui/badge';
 
 export default function HAApiPage() {
   return (
@@ -71,9 +71,9 @@ export default function HAApiPage() {
 
         <div className='bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded'>
           ⚠️ <strong>Note:</strong> The top-level keys like <code>batteryLevel</code>,{' '}
-          <code>isCharging</code>, and <code>chargingState</code> are{' '}
-          <strong>legacy</strong> and will be removed in a future version. Use the values
-          inside <code>chargeState</code> instead.
+          <code>isCharging</code>, and <code>chargingState</code> are <strong>legacy</strong> and
+          will be removed in a future version. Use the values inside <code>chargeState</code>{' '}
+          instead.
         </div>
 
         <h2 className='text-2xl font-semibold mt-6'>Field Reference</h2>
@@ -97,7 +97,8 @@ export default function HAApiPage() {
             <code>vehicleName</code>: Formatted name like &quot;XPENG G6&quot;.
           </li>
           <li>
-            <code>latitude</code> / <code>longitude</code>: Last known location coordinates. [Legacy]
+            <code>latitude</code> / <code>longitude</code>: Last known location coordinates.
+            [Legacy]
           </li>
           <li>
             <code>lastSeen</code>: ISO timestamp of last contact.
@@ -148,204 +149,47 @@ export default function HAApiPage() {
         </ul>
 
         <h3 className='text-xl font-semibold mt-6'>chargeState.powerDeliveryState</h3>
-        <p>
-          The current state of power delivery between the vehicle and charger:
-        </p>
+        <p>The current state of power delivery between the vehicle and charger:</p>
         <ul className='list-disc ml-6 space-y-2 mt-4'>
+          <li><code>UNKNOWN</code>: The state of power delivery is currently unknown.</li>
+          <li><code>UNPLUGGED</code>: The vehicle is not connected to the charger.</li>
           <li>
-            <code>UNKNOWN</code>: The state of power delivery is currently unknown.
+            <code>PLUGGED_IN:INITIALIZING</code>: The charging station is preparing to deliver power to the vehicle.
           </li>
           <li>
-            <code>UNPLUGGED</code>: The vehicle is not connected to the charger.
+            <code>PLUGGED_IN:CHARGING</code>: The vehicle is actively receiving power, increasing the battery level.
           </li>
           <li>
-            <code>PLUGGED_IN:INITIALIZING</code>: The charging station is preparing to
-            deliver power to the vehicle.
+            <code>PLUGGED_IN:COMPLETE</code>: Charging has finished and the battery has reached the target limit.
           </li>
           <li>
-            <code>PLUGGED_IN:CHARGING</code>: The vehicle is actively receiving power,
-            increasing the battery level.
+            <code>PLUGGED_IN:STOPPED</code>: Charging was intentionally stopped. The vehicle remains plugged in.
           </li>
           <li>
-            <code>PLUGGED_IN:COMPLETE</code>: Charging has finished and the battery has
-            reached the target limit.
+            <code>PLUGGED_IN:NO_POWER</code>: Charging failed due to unavailable power. User intervention is required.
           </li>
           <li>
-            <code>PLUGGED_IN:STOPPED</code>: Charging was intentionally stopped. The vehicle
-            remains plugged in.
+            <code>PLUGGED_IN:FAULT</code>: A malfunction is preventing charging (e.g., cable issue, temperature, system error).
           </li>
           <li>
-            <code>PLUGGED_IN:NO_POWER</code>: Charging failed due to unavailable power.
-            User intervention is required.
-          </li>
-          <li>
-            <code>PLUGGED_IN:FAULT</code>: A malfunction is preventing charging (e.g., cable
-            issue, temperature, system error).
-          </li>
-          <li>
-            <code>PLUGGED_IN:DISCHARGING</code>: The vehicle is discharging energy to the grid
-            or home (V2G/V2H).
+            <code>PLUGGED_IN:DISCHARGING</code>: The vehicle is discharging energy to the grid or home (V2G/V2H).
           </li>
         </ul>
-
-        {/* ------------------------------------------------------------------ */}
-        {/* Additional fields added as of May 2025 – ALL BELOW ARE NON‐LEGACY  */}
-        {/* ------------------------------------------------------------------ */}
-
-        <div className='mt-12 border-t pt-6'>
-          <h2 className='text-2xl font-semibold'>New/Expanded Fields (Non-Legacy)</h2>
-          <p>
-            In addition to <code>chargeState</code> and the other keys above, the following
-            objects and fields are now returned. The <code>latitude</code> and{' '}
-            <code>longitude</code> fields are considered <strong>legacy</strong> and will be
-            removed on <strong>June 15, 2025</strong>. Please use the new objects below instead.
-          </p>
-
-          <h3 className='text-xl font-semibold mt-6'>information object</h3>
-          <p>Descriptive information about the vehicle:</p>
-          <ul className='list-disc ml-6 space-y-2'>
-            <li>
-              <code>information.vin</code> (string or null): Vehicle VIN.
-            </li>
-            <li>
-              <code>information.brand</code> (string or null): A formatted, properly cased OEM
-              brand name, suitable for display.
-            </li>
-            <li>
-              <code>information.model</code> (string or null): Vehicle model name.
-            </li>
-            <li>
-              <code>information.year</code> (number or null): Vehicle production year.
-            </li>
-            <li>
-              <code>information.displayName</code> (string or null): User-defined vehicle
-              nickname.
-            </li>
-          </ul>
-
-          <h3 className='text-xl font-semibold mt-6'>location object</h3>
-          <p>Last known location data, including coordinates and timestamp:</p>
-          <ul className='list-disc ml-6 space-y-2'>
-            <li>
-              <code>location.latitude</code> (number or null): GPS latitude. (Legacy; remove by
-              15/6/2025.)
-            </li>
-            <li>
-              <code>location.longitude</code> (number or null): GPS longitude. (Legacy; remove by
-              15/6/2025.)
-            </li>
-            <li>
-              <code>location.timestamp</code> (string&lt;date-time&gt; or null): ISO timestamp when
-              this location was recorded.
-            </li>
-          </ul>
-
-          <h3 className='text-xl font-semibold mt-6'>odometer object</h3>
-          <p>Vehicle’s odometer reading:</p>
-          <ul className='list-disc ml-6 space-y-2'>
-            <li>
-              <code>odometer.distance</code> (number or null): Odometer in kilometers.
-            </li>
-            <li>
-              <code>odometer.lastUpdated</code> (string&lt;date-time&gt; or null): Timestamp of
-              the last odometer update.
-            </li>
-          </ul>
-
-          <h3 className='text-xl font-semibold mt-6'>smartChargingPolicy object</h3>
-          <p>
-            Smart Charging configuration properties (configured via the Update Vehicle Smart
-            Charging Policy API):
-          </p>
-          <ul className='list-disc ml-6 space-y-2'>
-            <li>
-              <code>smartChargingPolicy.isEnabled</code> (boolean): If true, Enode may manage
-              charging based on policy.
-            </li>
-            <li>
-              <code>smartChargingPolicy.deadline</code> (string or null): Hour‐minute deadline for
-              charging to complete. Interpreted in the vehicle’s timezone if set, otherwise UTC.
-            </li>
-            <li>
-              <code>smartChargingPolicy.minimumChargeLimit</code> (number): A percentage value
-              (0–100). If the battery falls below this, charging proceeds immediately regardless
-              of price. Cannot exceed the vehicle’s maximum charge limit. Defaults to 0.
-            </li>
-          </ul>
-
-          <h3 className='text-xl font-semibold mt-6'>vendor field</h3>
-          <p>
-            <code>vendor</code> (string): Machine-friendly name of the vehicle vendor. Use this
-            value in other API requests. Possible enum values:
-          </p>
-          <ul className='list-disc ml-6 space-y-2'>
-            <li>ACURA</li>
-            <li>AUDI</li>
-            <li>BMW</li>
-            <li>HONDA</li>
-            <li>HYUNDAI</li>
-            <li>JAGUAR</li>
-            <li>LANDROVER</li>
-            <li>KIA</li>
-            <li>MERCEDES</li>
-            <li>MINI</li>
-            <li>NISSAN</li>
-            <li>PEUGEOT</li>
-            <li>PORSCHE</li>
-            <li>RENAULT</li>
-            <li>SEAT</li>
-            <li>SKODA</li>
-            <li>TESLA</li>
-            <li>VOLKSWAGEN</li>
-            <li>VOLVO</li>
-            <li>FORD</li>
-            <li>OPEL</li>
-            <li>DS</li>
-            <li>TOYOTA</li>
-            <li>LEXUS</li>
-            <li>CITROEN</li>
-            <li>CUPRA</li>
-            <li>VAUXHALL</li>
-            <li>FIAT</li>
-            <li>RIVIAN</li>
-            <li>NIO</li>
-            <li>CHEVROLET</li>
-            <li>GMC</li>
-            <li>CADILLAC</li>
-            <li>XPENG</li>
-            <li>POLESTAR</li>
-            <li>SUBARU</li>
-            <li>JEEP</li>
-            <li>MAZDA</li>
-            <li>MG</li>
-            <li>CHRYSLER</li>
-            <li>DODGE</li>
-            <li>RAM</li>
-            <li>ALFAROMEO</li>
-            <li>LANCIA</li>
-            <li>LUCID</li>
-            <li>BYD</li>
-          </ul>
-        </div>
 
         {/* ------------------------------------------------------------------ */}
         {/* New Charging Control Endpoint Documentation */}
         {/* ------------------------------------------------------------------ */}
 
         <div className='mt-16 border-t pt-6'>
-          <h2 className='text-2xl font-semibold'>Control Charging Endpoint</h2>
+          <h2 className='text-2xl font-semibold flex items-center space-x-2'>
+            <span>Control Charging Endpoint</span>
+            <Badge variant='destructive'>PRO</Badge>
+          </h2>
           <p>
-            This endpoint allows you to request that a vehicle start or stop charging. The request
-            creates an Action that will retry until the vehicle’s <code>powerDeliveryState</code> matches
-            the expected value. Any existing PENDING action of the same target and type will be reused;
-            if the new action differs, the existing one will automatically transition to the CANCELLED
-            state and a new Action is created.
-          </p>
-          <p className='mt-4'>
-            <strong>Note:</strong> If the vehicle is controlled by a schedule or has an active smart
-            charging plan, this endpoint returns <code>422 Unprocessable Entity</code>. To regain user
-            control, disable the schedule, disable smart charging, or use the Create Smart Override API
-            to temporarily allow charging.
+            This endpoint allows you to request that a vehicle start or stop charging. Only users on the <strong>Pro tier</strong> can use this endpoint.
+            The request creates an Action that will retry until the vehicle’s <code>powerDeliveryState</code> matches the expected value.
+            Any existing PENDING action of the same target and type will be reused; if the new action differs, the existing one will automatically transition to CANCELLED.
+            Note that it can take a few seconds before the vehicle’s status updates, and the backend will keep retrying until the desired state is reached.
           </p>
 
           <h3 className='text-xl font-semibold mt-6'>Endpoint</h3>
@@ -361,55 +205,36 @@ export default function HAApiPage() {
           />
 
           <details className='bg-gray-100 p-4 rounded border border-gray-300 text-sm leading-relaxed'>
-          <summary className='cursor-pointer font-medium mb-2'>
-            Example JSON response
-          </summary>
-          <pre className='mt-2 overflow-auto'>
-            <code>
-  {`{
-      "status":"success",
-      "vehicle_id":"331c054f-b583-4284-b7b0-ce348c0a66fc",
-      "enode_vehicle_id":"9801efc6-2d23-4fc5-bdc6-ba40b4e25e55",
-      "action":"START",
-      "enode_response":{
-        "id":"4c14934a-7013-4996-87e3-06067152e89d",
-        "userId":"671043ea-955c-4f57-aba5-4c71a0348412",
-        "state":"PENDING",
-        "createdAt":"2025-05-31T21:45:33.534Z",
-        "updatedAt":"2025-05-31T21:45:33.534Z",
-        "completedAt":null,
-        "targetId":"9801efc6-2d23-4fc5-bdc6-ba40b4e25e55",
-        "targetType":"vehicle",
-        "kind":"START",
-        "failureReason":null
-      }
-    }
-  `}
-            </code>
-          </pre>
-        </details>
-
-          <h3 className='text-xl font-semibold mt-6'>Response</h3>
-          <p>
-            On success, returns a JSON object containing:
-          </p>
-          <ul className='list-disc ml-6 space-y-2'>
-            <li><code>status</code> (string): Always &apos;success&apos; if the request was accepted.</li>
-            <li><code>vehicle_id</code> (string): The internal EVLinkHA vehicle UUID.</li>
-            <li><code>enode_vehicle_id</code> (string): The Enode-specific vehicle UUID used in the request.</li>
-            <li><code>action</code> (string): The requested action (&apos;START&apos; or &apos;STOP&apos;).</li>
-            <li><code>enode_response</code> (object): The raw JSON response from Enode’s API.</li>
-          </ul>
+            <summary className='cursor-pointer font-medium mb-2'>
+              Example JSON response
+            </summary>
+            <pre className='mt-2 overflow-auto'>
+              <code>
+{`{
+  "status":"success",
+  "vehicle_id":"331c054f-b583-4284-b7b0-ce348c0a66fc",
+  "enode_vehicle_id":"9801efc6-2d23-4fc5-bdc6-ba40b4e25e55",
+  "action":"START",
+  "enode_response": { /* ... */ }
+}`}
+              </code>
+            </pre>
+          </details>
 
           <h3 className='text-xl font-semibold mt-6'>Error Handling</h3>
           <ul className='list-disc ml-6 space-y-2'>
             <li><code>401 Unauthorized</code>: Missing or invalid API key.</li>
-            <li><code>403 Forbidden</code>: Authenticated user does not own the specified vehicle.</li>
+            <li><code>403 Forbidden</code>: User not on Pro tier or does not own the specified vehicle.</li>
             <li><code>404 Not Found</code>: Vehicle not found in EVLinkHA.</li>
             <li>
-              <code>422 Unprocessable Entity</code>: Vehicle is under scheduled or smart charging
-              control. Check Enode’s error message for details (e.g., &apos;Vehicle controlled by schedule&apos;).
+              <code>400 Bad Request</code>: Attempt to <code>START</code> while vehicle is unplugged or already charging,
+              or to <code>STOP</code> while vehicle is not charging. The response will include a message indicating the required state.
             </li>
+            <li>
+              <code>422 Unprocessable Entity</code>: Vehicle is under scheduled or smart charging control.
+              Check Enode’s error message for details (e.g., “Vehicle controlled by schedule”).
+            </li>
+            <li><code>429 Too Many Requests</code>: Rate limit exceeded (see rate limit recommendations in the integration guide).</li>
             <li><code>500 Internal Server Error</code>: Vehicle record missing Enode ID or unexpected server error.</li>
           </ul>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BrandsModal } from '@/components/landing/BrandsModal';
 
 export default function FeaturesSection() {
   return (
@@ -15,6 +16,9 @@ export default function FeaturesSection() {
             <p className="text-gray-600 text-sm">
               Supports most EV brands through Enode. Instantly link your vehicle and start syncing data to Home Assistant.
             </p>
+            <div className="mt-3">
+              <BrandsModal />
+            </div>
           </CardContent>
         </Card>
 
