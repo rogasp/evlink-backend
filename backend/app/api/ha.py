@@ -13,7 +13,9 @@ from app.auth.api_key_auth import get_api_key_user
 from app.models.user import User
 from app.storage.vehicle import get_vehicle_by_id
 from app.enode.vehicle import set_vehicle_charging
-from app.api.dependencies import api_key_rate_limit 
+from app.api.dependencies import api_key_rate_limit
+from app.dependencies.auth import get_current_user
+from app.storage.user import get_user_by_id 
 
 # Create a module-specific logger
 logger = logging.getLogger(__name__)
@@ -148,12 +150,23 @@ class ChargingActionRequest(BaseModel):
 async def post_vehicle_charging(
     vehicle_id: str,
     body: ChargingActionRequest = Body(...),
-    user: User = Depends(get_api_key_user),
+    user: User = Depends(get_current_user),
 ):
     """
     Endpoint to start or stop charging for a given vehicle. Expects JSON:
       { "action": "START" } or { "action": "STOP" }
     """
+    public_user = await get_user_by_id(user.id)
+    if public_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # 2) Kontrollera Pro–tier
+    if public_user.tier != "pro":
+        raise HTTPException(
+            status_code=403,
+            detail="You need a Pro subscription to start or stop charging"
+        )
+    
     action = body.action.upper()
     logger.info(
         "[post_vehicle_charging] Request to %s charging for vehicle_id=%s, user_id=%s",

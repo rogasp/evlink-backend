@@ -104,8 +104,21 @@ template:
         />
 
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded">
-          ⚠️ <strong>Important:</strong> Do <em>not</em> change <code>scan_interval</code> – it must stay at <strong>300</strong> seconds to avoid rate limits.
+          ⚠️ <strong>Rate limit recommendations:</strong>
+          <p className="mt-1">
+            <strong>Free tier</strong> (3 calls per 30 min): set <code>scan_interval</code> to at least <strong>600</strong> seconds.
+          </p>
+          <p>
+            <strong>Pro tier</strong> (60 calls per min; soon ~10 calls/min/vehicle): set <code>scan_interval</code> to at least <strong>60</strong> seconds.
+          </p>
+          <p className="mt-2">
+            Choose the interval that matches your subscription to avoid hitting rate limits.
+          </p>
+          <p>
+            If you exceed these limits, the API will return a <code>429 Too Many Requests</code> response.
+          </p>
         </div>
+
 
         <h2 className="text-2xl font-semibold">5. Verify in Home Assistant</h2>
         <ul className="list-disc ml-6">
