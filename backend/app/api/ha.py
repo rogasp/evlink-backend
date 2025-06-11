@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-
 def _handle_api_error(e: APIError, vehicle_id: str, context: str):
     """
     Handle APIError from Supabase. Translate common error codes to HTTP responses.
@@ -50,6 +49,43 @@ def _handle_api_error(e: APIError, vehicle_id: str, context: str):
     # Other API errors
     logger.error("[%s] API error fetching vehicle %s: %s", context, vehicle_id, payload, exc_info=True)
     raise HTTPException(status_code=502, detail="Error fetching vehicle data")
+
+@router.get("/ha/me", 
+            summary="Get current user information for Home Assistant",
+            )
+async def get_current_user_info(user: User = Depends(get_api_key_user)):
+    """
+    Endpoint to get the current user information for Home Assistant integration.
+    Returns user ID and tier.
+    """
+    logger.info("[get_current_user_info] Fetching user info for user_id=%s", user.id)
+    
+    try:
+        public_user = await get_user_by_id(user.id)
+    except APIError as e:
+        _handle_api_error(e, user.id, "get_current_user_info")
+    except Exception as e:
+        logger.error(
+            "[get_current_user_info] Unexpected error fetching user %s: %s",
+            user.id,
+            e,
+            exc_info=True,
+        )
+        raise HTTPException(status_code=502, detail="Error fetching user data")
+
+    if not public_user:
+        logger.warning("[get_current_user_info] User not found: %s", user.id)
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "user_id": public_user.id,
+        "tier": public_user.tier,
+        "email": public_user.email,
+        "name": public_user.name,
+        "role": public_user.role,
+        "sms_credits": public_user.sms_credits,
+    }
+
 
 @router.get("/status/{vehicle_id}",
             dependencies=[Depends(api_key_rate_limit)],)
