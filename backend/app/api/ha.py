@@ -163,6 +163,73 @@ async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_u
         "smartChargingPolicy": smart_charging_policy,
     }
 
+@router.get("/ha/status/{vehicle_id}",
+            dependencies=[Depends(api_key_rate_limit)],)
+async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_user)):
+    logger.info(                                                                                                                                                                                                                                            
+        "[get_vehicle_status] Fetching full status for vehicle_id=%s, user_id=%s",
+        vehicle_id,
+        user.id,
+    )
+
+    try:
+        vehicle = await get_vehicle_by_id(vehicle_id)
+    except APIError as e:
+        _handle_api_error(e, vehicle_id, "get_vehicle_status")
+    except Exception as e:
+        logger.error(
+            "[get_vehicle_status] Unexpected error fetching vehicle %s: %s",
+            vehicle_id,
+            e,
+            exc_info=True,
+        )
+        raise HTTPException(status_code=502, detail="Error fetching vehicle data")
+
+    if not vehicle:
+        logger.warning("[get_vehicle_status] Vehicle not found: %s", vehicle_id)
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+    if vehicle.get("user_id") != user.id:
+        logger.warning(
+            "[get_vehicle_status] Access denied for user_id=%s on vehicle_id=%s",
+            user.id,
+            vehicle_id,
+        )
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    try:
+        cache = json.loads(vehicle["vehicle_cache"])
+    except json.JSONDecodeError as e:
+        logger.error(
+            "[get_vehicle_status] JSON decode error for vehicle_cache %s: %s",
+            vehicle_id,
+            e,
+            exc_info=True,
+        )
+        raise HTTPException(status_code=500, detail=f"Invalid vehicle cache: {e}")
+
+    charge = cache.get("chargeState", {})
+    info = cache.get("information", {})
+    location = cache.get("location", {})
+    last_seen = cache.get("lastSeen")
+    is_reachable = cache.get("isReachable")
+    odometer = cache.get("odometer", {})
+    vendor = cache.get("vendor")
+    smart_charging_policy = cache.get("smartChargingPolicy", {})
+    capabilities = cache.get("capabilities", {})
+    
+    return {
+        "vehicleName": f"{info.get('brand', '')} {info.get('model', '')}",
+        "isReachable": is_reachable,
+        "chargeState": charge,
+        "information": info,
+        "location": location,
+        "odometer": odometer,
+        "vendor": vendor,
+        "smartChargingPolicy": smart_charging_policy,
+        "capabilities": capabilities,
+        "lastSeen": last_seen,
+    }
 
 # -------------------------------------------------------------------
 # Pydantic model for charging action
