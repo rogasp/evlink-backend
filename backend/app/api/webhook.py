@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request, Header, HTTPException
 import logging
 
 from fastapi.responses import JSONResponse
+import httpx
 import stripe
 
 from app.api.payments import process_successful_payment_intent
@@ -16,6 +17,21 @@ from app.storage.webhook import save_webhook_event
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+HA_BASE_URL="http://localhost:8123"
+HA_WEBHOOK_ID="01JXGCC1W9XFPPTHE0VAR34X8F"
+
+async def push_to_homeassistant(event: dict):
+    """Pusha ett enskilt event till Home Assistant via webhook."""
+    url = f"{HA_BASE_URL}/api/webhook/{HA_WEBHOOK_ID}"
+    logger.debug("Pushing to HA webhook %s → %s", url, event)
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, json=event, timeout=10.0)
+            resp.raise_for_status()
+            logger.info("Successfully pushed event to HA: HTTP %s", resp.status_code)
+    except Exception as e:
+        logger.error("Failed to push to HA webhook: %s", e)
 
 @router.post("/webhook/enode")
 async def handle_webhook(
@@ -31,20 +47,39 @@ async def handle_webhook(
             raise HTTPException(status_code=401, detail="Invalid signature")
 
         # ✅ Konvertera till JSON efter verifiering
-        payload = json.loads(raw_body)
-        print("[📥 Verified webhook payload]", payload)
+        incoming  = json.loads(raw_body)
+        print("[📥 Verified webhook payload]", incoming )
 
         # ✅ Spara och processa
-        save_webhook_event(payload)
+        save_webhook_event(incoming )
 
-        if isinstance(payload, list):
-            handled = 0
-            for event in payload:
+        # ─── TEST: Duplicate payload ───────────────────────────────────
+        if isinstance(incoming, list):
+            payloads = incoming * 3
+        else:
+            payloads = [incoming] * 3
+
+        logger.warning("🔧 [TEST MODE] payloads length: %d", len(payloads))
+        # ────────────────────────────────────────────────────────────────
+
+
+        handled = 0
+
+        if isinstance(payloads, list):
+            for idx, event in enumerate(payloads):
+                logger.info("[📥 #%d/%d] Processing webhook event: %s", idx+1, len(payloads), event.get("event"))
                 handled += await process_event(event)
-            return {"status": "ok", "handled": handled}
+                await push_to_homeassistant(event)
+        else:
+            logger.info("[📥 Single] Processing webhook event: %s", payloads.get("event"))
+            handled += await process_event(payloads)
+            await push_to_homeassistant(payloads)
 
-        handled = await process_event(payload)
+        logger.info("Handled total %d events", handled)
         return {"status": "ok", "handled": handled}
+
+        # handled = await process_event(payload)
+        # return {"status": "ok", "handled": handled}
 
     except Exception as e:
         logging.exception("❌ Failed to handle webhook")
