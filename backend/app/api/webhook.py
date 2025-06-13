@@ -53,27 +53,27 @@ async def handle_webhook(
         # ✅ Spara och processa
         save_webhook_event(incoming )
 
-        # ─── TEST: Duplicate payload ───────────────────────────────────
-        if isinstance(incoming, list):
-            payloads = incoming * 3
-        else:
-            payloads = [incoming] * 3
+        # # ─── TEST: Duplicate payload ───────────────────────────────────
+        # if isinstance(incoming, list):
+        #     payloads = incoming * 3
+        # else:
+        #     payloads = [incoming] * 3
 
-        logger.warning("🔧 [TEST MODE] payloads length: %d", len(payloads))
-        # ────────────────────────────────────────────────────────────────
+        # logger.warning("🔧 [TEST MODE] payloads length: %d", len(payloads))
+        # # ────────────────────────────────────────────────────────────────
 
 
         handled = 0
 
-        if isinstance(payloads, list):
-            for idx, event in enumerate(payloads):
-                logger.info("[📥 #%d/%d] Processing webhook event: %s", idx+1, len(payloads), event.get("event"))
+        if isinstance(incoming, list):
+            for idx, event in enumerate(incoming):
+                logger.info("[📥 #%d/%d] Processing webhook event: %s", idx+1, len(incoming), event.get("event"))
                 handled += await process_event(event)
                 await push_to_homeassistant(event)
         else:
-            logger.info("[📥 Single] Processing webhook event: %s", payloads.get("event"))
-            handled += await process_event(payloads)
-            await push_to_homeassistant(payloads)
+            logger.info("[📥 Single] Processing webhook event: %s", incoming.get("event"))
+            handled += await process_event(incoming)
+            await push_to_homeassistant(incoming)
 
         logger.info("Handled total %d events", handled)
         return {"status": "ok", "handled": handled}
