@@ -18,13 +18,14 @@ const allBrands = [
   'Audi', 'BMW', 'Cupra', 'DS', 'Hyundai', 'Jaguar',
   'Kia', 'Land Rover', 'Lexus', 'Mercedes-Benz', 'Mini',
   'Nissan', 'Polestar', 'Porsche', 'Renault', 'Rivian',
-  'SEAT', 'Škoda', 'Tesla', 'Toyota', 'Volkswagen',
+  'SEAT', 'Skoda', 'Tesla', 'Toyota', 'Volkswagen',
   'Volvo'
 ];
 const otherBrands = allBrands.filter(b => !testedBrands.includes(b));
 
 // Lista av de sluggar som du redan har uploadade under public/brands
 const availableLogoSlugs = new Set([
+  'audi',
   'bmw',
   'ds',
   'hyundai',
@@ -34,9 +35,18 @@ const availableLogoSlugs = new Set([
   'lexus',
   'mercedes-benz',
   'mini',
+  'nissan',
   'nio',
+  'polestar',
+  'porsche',
+  'renault',
+  'rivian',
+  'seat',
+  'skoda',
   'tesla',
   'toyota',
+  'volkswagen',
+  'volvo',
   'xpeng',
 ]);
 
