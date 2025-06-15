@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import RegisterInterestForm from '@/components/register/RegisterInterestForm';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -56,25 +55,23 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      toast.error(error.message);
+    }
+  };
+
   if (allowRegister === null) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white">
         <p className="text-gray-500 text-sm">Checking login status...</p>
-      </main>
-    );
-  }
-
-  // ❌ Block login and show interest form
-  if (!allowRegister) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="bg-white shadow-md rounded p-6 w-full max-w-md">
-          <h1 className="text-xl font-bold mb-4 text-center">Login Disabled</h1>
-          <p className="text-sm text-gray-500 mb-4 text-center">
-            EVLinkHA is currently in closed beta. Sign up to stay informed!
-          </p>
-          <RegisterInterestForm />
-        </div>
       </main>
     );
   }
@@ -114,6 +111,21 @@ export default function LoginPage() {
           />
           <span>Continue with GitHub</span>
         </Button>
+        <Button
+          onClick={handleGoogleLogin}
+          variant="outline"
+          className="mt-2 w-full flex items-center justify-center space-x-2"
+        >
+          <Image
+            src="/google-icon.png"
+            alt="Google"
+            width={20}
+            height={20}
+            className="h-5 w-5"
+          />
+          <span>Continue with Google</span>
+        </Button>
+
 
         <p className="text-center text-xs text-gray-500 mt-6">
           Don&apos;t have an account?{' '}

@@ -17,6 +17,7 @@ import {
 import TermsContent from '@/components/legal/TermsContent';
 import PrivacyContent from '@/components/legal/PrivacyContent';
 import OAuthGithubButton from './OAuthGithubButton';
+import OAuthGoogleButton from './OAuthGoogleButton';
 
 interface Props {
   setMagicLinkSent: (v: boolean) => void;
@@ -120,6 +121,7 @@ export default function RegisterForm({ setMagicLinkSent, setEmail, prefillEmail,
       </Button>
 
       <OAuthGithubButton disabled={!acceptedTerms || loading} />
+      <OAuthGoogleButton disabled={!acceptedTerms || loading} />
     </form>
   );
 }

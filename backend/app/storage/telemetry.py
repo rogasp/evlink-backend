@@ -1,8 +1,6 @@
-"""
-backend/app/storage/telemetry.py
+""
+# backend/app/storage/telemetry.py
 
-Functions to store API telemetry events in the database using Supabase.
-"""
 from typing import Optional
 from app.lib.supabase import get_supabase_admin_client
 
@@ -16,26 +14,42 @@ async def log_api_telemetry(
     error_message: Optional[str],
     duration_ms: int,
     timestamp: str,
+    request_size: Optional[int] = None,
+    response_size: Optional[int] = None,
+    request_payload: Optional[dict] = None,
+    response_payload: Optional[str] = None,
+    cost_tokens: int = 0,
 ) -> None:
     """
     Insert a new telemetry record into the api_telemetry table.
     Fields:
-      - endpoint: path of the API call
-      - user_id: authenticated user ID or None
-      - vehicle_id: optional vehicle identifier
-      - status: HTTP status code returned
-      - error_message: error details if status >= 400
-      - duration_ms: request duration in milliseconds
-      - timestamp: ISO 8601 timestamp of the event
+      - endpoint
+      - user_id
+      - vehicle_id
+      - status
+      - error_message
+      - duration_ms
+      - timestamp
+      - request_size
+      - response_size
+      - request_payload
+      - response_payload
+      - cost_tokens
     """
     payload = {
-        "endpoint": endpoint,
-        "user_id": user_id,
-        "vehicle_id": vehicle_id,
-        "status": status,
-        "error_message": error_message,
-        "duration_ms": duration_ms,
-        "timestamp": timestamp,
+        "endpoint":         endpoint,
+        "user_id":          user_id,
+        "vehicle_id":       vehicle_id,
+        "status":           status,
+        "error_message":    error_message,
+        "duration_ms":      duration_ms,
+        "timestamp":        timestamp,
+        "request_size":     request_size,
+        "response_size":    response_size,
+        "request_payload":  request_payload,
+        "response_payload": response_payload,
+        "cost_tokens":      cost_tokens,
     }
     # Insert the payload into the api_telemetry table
     supabase.table("api_telemetry").insert(payload).execute()
+""
