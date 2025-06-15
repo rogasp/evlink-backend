@@ -67,6 +67,10 @@ jobs:
               cp /home/fastapiuser/envfiles/frontend/.env.production /opt/apps/evlink/frontend/.env
             fi
 
+            if [ -f /home/fastapiuser/rootfiles/frontend/next.config.mjs ]; then
+              cp /home/fastapiuser/rootfiles/frontend/next.config.mjs /opt/apps/evlink/frontend/next.config.mjs
+            fi
+
             # 📂 Ensure Next.js cache directory
             mkdir -p /opt/apps/evlink/frontend/.next/cache/images
             chmod -R 755 /opt/apps/evlink/frontend/.next
