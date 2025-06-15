@@ -33,3 +33,8 @@ STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 STRIPE_WEBHOOK_SECRET= os.getenv("STRIPE_WEBHOOK_SECRET", "whc")
 SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL", "https://evlinkha.se/success")
 CANCEL_URL = os.getenv("STRIPE_CANCEL_URL", "https://evlinkha.se/cancel")
+
+ENDPOINT_COST = {
+    "/api/ha/status/": 1,
+    "/api/ha/charging/":1,
+}
