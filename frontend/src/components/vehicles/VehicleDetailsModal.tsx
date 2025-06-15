@@ -51,6 +51,7 @@ export default function VehicleDetailsModal({
 
     try {
       const { error } = await authFetch(`/ha/charging/${vehicle.db_id}`, {
+
         method: 'POST',
         accessToken,
         body: JSON.stringify({ action }),
