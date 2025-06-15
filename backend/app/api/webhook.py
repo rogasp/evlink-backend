@@ -75,6 +75,7 @@ async def handle_webhook(
             handled += await process_event(incoming)
             await push_to_homeassistant(incoming)
 
+
         logger.info("Handled total %d events", handled)
         return {"status": "ok", "handled": handled}
 
