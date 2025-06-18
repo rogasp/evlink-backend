@@ -91,3 +91,5 @@ supabase/scripts/sync_staging_with_local.sh
 supabase/scripts/sync_staging_schema.sh
 create-backlog-issues.sh
 start-backend.sh
+run_onboarding_check.sh
+supabase/config.toml

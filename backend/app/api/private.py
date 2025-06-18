@@ -9,7 +9,7 @@ from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.subscription import get_user_record 
-from app.storage.user import update_notify_offline, update_user_terms
+from app.storage.user import get_onboarding_status, update_notify_offline, update_user_terms
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
 
 import json
@@ -221,3 +221,20 @@ async def user_subscription_status(user=Depends(get_supabase_user)):
         linked_vehicle_count=record.get("linked_vehicle_count", 0),
         subscription_status=record.get("subscription_status", ""),
     )
+
+@router.get("/user/{user_id}/onboarding")
+async def get_user_onboarding_status(
+    user_id: str = Path(...),
+    user=Depends(get_supabase_user)
+):
+    if user["id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    logger.info(f"🔍 Fetching onboarding status for user: {user_id}")
+    status = await get_onboarding_status(user_id)
+
+    if status:
+        return status
+    else:
+        logger.warning(f"⚠️ No onboarding data found for user {user_id}")
+        return {"status": "not_started"}

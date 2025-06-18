@@ -102,3 +102,34 @@ async def remove_brevo_contact_from_list(email: str):
         if hasattr(brevo_response, "to_dict")
         else brevo_response
     )
+
+
+    """
+    Add an existing Brevo contact to a specific segment.
+    Requires that the contact already exists.
+    """
+    try:
+        response = _contacts_api.add_contact_to_list(
+            list_id=segment_id,
+            contact_emails=[email]
+        )
+        logger.info("✅ Added %s to segment %s", email, segment_id)
+        return response.to_dict() if hasattr(response, "to_dict") else response
+    except ApiException as e:
+        logger.error("❌ Failed to add %s to segment %s: %s", email, segment_id, e)
+        raise
+
+async def set_onboarding_step(email: str, step: str):
+    """
+    Update the ONBOARDING_STEP attribute for a Brevo contact.
+    Example values: 'missing_vehicle', 'missing_api_key', 'missing_ha_integration'
+    """
+    try:
+        update_body = UpdateContact(attributes={"ONBOARDING_STEP": step})
+        response = _contacts_api.update_contact(email, update_body)
+        logger.info("✅ Set onboarding step '%s' for %s", step, email)
+        return response.to_dict() if hasattr(response, "to_dict") else response
+    except ApiException as e:
+        logger.error("❌ Failed to set onboarding step for %s: %s", email, e)
+        raise
+

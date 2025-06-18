@@ -24,7 +24,7 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 FROM_EMAIL = "roger@evlinkha.se"
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-BREVO_CUSTOMERS_LIST_ID = int(os.getenv("BREVO_CUSTOMERS_LIST_ID", "4"))
+BREVO_CUSTOMERS_LIST_ID = int(os.getenv("BREVO_CUSTOMERS_LIST_ID", "2"))
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 

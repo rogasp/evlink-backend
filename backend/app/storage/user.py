@@ -321,4 +321,46 @@ async def add_user_sms_credits(user_id: str, credits: int) -> None:
         .update({"sms_credits": current + credits}) \
         .eq("id", user_id) \
         .execute()
+
+async def get_onboarding_status(user_id: str) -> dict | None:
+    try:
+        result = supabase.table("onboarding_progress") \
+            .select("*") \
+            .eq("user_id", user_id) \
+            .maybe_single() \
+            .execute()
+
+        if result.data:
+            return result.data
+        return None
+    except Exception as e:
+        print(f"[❌ get_onboarding_status] {e}")
+        return None
+    
+async def set_welcome_sent_if_needed(user_id: str) -> None:
+    try:
+        supabase.table("onboarding_progress") \
+            .update({"welcome_sent": True}) \
+            .eq("user_id", user_id) \
+            .execute()
+    except Exception as e:
+        print(f"[❌ set_welcome_sent_if_needed] {e}")
+
+async def create_onboarding_row(user_id: str) -> dict | None:
+    """
+    Creates a default onboarding_progress row for the given user.
+    Returns the inserted row as dict, or None on failure.
+    """
+    try:
+        result = supabase.table("onboarding_progress").insert({
+            "user_id": user_id
+        }).execute()
+
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+        return None
+
+    except Exception as e:
+        print(f"[❌ create_onboarding_row] {e}")
+        return None
     
