@@ -39,7 +39,7 @@ export default function NavbarPublic() {
         {isLoggedIn && <OnlineStatusIcon />}
         {isLoggedIn && isRoot && (
           <>
-          <NavUser  />
+          <NavUser/>
           </>
         )}
       </div>
