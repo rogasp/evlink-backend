@@ -16,8 +16,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 import NavUser from "./NavUser";
 import SidebarLogoHeader from "./SidebarLogoHeader"
 import { NavLinkButton } from "./NavLinkButton"
+import { useUserInfo } from "@/hooks/useUserInfo"
 
 export function AppSidebar() {
+    const { isAdmin } = useUserInfo();
 
   return (
     <Sidebar className="w-64 flex-shrink-0 relative z-10 !border-none" collapsible="icon">
@@ -49,6 +51,7 @@ export function AppSidebar() {
                     </CollapsibleContent>
                 </SidebarGroup>
             </Collapsible>
+            { isAdmin && (
             <Collapsible defaultOpen className="group/collapsible">
                 <SidebarGroup>
                     <SidebarGroupLabel asChild>
@@ -75,6 +78,7 @@ export function AppSidebar() {
                     </CollapsibleContent>
                 </SidebarGroup>
             </Collapsible>
+            )}
         </SidebarContent>
         <SidebarFooter >
             <SidebarMenu>
