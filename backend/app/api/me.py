@@ -5,13 +5,17 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
 from app.storage.user import (
+    create_onboarding_row,
+    get_onboarding_status,
     get_user_accepted_terms,
     get_user_approved_status,
     get_user_by_id,
     get_user_online_status,
     is_subscriber,
+    set_welcome_sent_if_needed,
 )
 from app.logger import logger
+from app.services.brevo import add_or_update_brevo_contact
 
 router = APIRouter()
 
@@ -48,6 +52,22 @@ async def get_me(user=Depends(get_supabase_user)):
         # 2) Fetch local user row (basic user info)
         local_user = await get_user_by_id(user_id)
         logger.info(f"[ℹ️] local_user fetched: {local_user}")
+        # 2b) Check onboarding status for welcome email
+        email = user.get("email")
+        name = (user.get("user_metadata") or {}).get("name", "unknown")
+
+        try:
+            onboarding = await get_onboarding_status(user_id)
+            if not onboarding:
+                onboarding = await create_onboarding_row(user_id)
+
+            if onboarding and onboarding.get("welcome_sent") is False:
+                await add_or_update_brevo_contact(email=email, first_name=name)
+                await set_welcome_sent_if_needed(user_id)
+        except Exception as e:
+            logger.warning(f"[⚠️] Could not process welcome email for {email}: {e}")
+
+
         # 3) Fetch online status
         online_status = await get_user_online_status(user_id)
 

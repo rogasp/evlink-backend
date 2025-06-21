@@ -1,6 +1,5 @@
 'use client'
 
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import LogoLink from './LogoLink'
 import Link from 'next/link'
 import { useUserInfo } from '@/hooks/useUserInfo'
@@ -8,23 +7,16 @@ import { usePathname } from 'next/navigation'
 import NavUser from '../NavUser'
 import { OnlineStatusIcon } from './OnlineStatusIcon'
 
-export default function Navbar() {
+export default function NavbarPublic() {
   const { isLoggedIn } = useUserInfo()
   const pathname = usePathname()
   const isRoot = pathname === '/'
-  const { state } = useSidebar()
-  const isSidebarCollapsed = state === 'collapsed'
 
   return (
     <nav className="h-14 w-full bg-[#0A2245] text-white px-4 py-2 flex items-center justify-between shadow-md">
       {/* Vänster: Sidomenytrigger + logo */}
       <div className="flex items-center gap-3 h-full">
-        {!isRoot && !isSidebarCollapsed && (
-          <SidebarTrigger />
-        )}
-        { isRoot || isSidebarCollapsed && (
-          <LogoLink />
-        )}
+        <LogoLink />
       </div>
       {/* Höger: Exempelknappar */}
       <div className="flex items-center gap-4">
