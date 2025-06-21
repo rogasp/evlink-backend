@@ -8,9 +8,10 @@ import { BadgeCheck, ChevronsUpDown, LayoutDashboard, LogOut } from "lucide-reac
 import { useUserInfo } from "@/hooks/useUserInfo";
 import Link from "next/link";
 
+
 export default function NavUser() {
     const { userName, userEmail, avatarUrl, initials, logout } = useUserInfo()
-    const isMobile = false;
+    
     
     return (
         <DropdownMenu>
@@ -33,7 +34,7 @@ export default function NavUser() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side="bottom"
             align="end"
             sideOffset={4}
         >
