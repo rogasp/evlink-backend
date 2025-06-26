@@ -9,7 +9,7 @@ import stripe
 from app.api.payments import process_successful_payment_intent
 from app.config import ENODE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET  # se till att du har detta i .env
 from app.lib.webhook_logic import process_event  # lagd i separat fil för logik
-from app.storage.user import add_user_sms_credits, get_user_by_id, update_user_subscription
+from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, update_user_subscription
 from app.enode.verify import verify_signature
 from app.storage.webhook import save_webhook_event
 
@@ -18,12 +18,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-HA_BASE_URL="http://localhost:8123"
-HA_WEBHOOK_ID="01JXGCC1W9XFPPTHE0VAR34X8F"
+async def push_to_homeassistant(event: dict, user_id: str):
+    """Pusha ett enskilt event till Home Assistant via webhook-inställningar i DB."""
+    settings = get_ha_webhook_settings(user_id)
+    if not settings or not settings["ha_webhook_id"] or not settings["ha_external_url"]:
+        logger.error("HA Webhook ID/URL saknas i databasen för user_id=%s", user_id)
+        return
 
-async def push_to_homeassistant(event: dict):
-    """Pusha ett enskilt event till Home Assistant via webhook."""
-    url = f"{HA_BASE_URL}/api/webhook/{HA_WEBHOOK_ID}"
+    url = f"{settings['ha_external_url'].rstrip('/')}/api/webhook/{settings['ha_webhook_id']}"
     logger.debug("Pushing to HA webhook %s → %s", url, event)
     try:
         async with httpx.AsyncClient() as client:
@@ -69,11 +71,13 @@ async def handle_webhook(
             for idx, event in enumerate(incoming):
                 logger.info("[📥 #%d/%d] Processing webhook event: %s", idx+1, len(incoming), event.get("event"))
                 handled += await process_event(event)
-                await push_to_homeassistant(event)
+                user_id = event.get('user', {}).get('id')
+                await push_to_homeassistant(event, user_id)
         else:
             logger.info("[📥 Single] Processing webhook event: %s", incoming.get("event"))
             handled += await process_event(incoming)
-            await push_to_homeassistant(incoming)
+            user_id = incoming.get('user', {}).get('id')
+            await push_to_homeassistant(incoming, user_id)
 
         logger.info("Handled total %d events", handled)
         return {"status": "ok", "handled": handled}
