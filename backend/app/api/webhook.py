@@ -18,10 +18,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-async def push_to_homeassistant(event: dict, user_id: str):
+async def push_to_homeassistant(event: dict, user_id: str | None):
     """Pusha ett enskilt event till Home Assistant via webhook-inställningar i DB."""
+    if not user_id:
+        # Inga loggar, bara tyst return om user saknas (t.ex. systemhook)
+        return
+
     settings = get_ha_webhook_settings(user_id)
-    if not settings or not settings["ha_webhook_id"] or not settings["ha_external_url"]:
+    if not settings or not settings.get("ha_webhook_id") or not settings.get("ha_external_url"):
         logger.error("HA Webhook ID/URL saknas i databasen för user_id=%s", user_id)
         return
 
@@ -34,6 +38,7 @@ async def push_to_homeassistant(event: dict, user_id: str):
             logger.info("Successfully pushed event to HA: HTTP %s", resp.status_code)
     except Exception as e:
         logger.error("Failed to push to HA webhook: %s", e)
+
 
 @router.post("/webhook/enode")
 async def handle_webhook(
