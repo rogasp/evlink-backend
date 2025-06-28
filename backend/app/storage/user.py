@@ -363,4 +363,34 @@ async def create_onboarding_row(user_id: str) -> dict | None:
     except Exception as e:
         print(f"[❌ create_onboarding_row] {e}")
         return None
-    
+
+def set_ha_webhook_settings(user_id: str, webhook_id: str, external_url: str) -> bool:
+    """Spara Home Assistant webhook-inställningar för en användare."""
+    try:
+        result = supabase.table("users") \
+            .update({"ha_webhook_id": webhook_id, "ha_external_url": external_url}) \
+            .eq("id", user_id) \
+            .execute()
+        return result.status_code == 204
+    except Exception as e:
+        print(f"[❌ set_ha_webhook_settings] {e}")
+        return False
+
+def get_ha_webhook_settings(user_id: str) -> dict | None:
+    """Hämta Home Assistant webhook-inställningar för en användare."""
+    try:
+        result = supabase.table("users") \
+            .select("ha_webhook_id, ha_external_url") \
+            .eq("id", user_id) \
+            .maybe_single() \
+            .execute()
+
+        if result.data:
+            return {
+                "ha_webhook_id": result.data.get("ha_webhook_id"),
+                "ha_external_url": result.data.get("ha_external_url"),
+            }
+        return None
+    except Exception as e:
+        print(f"[❌ get_ha_webhook_settings] {e}")
+        return None

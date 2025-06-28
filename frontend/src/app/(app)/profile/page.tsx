@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { authFetch } from '@/lib/authFetch';
 import UserInfoCard from '@/components/profile/UserInfoCard';
 import ApiKeySection from '@/components/profile/ApiKeySection';
+import HaWebhookSettingsCard from '@/components/profile/HaWebhookSettingsCard';
 
 export default function ProfilePage() {
   const { user, accessToken, loading: authLoading, mergedUser } = useAuth();
@@ -143,6 +144,7 @@ export default function ProfilePage() {
         onToggleSubscribe={toggleSubscribe}       // Pass newsletter handler
       />
       <ApiKeySection userId={user.id} accessToken={accessToken} />
+      <HaWebhookSettingsCard userId={user.id} />
     </div>
   );
 }

@@ -11,7 +11,7 @@ from postgrest.exceptions import APIError
 
 from app.auth.api_key_auth import get_api_key_user
 from app.models.user import User
-from app.storage.vehicle import get_vehicle_by_id
+from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_id
 from app.enode.vehicle import set_vehicle_charging
 from app.api.dependencies import api_key_rate_limit
 from app.dependencies.auth import get_current_user
@@ -149,6 +149,85 @@ async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_u
         "isPluggedIn": charge.get("isPluggedIn"),
         "chargingState": charge.get("powerDeliveryState"),
         # old keys (to be used in Home Assistant)
+        "vehicleName": f"{info.get('brand', '')} {info.get('model', '')}",
+        "latitude": location.get("latitude"),
+        "longitude": location.get("longitude"),
+        "lastSeen": last_seen,
+        "isReachable": is_reachable,
+        # new full block for future Home Assistant sensors
+        "chargeState": charge,
+        "information": info,
+        "location": location,
+        "odometer": odometer,
+        "vendor": vendor,
+        "smartChargingPolicy": smart_charging_policy,
+    }
+
+@router.get("/ha/vehicles",
+            dependencies=[Depends(api_key_rate_limit)],)
+async def get_vehicles(user: User = Depends(get_api_key_user)):
+    """
+    Endpoint to get all vehicles for the current user.
+    Returns a list of vehicle IDs and names.
+    """
+    logger.info("[get_vehicles] Fetching vehicles for user_id=%s", user.id)
+
+    try:
+        vehicles = get_all_cached_vehicles(user.id)
+        logger.debug("[get_vehicles] Vehicles fetched: %s", vehicles)
+    except APIError as e:
+        _handle_api_error(e, user.id, "get_vehicles")
+    except Exception as e:
+        logger.error(
+            "[get_vehicles] Unexpected error fetching vehicles for user %s: %s",
+            user.id,
+            e,
+            exc_info=True,
+        )
+        raise HTTPException(status_code=502, detail="Error fetching vehicle data")
+
+    if not vehicles:
+        logger.warning("[get_vehicles] No vehicles found for user_id=%s", user.id)
+        return []
+
+    logger.debug("Raw vehicles: %r", vehicles)
+
+    result = []
+    for vehicle in vehicles:
+        vehicle_id = vehicle.get("vehicle_id") or vehicle.get("id")
+        if not vehicle_id:
+            logger.warning("Vehicle saknar vehicle_id eller id: %r", vehicle)
+            continue
+        result.append(unpack_vehicle(vehicle, vehicle_id))
+    return result
+    
+
+def unpack_vehicle(vehicle, vehicle_id):
+    """
+    Unpack vehicle data from the database format to a more usable format.
+    """
+    try:
+        cache = json.loads(vehicle["vehicle_cache"])
+    except json.JSONDecodeError as e:
+        logger.error(
+            "[get_vehicle_status] JSON decode error for vehicle_cache %s: %s",
+            vehicle_id,
+            e,
+            exc_info=True,
+        )
+        raise HTTPException(status_code=500, detail=f"Invalid vehicle cache: {e}")
+
+    charge = cache.get("chargeState", {})
+    info = cache.get("information", {})
+    location = cache.get("location", {})
+    last_seen = cache.get("lastSeen")
+    is_reachable = cache.get("isReachable")
+    odometer = cache.get("odometer", {})
+    vendor = cache.get("vendor")
+    smart_charging_policy = cache.get("smartChargingPolicy", {})
+
+    return {
+        "vehicleId": vehicle_id,
         "vehicleName": f"{info.get('brand', '')} {info.get('model', '')}",
         "latitude": location.get("latitude"),
         "longitude": location.get("longitude"),
