@@ -1,4 +1,3 @@
-// app/dashboard/UserAdminPage.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -11,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { authFetch } from '@/lib/authFetch';
+import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 type AdminUserView = {
   id: string;
@@ -114,37 +115,58 @@ export default function UserAdminPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {users.map(u => (
-              <tr key={u.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      {`${u.id.slice(0, 8)}...`}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <pre className="text-xs text-white">{u.id}</pre>
-                    </TooltipContent>
-                  </Tooltip>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.full_name ?? '–'}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.email}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.is_admin ? 'Yes' : 'No'}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.linked_to_enode ? '✓' : '✗'}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                  <Switch checked={u.is_approved} onCheckedChange={val => handleToggleApproval(u.id, val)} />
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                  <Button size="icon" variant="destructive" onClick={() => setConfirmDeleteId(u.id)}>
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                </td>
-              </tr>
-            ))}
-            {!loading && users.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-4 text-center text-sm text-gray-500">No users found.</td>
-              </tr>
+            {loading ? (
+              // Skeleton rows for desktop
+              [...Array(3)].map((_, idx) => (
+                <tr key={idx}>
+                  {Array.from({ length: 8 }).map((__, cIdx) => (
+                    <td key={cIdx} className="px-4 py-2">
+                      <Skeleton className="h-6 w-full bg-indigo-100" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <>
+                {users.map(u => (
+                  <tr key={u.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                      <Tooltip>
+                        <TooltipTrigger>
+                          {`${u.id.slice(0, 8)}...`}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <pre className="text-xs text-white">{u.id}</pre>
+                        </TooltipContent>
+                      </Tooltip>
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.full_name ?? '–'}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.email}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.is_admin ? 'Yes' : 'No'}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.linked_to_enode ? '✓' : '✗'}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                      <Switch checked={u.is_approved} onCheckedChange={val => handleToggleApproval(u.id, val)} />
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                      <Button size="icon" variant="destructive" onClick={() => setConfirmDeleteId(u.id)}>
+                        <Trash className="w-4 h-4" />
+                      </Button>
+                      <Link
+                        href={`/admin/users/${u.id}`}
+                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition text-center"
+                      >
+                        Edit
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+                {!loading && users.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-4 text-center text-sm text-gray-500">No users found.</td>
+                  </tr>
+                )}
+              </>
             )}
           </tbody>
         </table>
@@ -152,49 +174,77 @@ export default function UserAdminPage() {
 
       {/* Mobile Cards */}
       <div className="space-y-4 lg:hidden">
-        {users.map(u => (
-          <Card key={u.id} className="p-4">
-            <div className="flex justify-between items-center mb-2">
-              <div className="font-semibold text-gray-900">
-                <Tooltip>
-                  <TooltipTrigger>
-                    {u.full_name ?? u.email}
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <pre className="text-xs text-gray-700">{u.id}</pre>
-                  </TooltipContent>
-                </Tooltip>
+        {loading ? (
+          // Skeleton cards for mobile
+          [...Array(3)].map((_, idx) => (
+            <Card key={idx} className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <Skeleton className="h-6 w-1/3 bg-indigo-100" />
+                <Skeleton className="h-8 w-8 rounded-full bg-indigo-100" />
               </div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="icon" variant="secondary" onClick={() => setConfirmDeleteId(u.id)}>
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Confirm Deletion</DialogTitle></DialogHeader>
-                  <p>Delete user {u.email}?</p>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="ghost" onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
-                    <Button variant="destructive" onClick={confirmAndDelete}>Delete</Button>
+              <div className="space-y-1 text-sm text-gray-700">
+                <Skeleton className="h-4 w-1/2 mb-1 bg-indigo-100" />
+                <Skeleton className="h-4 w-1/2 mb-1 bg-indigo-100" />
+                <Skeleton className="h-4 w-1/3 mb-1 bg-indigo-100" />
+                <Skeleton className="h-4 w-1/3 mb-1 bg-indigo-100" />
+                <Skeleton className="h-4 w-1/3 mb-1 bg-indigo-100" />
+                <Skeleton className="h-5 w-1/3 mt-2 bg-indigo-100" />
+              </div>
+            </Card>
+          ))
+        ) : (
+          <>
+            {users.map(u => (
+              <Card key={u.id} className="p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="font-semibold text-gray-900">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {u.full_name ?? u.email}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <pre className="text-xs text-gray-700">{u.id}</pre>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <div className="space-y-1 text-sm text-gray-700">
-              <div><strong>ID:</strong> <Tooltip><TooltipTrigger>{`${u.id.slice(0,8)}...`}</TooltipTrigger><TooltipContent><pre className="text-xs text-gray-700">{u.id}</pre></TooltipContent></Tooltip></div>
-              <div><strong>Email:</strong> {u.email}</div>
-              <div><strong>Admin:</strong> {u.is_admin ? 'Yes' : 'No'}</div>
-              <div><strong>Enode:</strong> {u.linked_to_enode ? '✓' : '✗'}</div>
-              <div><strong>Connected:</strong> {u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}</div>
-              <div className="flex items-center"><strong>Approved:</strong>
-                <Switch checked={u.is_approved} onCheckedChange={val => handleToggleApproval(u.id, val)} className="ml-2" />
-              </div>
-            </div>
-          </Card>
-        ))}
-        {!loading && users.length === 0 && (
-          <div className="text-center text-gray-500 text-sm">No users found.</div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="icon" variant="secondary" onClick={() => setConfirmDeleteId(u.id)}>
+                        <Trash className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader><DialogTitle>Confirm Deletion</DialogTitle></DialogHeader>
+                      <p>Delete user {u.email}?</p>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button variant="ghost" onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
+                        <Button variant="destructive" onClick={confirmAndDelete}>Delete</Button>
+                        <Link
+                          href={`/admin/users/${u.id}`}
+                          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition text-center"
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <div className="space-y-1 text-sm text-gray-700">
+                  <div><strong>ID:</strong> <Tooltip><TooltipTrigger>{`${u.id.slice(0,8)}...`}</TooltipTrigger><TooltipContent><pre className="text-xs text-gray-700">{u.id}</pre></TooltipContent></Tooltip></div>
+                  <div><strong>Email:</strong> {u.email}</div>
+                  <div><strong>Admin:</strong> {u.is_admin ? 'Yes' : 'No'}</div>
+                  <div><strong>Enode:</strong> {u.linked_to_enode ? '✓' : '✗'}</div>
+                  <div><strong>Connected:</strong> {u.linked_at ? new Date(u.linked_at).toLocaleString() : '–'}</div>
+                  <div className="flex items-center"><strong>Approved:</strong>
+                    <Switch checked={u.is_approved} onCheckedChange={val => handleToggleApproval(u.id, val)} className="ml-2" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+            {!loading && users.length === 0 && (
+              <div className="text-center text-gray-500 text-sm">No users found.</div>
+            )}
+          </>
         )}
       </div>
 
