@@ -12,6 +12,8 @@ export type UserDetails = {
   is_subscribed: boolean;
   role: string | null;
   created_at: string | null;
+  stripe_customer_id: string | null;
+  tier: string | null;
   // ...fler fält vid behov
 };
 
@@ -47,10 +49,27 @@ export function useUserDetails(userId: string) {
       });
   }, [userId, supabase]);
 
+  // I din useUserDetails-hook
+const updateUserField = async <K extends keyof UserDetails>(field: K, value: UserDetails[K]) => {
+  // Optimistisk update
+  setUser(prev => prev ? { ...prev, [field]: value } : prev);
+  const { error } = await supabase.from('users').update({ [field]: value }).eq('id', userId);
+  if (error) {
+    // Om fel: Rulla tillbaka!
+    setUser(prev => prev ? { ...prev, [field]: !value } : prev);
+    setError(error.message);
+    return false;
+  }
+  return true;
+};
+
+
   return {
     loading,
     user,
     error,
     setUser,
+    updateUserField,
   };
 }
+
