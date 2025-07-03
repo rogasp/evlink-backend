@@ -38,3 +38,28 @@ async def update_linked_vehicle_count(user_id: str, new_count: int) -> None:
         .update({"linked_vehicle_count": new_count}) \
         .eq("id", user_id) \
         .execute()
+
+async def get_all_subscription_plans() -> list[dict]:
+    """
+    Fetch all subscription plans from the subscription_plans table.
+    Returns a list of dicts, one per plan.
+    """
+    response = supabase \
+        .table("subscription_plans") \
+        .select(
+            "id",
+            "name",
+            "description",
+            "type",
+            "stripe_product_id",
+            "stripe_price_id",
+            "amount",
+            "currency",
+            "interval",
+            "is_active",
+            "created_at",
+            "updated_at"
+        ) \
+        .order("amount", desc=False) \
+        .execute()
+    return response.data or []

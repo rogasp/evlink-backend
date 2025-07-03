@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { apiFetchSafe } from '@/lib/api';
 
-export type Tier = 'free' | 'pro' | 'fleet';
+export type Tier = "free" | "basic" | "pro" | "custom";
 
 /**
  * Custom React hook to fetch and track user authentication and subscription status.
