@@ -394,3 +394,29 @@ def get_ha_webhook_settings(user_id: str) -> dict | None:
     except Exception as e:
         print(f"[❌ get_ha_webhook_settings] {e}")
         return None
+
+async def update_user_subscription(user_id: str, tier: str, status: str = "active"):
+    """Update the user's tier (e.g. 'free', 'basic', 'pro') and status (e.g. 'active', 'canceled')."""
+    try:
+        result = supabase.table("users") \
+            .update({"tier": tier, "subscription_status": status}) \
+            .eq("id", user_id) \
+            .execute()
+        logger.info(f"[DB] Updated user {user_id} to tier {tier}, status {status}")
+        return result
+    except Exception as e:
+        logger.error(f"[❌] Failed to update user {user_id} subscription: {e}")
+        raise
+
+async def remove_stripe_customer_id(user_id: str):
+    """Set stripe_customer_id to NULL for a given user."""
+    try:
+        result = supabase.table("users") \
+            .update({"stripe_customer_id": None}) \
+            .eq("id", user_id) \
+            .execute()
+        logger.info(f"[DB] Removed stripe_customer_id for user {user_id}")
+        return result
+    except Exception as e:
+        logger.error(f"[❌] Failed to remove stripe_customer_id for user {user_id}: {e}")
+        raise
