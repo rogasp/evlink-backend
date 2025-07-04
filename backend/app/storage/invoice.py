@@ -2,8 +2,38 @@ from app.lib.supabase import get_supabase_admin_client
 from datetime import datetime, timezone
 import logging
 
+from app.storage.user import get_user_id_by_stripe_customer_id
+
 logger = logging.getLogger(__name__)
 supabase = get_supabase_admin_client()
+
+def find_subscription_id(invoice):
+    # 1. Direkt på invoice
+    sub_id = invoice.get("subscription")
+    if sub_id:
+        return sub_id
+    # 2. I lines
+    lines = invoice.get("lines", {}).get("data", [])
+    if lines:
+        line = lines[0]
+        # I Stripe-nya kan det ligga i parent > subscription_item_details
+        parent = line.get("parent")
+        if parent and isinstance(parent, dict):
+            details = parent.get("subscription_item_details")
+            if details and isinstance(details, dict):
+                sub_id = details.get("subscription")
+                if sub_id:
+                    return sub_id
+    # 3. I parent på root
+    parent = invoice.get("parent")
+    if parent and isinstance(parent, dict):
+        details = parent.get("subscription_details")
+        if details and isinstance(details, dict):
+            sub_id = details.get("subscription")
+            if sub_id:
+                return sub_id
+    # Not found
+    return None
 
 def to_iso(dt):
     if not dt:
@@ -15,18 +45,11 @@ def to_iso(dt):
         return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     return str(dt)
 
-def extract_invoice_fields(invoice, user_id=None):
-    def to_iso(ts):
-        # Stripe ger ofta sekunder, konvertera till ISO8601
-        if ts is None:
-            return None
-        if isinstance(ts, str):
-            return ts  # Kan redan vara ISO
-        try:
-            return datetime.utcfromtimestamp(ts).isoformat() + "Z"
-        except Exception:
-            return None
-
+async def extract_invoice_fields(invoice, user_id=None):
+    subscription_id = find_subscription_id(invoice)
+    stripe_customer_id = invoice.get("customer")
+    if not user_id:
+        user_id = await get_user_id_by_stripe_customer_id(stripe_customer_id)
     # Hosted/PDF/receipt
     hosted_invoice_url = invoice.get("hosted_invoice_url")
     pdf_url = invoice.get("invoice_pdf")
@@ -46,7 +69,7 @@ def extract_invoice_fields(invoice, user_id=None):
     return {
         "invoice_id": invoice.get("id"),
         "user_id": user_id,
-        "subscription_id": invoice.get("subscription"),
+        "subscription_id": subscription_id,
         "stripe_customer_id": invoice.get("customer"),
         "stripe_payment_intent_id": invoice.get("payment_intent"),
         "amount_due": invoice.get("amount_due") or invoice.get("total"),
@@ -66,7 +89,7 @@ async def upsert_invoice_from_stripe(invoice, user_id=None):
     supabase = get_supabase_admin_client()
 
     # 1. Plocka ut alla fält säkert
-    data = extract_invoice_fields(invoice, user_id)
+    data = await extract_invoice_fields(invoice, user_id)
     if not data:
         logger.error("[❌] Invoice upsert: No data extracted!")
         return

@@ -9,7 +9,7 @@ import httpx
 from app.api.payments import process_successful_payment_intent
 from app.config import ENODE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET  # se till att du har detta i .env
 from app.lib.webhook_logic import process_event  # lagd i separat fil för logik
-from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, remove_stripe_customer_id, update_user_subscription
+from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription
 from app.storage.subscription import update_subscription_status, upsert_subscription_from_stripe
 from app.enode.verify import verify_signature
 from app.storage.webhook import save_webhook_event
@@ -203,6 +203,10 @@ async def stripe_webhook(
         metadata = getattr(subscription, "metadata", {}) or subscription.get("metadata", {}) or {}
         user_id = metadata.get("user_id")
         
+        if not user_id and customer_id:
+            user_id = await get_user_id_by_stripe_customer_id(customer_id)
+            logger.info(f"[ℹ️] Fetched user_id={user_id} via stripe_customer_id={customer_id}")
+
         logger.info(
             f"[🛑] Subscription canceled: subscription_id={subscription_id}, user_id={user_id}, customer_id={customer_id}"
         )

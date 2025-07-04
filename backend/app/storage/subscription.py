@@ -2,62 +2,65 @@
 import logging
 from datetime import datetime
 from app.lib.supabase import get_supabase_admin_client
+from app.storage.user import get_user_id_by_stripe_customer_id
 
 # Initialize Supabase admin client
 supabase = get_supabase_admin_client()
 logger = logging.getLogger(__name__)
 
 def to_iso(ts):
-    """Convert UNIX timestamp (eller ISO) till ISO8601-tid med UTC."""
+    from datetime import datetime, timezone
     if not ts:
         return None
     try:
-        if isinstance(ts, int) or ts.isdigit():
-            return datetime.fromtimestamp(int(ts), tz=timezone.utc).isoformat()
-        elif isinstance(ts, float):
-            return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-        elif isinstance(ts, str):
-            # Redan ISO-format?
-            return ts
+        return datetime.fromtimestamp(ts, timezone.utc).isoformat()
     except Exception as e:
         logger.warning(f"Could not convert timestamp {ts}: {e}")
         return None
 
-def extract_subscription_fields(sub, user_id=None):
+async def extract_subscription_fields(sub, user_id=None):
     """
-    Extract and normalize fields from a Stripe subscription object.
+    Extracts and normalizes subscription fields from Stripe subscription object.
     """
-    stripe_customer_id = sub.get("customer")
-    if not user_id and stripe_customer_id:
-        # Hämta user_id från users-tabellen (Supabase)
-        user = supabase.table("users").select("id").eq("stripe_customer_id", stripe_customer_id).maybe_single().execute()
-        if user and getattr(user, "data", None):
-            user_id = user.data.get("id")
+    if hasattr(sub, "metadata") and sub.metadata:
+        user_id = sub.metadata.get("user_id")
+    elif isinstance(sub.get("metadata"), dict):
+        user_id = sub.get("metadata").get("user_id")
+    # Om user_id saknas, slå upp via Stripe customer
+    if not user_id and sub.get("customer"):
+        user_id = await get_user_id_by_stripe_customer_id(sub.get("customer"))
 
+    # Hämta första item (det är alltid den aktiva produkten/priset)
     items = sub.get("items", {}).get("data", [])
-    plan_name = None
-    price_id = None
-    if items:
-        plan = items[0].get("plan", {})
-        plan_name = plan.get("nickname") or plan.get("id")
-        price_id = plan.get("id")
-    else:
-        plan = sub.get("plan", {})
-        plan_name = plan.get("nickname") or plan.get("id")
-        price_id = plan.get("id")
+    period_start = period_end = None
+    plan_name = price_id = None
+    if items and len(items) > 0:
+        first = items[0]
+        period_start = first.get("current_period_start")
+        period_end = first.get("current_period_end")
+        # Plan/pris info
+        plan_name = (
+            first.get("plan", {}).get("nickname") or
+            first.get("plan", {}).get("id") or
+            first.get("price", {}).get("id")
+        )
+        price_id = (
+            first.get("plan", {}).get("id") or
+            first.get("price", {}).get("id")
+        )
 
     return {
         "subscription_id": sub.get("id"),
-        "user_id": user_id,
+        "user_id": user_id,  # Om du får in None, överväg att slå upp user via stripe_customer_id om möjligt!
         "stripe_customer_id": sub.get("customer"),
         "status": sub.get("status"),
         "plan_name": plan_name,
         "price_id": price_id,
-        "current_period_start": to_iso(sub.get("current_period_start")),
-        "current_period_end": to_iso(sub.get("current_period_end")),
-        "latest_invoice": sub.get("latest_invoice"),
-        "metadata": sub.get("metadata") if sub.get("metadata") else {},
+        "current_period_start": to_iso(period_start),
+        "current_period_end": to_iso(period_end),
         "created_at": to_iso(sub.get("created")),
+        "latest_invoice": sub.get("latest_invoice"),
+        "metadata": sub.get("metadata", {}),
     }
 
 async def get_user_record(user_id: str) -> dict:
@@ -135,7 +138,7 @@ async def update_subscription_status(subscription_id: str, status: str):
     try:
         result = supabase.table("subscriptions") \
             .update({"status": status}) \
-            .eq("stripe_subscription_id", subscription_id) \
+            .eq("subscription_id", subscription_id) \
             .execute()
         logger.info(f"[DB] Updated subscription {subscription_id} to status {status}")
         return result
@@ -144,32 +147,29 @@ async def update_subscription_status(subscription_id: str, status: str):
         raise
 
 async def upsert_subscription_from_stripe(sub, user_id=None):
-    """
-    Upsert a Stripe subscription event into the subscriptions table.
-    """
-    data = extract_subscription_fields(sub, user_id)
+    supabase = get_supabase_admin_client()
+    # 1. Plocka ut alla fält
+    data = await extract_subscription_fields(sub, user_id)
     if not data:
         logger.error("[❌] Subscription upsert: No data extracted!")
-        return
+        return False
 
+    # 2. Kontrollera så subscription_id finns
     subscription_id = data.get("subscription_id")
     if not subscription_id:
         logger.error("[❌] Subscription upsert: subscription_id missing!")
-        return
+        return False
 
-    try:
-        # Kolla om subscription finns redan
-        result = supabase.table("subscriptions").select("id").eq("subscription_id", subscription_id).execute()
-        logger.info(f"[🔎] Subscription upsert: select result: {result.data if hasattr(result, 'data') else result}")
-        exists = result and hasattr(result, "data") and result.data and len(result.data) > 0
+    # 3. Finns redan?
+    result = supabase.table("subscriptions").select("id").eq("subscription_id", subscription_id).execute()
+    logger.info(f"[🔎] Subscription upsert: select result: {result.data if hasattr(result, 'data') else result}")
+    exists = result and hasattr(result, "data") and result.data and len(result.data) > 0
 
-        if exists:
-            update_result = supabase.table("subscriptions").update(data).eq("subscription_id", subscription_id).execute()
-            logger.info(f"[📝] Subscription {subscription_id} updated: {update_result.data if hasattr(update_result, 'data') else update_result}")
-        else:
-            insert_result = supabase.table("subscriptions").insert(data).execute()
-            logger.info(f"[➕] Subscription {subscription_id} inserted: {insert_result.data if hasattr(insert_result, 'data') else insert_result}")
-    except Exception as e:
-        logger.error(f"[❌] Subscription upsert failed for {subscription_id}: {e}")
+    if exists:
+        update_result = supabase.table("subscriptions").update(data).eq("subscription_id", subscription_id).execute()
+        logger.info(f"[📝] Subscription {subscription_id} updated: {getattr(update_result, 'data', update_result)}")
+    else:
+        insert_result = supabase.table("subscriptions").insert(data).execute()
+        logger.info(f"[➕] Subscription {subscription_id} inserted: {getattr(insert_result, 'data', insert_result)}")
 
     return True

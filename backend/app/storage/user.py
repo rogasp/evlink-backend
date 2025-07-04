@@ -52,7 +52,6 @@ async def get_all_users_with_enode_info():
         logger.error(f"[❌ get_all_users_with_enode_info] {e}")
         return []
 
-
 async def set_user_approval(user_id: str, is_approved: bool) -> None:
     """
     Update the `is_approved` column for a given user.
@@ -70,7 +69,6 @@ async def set_user_approval(user_id: str, is_approved: bool) -> None:
         logger.error(f"[❌ set_user_approval] {e}")
         raise
 
-
 async def get_user_approved_status(user_id: str) -> bool:
     """
     Return the `is_approved` status for a given user ID.
@@ -84,7 +82,6 @@ async def get_user_approved_status(user_id: str) -> bool:
         logger.error(f"[❌ get_user_approved_status] {e}")
         return False
 
-
 async def get_user_accepted_terms(user_id: str) -> bool:
     """
     Return the `accepted_terms` status for a given user ID.
@@ -97,7 +94,6 @@ async def get_user_accepted_terms(user_id: str) -> bool:
     except Exception as e:
         logger.error(f"[❌ get_user_accepted_terms] {e}")
         return False
-
 
 async def get_user_by_id(user_id: str) -> User | None:
     """
@@ -184,7 +180,6 @@ async def get_user_online_status(user_id: str) -> str:
         logger.error(f"[❌ get_user_online_status] {e}")
         return "grey"
 
-
 async def update_user_terms(user_id: str, accepted_terms: bool):
     """
     Update the `accepted_terms` column for a given user.
@@ -196,7 +191,6 @@ async def update_user_terms(user_id: str, accepted_terms: bool):
     except Exception as e:
         logger.error(f"[❌ update_user_terms] {e}")
         raise
-
 
 async def update_notify_offline(user_id: str, notify_offline: bool):
     """
@@ -420,3 +414,10 @@ async def remove_stripe_customer_id(user_id: str):
     except Exception as e:
         logger.error(f"[❌] Failed to remove stripe_customer_id for user {user_id}: {e}")
         raise
+
+async def get_user_id_by_stripe_customer_id(stripe_customer_id):
+    supabase = get_supabase_admin_client()
+    result = supabase.table("users").select("id").eq("stripe_customer_id", stripe_customer_id).execute()
+    if result and hasattr(result, "data") and result.data:
+        return result.data[0]["id"]
+    return None
