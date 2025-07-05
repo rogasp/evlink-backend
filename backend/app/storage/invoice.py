@@ -115,3 +115,8 @@ async def upsert_invoice_from_stripe(invoice, user_id=None):
         logger.info(f"[➕] Invoice {invoice_id} inserted: {insert_result}")
 
     return True
+
+async def get_user_invoices(user_id: str) -> list[dict]:
+    supabase = get_supabase_admin_client()
+    res = supabase.table("invoices").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+    return res.data if hasattr(res, "data") else []

@@ -173,3 +173,8 @@ async def upsert_subscription_from_stripe(sub, user_id=None):
         logger.info(f"[➕] Subscription {subscription_id} inserted: {getattr(insert_result, 'data', insert_result)}")
 
     return True
+
+async def get_user_subscription(user_id: str) -> dict | None:
+    supabase = get_supabase_admin_client()
+    res = supabase.table("subscriptions").select("*").eq("user_id", user_id).maybe_single().execute()
+    return res.data if hasattr(res, "data") else None

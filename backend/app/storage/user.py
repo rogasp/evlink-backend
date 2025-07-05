@@ -421,3 +421,4 @@ async def get_user_id_by_stripe_customer_id(stripe_customer_id):
     if result and hasattr(result, "data") and result.data:
         return result.data[0]["id"]
     return None
+

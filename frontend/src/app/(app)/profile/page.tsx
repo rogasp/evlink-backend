@@ -1,74 +1,90 @@
-// frontend/app/(user)/profile/page.tsx
-
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { supabase } from '@/lib/supabaseClient';
-import { authFetch } from '@/lib/authFetch';
+// src/app/(user)/profile/page.tsx
+
+import UserInfoCardSkeleton from '@/components/profile/UserInfoCardSkeleton'
+import ApiKeySectionSkeleton from '@/components/profile/ApiKeySectionSkeleton'
+import HaWebhookSettingsCardSkeleton from '@/components/profile/HaWebhookSettingsCardSkeleton'
+import BillingCardSkeleton from '@/components/profile/BillingCardSkeleton'
 import UserInfoCard from '@/components/profile/UserInfoCard';
+import { useUserContext } from '@/contexts/UserContext';
+import { useBillingInfo } from '@/hooks/useBillingInfo';
+import { useEffect, useState } from 'react';
+import { authFetch } from '@/lib/authFetch';
+import { toast } from 'sonner';
 import ApiKeySection from '@/components/profile/ApiKeySection';
 import HaWebhookSettingsCard from '@/components/profile/HaWebhookSettingsCard';
+import BillingCard from '@/components/profile/BillingCard';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
-  const { user, accessToken, loading: authLoading, mergedUser } = useAuth();
+  const { user, mergedUser, loading, accessToken } = useUserContext();
+  const { subscription, invoices, loadingBilling } = useBillingInfo(user?.id, accessToken);
 
-  const [name, setName] = useState('');
   const [notifyOffline, setNotifyOffline] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState(false); // NEW: state for newsletter subscription
+  const [notifyLoading, setNotifyLoading] = useState(false)
+  
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribeLoading, setSubscribeLoading] = useState(false)
 
-  // Initialize name, notifyOffline, and isSubscribed from mergedUser
+  const router = useRouter();
+
   useEffect(() => {
-    if (mergedUser?.name) {
-      setName(mergedUser.name);
-    }
     if (mergedUser?.notify_offline !== undefined) {
       setNotifyOffline(mergedUser.notify_offline);
     }
-    if (mergedUser?.is_subscribed !== undefined) {
-      setIsSubscribed(mergedUser.is_subscribed);
-    }
   }, [mergedUser]);
 
-  // Handler to save updated name
-  const saveName = async (newName: string) => {
-    if (!newName.trim()) {
-      toast.error('Name cannot be empty');
-      return;
-    }
+  useEffect(() => {
+    // Only run if accessToken exists
+    if (!accessToken) return;
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      data: { name: newName },
-    });
+    setSubscribeLoading(true);
 
-    if (updateError) {
-      toast.error('Failed to update name');
-      return;
-    }
+    authFetch('/newsletter/manage/status', {
+      method: 'GET',
+      accessToken,
+    })
+      .then(({ data, error }) => {
+        if (error) {
+          throw error;
+        }
+        setIsSubscribed(!!data?.is_subscribed); // Fallback to false if undefined
+      })
+      .catch(() => {
+        toast.error('Could not check newsletter status');
+      })
+      .finally(() => {
+        setSubscribeLoading(false);
+      });
+  }, [accessToken]);
 
-    setName(newName);
 
-    const { data, error: fetchError } = await supabase.auth.getUser();
+  if (loading || !user || !accessToken) {
+    return (
+    <div className="container py-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
+          <UserInfoCardSkeleton />
+          <ApiKeySectionSkeleton />
+          <HaWebhookSettingsCardSkeleton />
+        </div>
+        <div className="flex flex-col gap-4">
+          <BillingCardSkeleton />
+        </div>
+      </div>
+    </div>
+  )
+  }
 
-    if (fetchError || !data.user) {
-      toast.success('Name updated, but could not refresh user data');
-    } else {
-      toast.success('Name updated!');
-    }
-  };
-
-  // Handler to toggle notifyOffline setting
-  const toggleNotify = async (checked: boolean) => {
-    if (!accessToken || !user?.id) return;
-
+  const handleToggleNotify = async (checked: boolean) => {
+    setNotifyLoading(true)
+    // Skicka PATCH till backend
     const { error } = await authFetch(`/user/${user.id}/notify`, {
       method: 'PATCH',
-      accessToken,
+      accessToken, // ditt token från context eller prop
       body: JSON.stringify({ notify_offline: checked }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
 
     if (error) {
@@ -81,70 +97,112 @@ export default function ProfilePage() {
           : 'Notifications disabled.'
       );
     }
-  };
+    setNotifyLoading(false)
+  }
 
-  // NEW: Handler to toggle newsletter subscription
-  const toggleSubscribe = async (checked: boolean) => {
-    if (!accessToken || !user?.email) return;
+  const handleToggleNewsletter = async (checked: boolean) => {
+    if (!accessToken || !user?.email) {
+      toast.error('User or access token missing');
+      return;
+    }
+
+    setSubscribeLoading(true);
 
     try {
-      if (checked) {
-        // Subscribe to newsletter
-        const { error } = await authFetch('/newsletter/manage/subscribe', {
-          method: 'POST',
-          accessToken,
-          body: JSON.stringify({ email: user.email }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        if (error) {
-          toast.error('Failed to subscribe to newsletter');
-          return;
-        }
-        toast.success('Subscribed to newsletter');
-      } else {
-        // Unsubscribe from newsletter
-        const { error } = await authFetch('/newsletter/manage/unsubscribe', {
-          method: 'POST',
-          accessToken,
-          body: JSON.stringify({ email: user.email }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        if (error) {
-          toast.error('Failed to unsubscribe from newsletter');
-          return;
-        }
-        toast.success('Unsubscribed from newsletter');
-      }
+      const endpoint = checked
+        ? '/newsletter/manage/subscribe'
+        : '/newsletter/manage/unsubscribe';
+
+      const { error } = await authFetch(endpoint, {
+        method: 'POST',
+        accessToken,
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      if (error) throw new Error(error.message || 'Failed');
+
       setIsSubscribed(checked);
-    } catch (e) {
-      console.error('Error toggling subscription:', e);
-      toast.error('Unexpected error toggling subscription');
+      toast.success(
+        checked
+          ? 'You are now subscribed to the newsletter.'
+          : 'You have unsubscribed from the newsletter.'
+      );
+    } catch (error) {
+      let errorMessage = 'Could not update subscription';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setSubscribeLoading(false);
     }
   };
 
-  // Wait until auth state and mergedUser are loaded
-  if (authLoading || !user || !accessToken || name === '') return null;
+
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-10">
-      <UserInfoCard
-        userId={user.id}
-        email={user.email ?? ''}
-        name={name}
-        tier={mergedUser?.tier ?? 'Free'}
-        smsCredits={mergedUser?.sms_credits ?? 0}
-        notifyOffline={notifyOffline}
-        isSubscribed={isSubscribed}               // Pass subscription state
-        onNameSave={saveName}
-        onToggleNotify={toggleNotify}
-        onToggleSubscribe={toggleSubscribe}       // Pass newsletter handler
-      />
-      <ApiKeySection userId={user.id} accessToken={accessToken} />
-      <HaWebhookSettingsCard userId={user.id} />
+    <div className="container py-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
+          {(loading || !user || !mergedUser)
+            ? <UserInfoCardSkeleton />
+            : 
+            <UserInfoCard
+              userId={user.id}
+              name={mergedUser.name ?? ''}
+              email={user.email ?? ''}
+              tier={mergedUser.tier?.toUpperCase() ?? 'FREE'}
+              smsCredits={mergedUser.sms_credits ?? 0}
+              notifyOffline={notifyOffline}
+              notifyLoading={notifyLoading}
+              isSubscribed={isSubscribed}
+              subscribeLoading={subscribeLoading}
+              avatarUrl={user.user_metadata?.avatar_url ?? null} // Om du har denna i user/mergedUser
+              onNameSave={() => {}} // Byt ut till riktig save-funktion senare
+              onToggleNotify={handleToggleNotify} // Byt ut till riktig toggle-funktion senare
+              onToggleSubscribe={handleToggleNewsletter} // Byt ut till riktig toggle-funktion senare
+            />
+
+          }
+          {(!user || !accessToken)
+            ? 
+              <>
+                <ApiKeySectionSkeleton />
+                <HaWebhookSettingsCardSkeleton />
+              </>
+            : 
+              <>
+                <ApiKeySection 
+                  userId={user.id} 
+                  accessToken={accessToken}
+                />
+                <HaWebhookSettingsCard 
+                  userId={user.id} 
+                  accessToken={accessToken} 
+                />
+              </>
+          }
+        </div>
+        <div className="flex flex-col gap-4">
+          {
+            (loadingBilling || !subscription || !invoices) 
+              ? 
+                <BillingCardSkeleton />
+              :
+                <BillingCard
+                  subscriptionPlan={subscription?.plan_name ?? "Free"}
+                  price={subscription && subscription.amount && subscription.currency
+                    ? `${(subscription.amount / 100).toFixed(2)} ${subscription.currency.toUpperCase()}`
+                    : "—"}
+                  nextBillingDate={subscription?.current_period_end ?? undefined}
+                  current_period_start={subscription?.current_period_start ?? undefined}
+                  current_period_end={subscription?.current_period_end ?? undefined}
+                  invoices={invoices}
+                  onManageClick={() => router.push('/billing')}
+                />
+          }
+        </div>
+      </div>
     </div>
-  );
+  )
 }

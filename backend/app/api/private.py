@@ -1,6 +1,6 @@
 # 📄 backend/app/api/private.py
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from datetime import datetime, timezone, timedelta
 
 from pydantic import BaseModel
@@ -8,12 +8,14 @@ from app.auth.supabase_auth import get_supabase_user
 from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
-from app.storage.subscription import get_user_record 
-from app.storage.user import get_onboarding_status, update_notify_offline, update_user_terms
+from app.storage.subscription import get_user_record, get_user_subscription 
+from app.storage.user import get_ha_webhook_settings, get_onboarding_status, set_ha_webhook_settings, update_notify_offline, update_user_terms
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
+from app.storage.invoice import get_user_invoices
 
 import json
 import logging
+
 
 # Create a module-specific logger
 logger = logging.getLogger(__name__)
@@ -238,3 +240,51 @@ async def get_user_onboarding_status(
     else:
         logger.warning(f"⚠️ No onboarding data found for user {user_id}")
         return {"status": "not_started"}
+
+@router.get("/user/{user_id}/webhook")
+async def api_get_webhook(user_id: str, user=Depends(get_supabase_user)):
+    if user["id"] != user_id and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Not allowed")
+    webhook = get_ha_webhook_settings(user_id)
+    if webhook is None:
+        raise HTTPException(status_code=404, detail="Webhook not found")
+    return webhook
+
+@router.patch("/user/{user_id}/webhook")
+async def api_patch_webhook(
+    user_id: str,
+    body: dict = Body(...),
+    user=Depends(get_supabase_user)
+):
+    if user["id"] != user_id and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Not allowed")
+    url = body.get("webhook_url")
+    webhook_id = body.get("webhook_id")
+    if url is None or webhook_id is None:
+        raise HTTPException(status_code=400, detail="Missing webhook_url or webhook_id")
+    updated = set_ha_webhook_settings(user_id, url, webhook_id)
+    return updated
+
+@router.get("/user/{user_id}/subscription")
+async def api_get_user_subscription(
+    user_id: str,
+    user=Depends(get_supabase_user)
+):
+    # Endast tillåt att användaren hämtar sin egen eller admin
+    if user["id"] != user_id and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    sub = await get_user_subscription(user_id)
+    if not sub:
+        return {}
+    return sub
+
+@router.get("/user/{user_id}/invoices")
+async def api_get_user_invoices(
+    user_id: str,
+    user=Depends(get_supabase_user)
+):
+    # Endast tillåt att användaren hämtar sin egen eller admin
+    if user["id"] != user_id and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    invoices = await get_user_invoices(user_id)
+    return invoices or []
