@@ -17,7 +17,7 @@ interface MergedUser {
   is_subscribed?: boolean;
   stripe_customer_id?: string;
   sms_credits?: number;
-  tier?: 'free' | 'pro';
+  tier?: 'free' | 'basic' | 'pro';
 }
 
 type UserContextType = {
@@ -25,7 +25,7 @@ type UserContextType = {
   mergedUser: MergedUser | null;
   accessToken: string | null;
   loading: boolean;
-  refreshUser: () => Promise<void>;
+  refreshUser: (showSkeleton?: boolean) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -35,9 +35,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [mergedUser, setMergedUser] = useState<MergedUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  const fetchUserAndMe = async () => {
-    setLoading(true);
+  // Uppdaterad fetchUserAndMe som kan hantera om skeleton ska visas eller ej
+  const fetchUserAndMe = async (showSkeleton = false) => {
+    if (showSkeleton) setLoading(true);
     const { data: { session }, error } = await supabase.auth.getSession();
     if (!session || error) {
       setUser(null);
@@ -57,16 +59,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
     setLoading(false);
+    setHasLoadedOnce(true);
   };
 
   useEffect(() => {
-    fetchUserAndMe();
-    // Listen to Supabase auth changes
+    // Första laddning: visa skeleton
+    fetchUserAndMe(true);
+
+    // Lyssna på Supabase auth changes (refresh eller login/logout)
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.access_token) {
         setAccessToken(session.access_token);
         setUser(session.user);
-        fetchUserAndMe();
+        // Bara uppdatera, visa ej skeleton
+        fetchUserAndMe(false);
       } else {
         setUser(null);
         setMergedUser(null);
@@ -79,7 +85,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, mergedUser, accessToken, loading, refreshUser: fetchUserAndMe }}>
+    <UserContext.Provider value={{
+      user,
+      mergedUser,
+      accessToken,
+      loading: !hasLoadedOnce ? loading : false,
+      refreshUser: fetchUserAndMe,
+    }}>
       {children}
     </UserContext.Provider>
   );

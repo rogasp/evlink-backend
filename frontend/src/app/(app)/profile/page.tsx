@@ -1,11 +1,10 @@
 'use client';
 
-// src/app/(user)/profile/page.tsx
+import UserInfoCardSkeleton from '@/components/profile/UserInfoCardSkeleton';
+import ApiKeySectionSkeleton from '@/components/profile/ApiKeySectionSkeleton';
+import HaWebhookSettingsCardSkeleton from '@/components/profile/HaWebhookSettingsCardSkeleton';
+import BillingCardSkeleton from '@/components/profile/BillingCardSkeleton';
 
-import UserInfoCardSkeleton from '@/components/profile/UserInfoCardSkeleton'
-import ApiKeySectionSkeleton from '@/components/profile/ApiKeySectionSkeleton'
-import HaWebhookSettingsCardSkeleton from '@/components/profile/HaWebhookSettingsCardSkeleton'
-import BillingCardSkeleton from '@/components/profile/BillingCardSkeleton'
 import UserInfoCard from '@/components/profile/UserInfoCard';
 import { useUserContext } from '@/contexts/UserContext';
 import { useBillingInfo } from '@/hooks/useBillingInfo';
@@ -22,10 +21,10 @@ export default function ProfilePage() {
   const { subscription, invoices, loadingBilling } = useBillingInfo(user?.id, accessToken);
 
   const [notifyOffline, setNotifyOffline] = useState(false);
-  const [notifyLoading, setNotifyLoading] = useState(false)
-  
+  const [notifyLoading, setNotifyLoading] = useState(false);
+
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscribeLoading, setSubscribeLoading] = useState(false)
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
 
   const router = useRouter();
 
@@ -59,30 +58,29 @@ export default function ProfilePage() {
       });
   }, [accessToken]);
 
-
   if (loading || !user || !accessToken) {
     return (
-    <div className="container py-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="flex flex-col gap-4">
-          <UserInfoCardSkeleton />
-          <ApiKeySectionSkeleton />
-          <HaWebhookSettingsCardSkeleton />
-        </div>
-        <div className="flex flex-col gap-4">
-          <BillingCardSkeleton />
+      <div className="container py-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-4">
+            <UserInfoCardSkeleton />
+            <ApiKeySectionSkeleton />
+            <HaWebhookSettingsCardSkeleton />
+          </div>
+          <div className="flex flex-col gap-4">
+            <BillingCardSkeleton />
+          </div>
         </div>
       </div>
-    </div>
-  )
+    );
   }
 
   const handleToggleNotify = async (checked: boolean) => {
-    setNotifyLoading(true)
+    setNotifyLoading(true);
     // Skicka PATCH till backend
     const { error } = await authFetch(`/user/${user.id}/notify`, {
       method: 'PATCH',
-      accessToken, // ditt token från context eller prop
+      accessToken,
       body: JSON.stringify({ notify_offline: checked }),
       headers: { 'Content-Type': 'application/json' },
     });
@@ -97,8 +95,8 @@ export default function ProfilePage() {
           : 'Notifications disabled.'
       );
     }
-    setNotifyLoading(false)
-  }
+    setNotifyLoading(false);
+  };
 
   const handleToggleNewsletter = async (checked: boolean) => {
     if (!accessToken || !user?.email) {
@@ -138,71 +136,48 @@ export default function ProfilePage() {
     }
   };
 
-
-
   return (
     <div className="container py-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-4">
-          {(loading || !user || !mergedUser)
-            ? <UserInfoCardSkeleton />
-            : 
-            <UserInfoCard
-              userId={user.id}
-              name={mergedUser.name ?? ''}
-              email={user.email ?? ''}
-              tier={mergedUser.tier?.toUpperCase() ?? 'FREE'}
-              smsCredits={mergedUser.sms_credits ?? 0}
-              notifyOffline={notifyOffline}
-              notifyLoading={notifyLoading}
-              isSubscribed={isSubscribed}
-              subscribeLoading={subscribeLoading}
-              avatarUrl={user.user_metadata?.avatar_url ?? null} // Om du har denna i user/mergedUser
-              onNameSave={() => {}} // Byt ut till riktig save-funktion senare
-              onToggleNotify={handleToggleNotify} // Byt ut till riktig toggle-funktion senare
-              onToggleSubscribe={handleToggleNewsletter} // Byt ut till riktig toggle-funktion senare
-            />
-
-          }
-          {(!user || !accessToken)
-            ? 
-              <>
-                <ApiKeySectionSkeleton />
-                <HaWebhookSettingsCardSkeleton />
-              </>
-            : 
-              <>
-                <ApiKeySection 
-                  userId={user.id} 
-                  accessToken={accessToken}
-                />
-                <HaWebhookSettingsCard 
-                  userId={user.id} 
-                  accessToken={accessToken} 
-                />
-              </>
-          }
+          <UserInfoCard
+            userId={user.id}
+            name={mergedUser?.name ?? ''}
+            email={user.email ?? ''}
+            tier={mergedUser?.tier?.toUpperCase() ?? 'FREE'}
+            smsCredits={mergedUser?.sms_credits ?? 0}
+            notifyOffline={notifyOffline}
+            notifyLoading={notifyLoading}
+            isSubscribed={isSubscribed}
+            subscribeLoading={subscribeLoading}
+            avatarUrl={user.user_metadata?.avatar_url ?? null}
+            onNameSave={() => {}} // Byt ut till riktig save-funktion senare
+            onToggleNotify={handleToggleNotify}
+            onToggleSubscribe={handleToggleNewsletter}
+          />
+          <ApiKeySection userId={user.id} accessToken={accessToken} />
+          <HaWebhookSettingsCard userId={user.id} accessToken={accessToken} />
         </div>
         <div className="flex flex-col gap-4">
-          {
-            (loadingBilling || !subscription || !invoices) 
-              ? 
-                <BillingCardSkeleton />
-              :
-                <BillingCard
-                  subscriptionPlan={subscription?.plan_name ?? "Free"}
-                  price={subscription && subscription.amount && subscription.currency
-                    ? `${(subscription.amount / 100).toFixed(2)} ${subscription.currency.toUpperCase()}`
-                    : "—"}
-                  nextBillingDate={subscription?.current_period_end ?? undefined}
-                  current_period_start={subscription?.current_period_start ?? undefined}
-                  current_period_end={subscription?.current_period_end ?? undefined}
-                  invoices={invoices}
-                  onManageClick={() => router.push('/billing')}
-                />
-          }
+          {loadingBilling || !subscription || !invoices ? (
+            <BillingCardSkeleton />
+          ) : (
+            <BillingCard
+              subscriptionPlan={subscription?.plan_name ?? 'Free'}
+              price={
+                subscription && subscription.amount && subscription.currency
+                  ? `${(subscription.amount / 100).toFixed(2)} ${subscription.currency.toUpperCase()}`
+                  : '—'
+              }
+              nextBillingDate={subscription?.current_period_end ?? undefined}
+              current_period_start={subscription?.current_period_start ?? undefined}
+              current_period_end={subscription?.current_period_end ?? undefined}
+              invoices={invoices}
+              onManageClick={() => router.push('/billing')}
+            />
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 }
