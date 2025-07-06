@@ -1,7 +1,7 @@
 import stripe
 import logging
 from app.config import STRIPE_SECRET_KEY
-from app.lib.supabase import get_supabase_admin_client
+from app.lib.supabase import get_supabase_admin_client # Antar att denna import är korrekt
 
 logger = logging.getLogger("app.services.stripe_utils")
 
@@ -132,10 +132,13 @@ async def sync_stripe_plans_to_db():
     logger.info(f"[Stripe] Synced plans: inserted={count_inserted}, updated={count_updated}")
     return {"inserted": count_inserted, "updated": count_updated}
 
-async def change_user_subscription_plan(subscription_id: str, new_price_id: str, user_id: str):
-    logger.info(f"[Stripe] Changing subscription {subscription_id} to new price {new_price_id}")
-    subscription = stripe.Subscription.retrieve(subscription_id)
-    current_item = subscription["items"]["data"][0]
+async def change_user_subscription_plan(subscription_obj: stripe.Subscription, new_price_id: str, user_id: str):
+    """
+    Handles the actual Stripe API call for changing a subscription plan (upgrade or downgrade).
+    Receives the initial subscription object.
+    """
+    subscription_id = subscription_obj.id
+    current_item = subscription_obj["items"]["data"][0]
     current_price_id = current_item["price"]["id"]
     current_unit_amount = current_item["price"]["unit_amount"]
     new_price = stripe.Price.retrieve(new_price_id)
@@ -148,34 +151,121 @@ async def change_user_subscription_plan(subscription_id: str, new_price_id: str,
     try:
         if is_upgrade:
             logger.info(f"[⬆️] Upgrading (immediate/prorate)")
-            return stripe.Subscription.modify(
+
+            updated_subscription = stripe.Subscription.modify(
                 subscription_id,
                 items=[{
                     'id': current_item["id"],
                     'price': new_price_id,
                 }],
-                proration_behavior="create_prorations",
+                proration_behavior="always_invoice",
                 cancel_at_period_end=False,
                 metadata={
                     "changed_by": user_id,
                     "upgrade_type": "upgrade"
                 }
             )
-        else:
+
+            logger.info(f"[✅] Subscription upgraded immediately. Subscription ID: {updated_subscription.id}")
+
+            stripe_customer_id = updated_subscription["customer"]
+            logger.info(f"[DEBUG_TRACE] After subscription modify, customer ID: {stripe_customer_id}")
+
+            pending_invoice_items = stripe.InvoiceItem.list(
+                customer=stripe_customer_id,
+                pending=True
+            )
+
+            logger.info(f"[DEBUG_TRACE] Before pending_invoice_items.data check.")
+            logger.info(f"[DEBUG] Pending invoice items found: {len(pending_invoice_items.data)}")
+            for item in pending_invoice_items.data:
+                logger.info(f"[DEBUG] Pending item: {item.id}, Amount: {item.amount}, Description: {item.description}")
+            logger.info(f"[DEBUG_TRACE] After pending_invoice_items loop.")
+
+            if pending_invoice_items.data:
+                logger.info(f"[DEBUG_TRACE] Inside pending_invoice_items.data block.")
+                invoice = stripe.Invoice.create(
+                    customer=stripe_customer_id,
+                    collection_method='charge_automatically',
+                    auto_advance=True
+                )
+
+                logger.info(f"[🧾] Invoice {invoice.id} created and finalized for upgrade with prorations.")
+
+                if not invoice.paid:
+                    logger.info(f"[DEBUG_TRACE] Invoice not paid, attempting payment.")
+                    try:
+                        invoice.pay()
+                        logger.info(f"[✅] Invoice {invoice.id} paid successfully.")
+                    except stripe.error.CardError as e:
+                        logger.error(f"[❌] Card declined for invoice {invoice.id}: {e.user_message}")
+                    except Exception as e:
+                        logger.error(f"[❌] Error paying invoice {invoice.id}: {e}")
+                else:
+                    logger.info(f"[DEBUG_TRACE] Invoice already paid.")
+            else:
+                logger.info(f"[ℹ️] No pending invoice items found to create an immediate invoice for.")
+
+            logger.info(f"[DEBUG_TRACE] End of upgrade flow.")
+            return updated_subscription
+
+        else: # Downgrade logic
             logger.info(f"[⬇️] Downgrading (at period end, no proration)")
-            return stripe.Subscription.modify(
+            
+            # REMOVING the problematic line that tries to access current_period_end
+            # It seems Stripe isn't reliably providing it in this specific context.
+
+            updated_subscription = stripe.Subscription.modify(
                 subscription_id,
                 items=[{
                     'id': current_item["id"],
                     'price': new_price_id,
                 }],
-                proration_behavior="none",
-                cancel_at_period_end=True,
+                proration_behavior="none", # No proration (no refund/extra charge now)
+                # This combination usually schedules the change for the next billing cycle.
+                # billing_cycle_anchor="unchanged" is usually implied with proration_behavior="none"
+                # but making it explicit for clarity.
+                billing_cycle_anchor="unchanged", 
+                cancel_at_period_end=False, # Continue the subscription, but with the new plan at next renewal
                 metadata={
                     "changed_by": user_id,
                     "upgrade_type": "downgrade"
                 }
             )
+            logger.info(f"[✅] Downgrade scheduled for subscription {subscription_id} at period end. New plan: {new_price_id}")
+            return updated_subscription
+
     except Exception as e:
-        logger.error(f"[❌] Failed to change subscription plan: {e}")
+        logger.error(f"[❌] Failed to change subscription plan: {e}", exc_info=True)
         raise
+
+# --- NY FUNKTION: handle_subscription_plan_change_request ---
+async def handle_subscription_plan_change_request(customer_id: str, new_price_id: str, user_id: str):
+    """
+    Handles the entire flow for changing a user's subscription plan,
+    including retrieving the current subscription and delegating to
+    change_user_subscription_plan for the Stripe API call and invoicing.
+    """
+    logger.info(f"[StripeService] Initiating subscription plan change for customer {customer_id} to new price {new_price_id}.")
+
+    # 1. Hämta den aktiva prenumerationen för kunden *med expand* här, för att garantera alla fält
+    # Det är här vi behöver se till att prenumerationsobjektet är komplett.
+    subs = stripe.Subscription.list(customer=customer_id, status="active", limit=1, expand=['data.latest_invoice']) # Lade till latest_invoice för att den är standard att expandera
+    if not subs.data:
+        logger.error(f"[StripeService] No active subscription found for customer {customer_id}.")
+        raise ValueError("No active subscription to update for this customer.")
+
+    subscription_obj = subs.data[0] # Hela subscription-objektet
+
+    logger.info(f"[StripeService] Found active subscription {subscription_obj.id} for customer {customer_id}.")
+
+    # 2. Anropa din befintliga funktion för att utföra ändringen och hantera fakturering
+    # Skicka in hela prenumerationsobjektet istället för bara ID:t
+    updated_subscription = await change_user_subscription_plan(
+        subscription_obj=subscription_obj, # SKICKA IN HELA OBJEKTET
+        new_price_id=new_price_id,
+        user_id=user_id
+    )
+
+    logger.info(f"[StripeService] Subscription plan change process completed. New subscription status: {updated_subscription.status}.")
+    return updated_subscription

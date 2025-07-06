@@ -150,26 +150,80 @@ async def stripe_webhook(
 
     elif event_type == "invoice.payment_succeeded":
         invoice = data_object
-        user_id = invoice.get("metadata", {}).get("user_id")
-        plan_id = invoice.get("metadata", {}).get("plan_id")
-        logger.info(f"[✅] Invoice paid: id={invoice.get('id')} user_id={user_id}, plan_id={plan_id}, amount={invoice.get('amount_due')}, status={invoice.get('status')}")
+        invoice_id = invoice.get("id")
+        customer_id = invoice.get("customer")
+        subscription_id = invoice.get("subscription") # Denna bör finnas för prenumerationsfakturor
+
+        user_id = None
+        plan_id = None # Kommer nu från prenumerationens metadata
+
+        logger.info(f"[✅] Invoice paid: id={invoice_id}, customer_id={customer_id}")
+
+        if subscription_id:
+            try:
+                # Hämta den senaste versionen av prenumerationsobjektet
+                subscription = stripe.Subscription.retrieve(subscription_id)
+                
+                # Hämta user_id och plan_id från prenumerationens metadata
+                user_id = subscription.get("metadata", {}).get("user_id")
+                plan_id = subscription.get("metadata", {}).get("plan_id") # Detta är den plan_id du själv satte!
+                
+                logger.info(f"[ℹ️] Retrieved sub {subscription_id} for invoice {invoice_id}. User ID from sub metadata: {user_id}, Plan ID from sub metadata: {plan_id}")
+
+            except Exception as e:
+                logger.error(f"[❌] Failed to retrieve subscription {subscription_id} for invoice {invoice_id}: {e}", exc_info=True)
+                # Försök i sista hand hämta user_id från fakturans metadata (om satt)
+                user_id = invoice.get("metadata", {}).get("user_id")
+                # Om user_id fortfarande inte finns, kan vi inte uppdatera
+                if not user_id:
+                    logger.warning(f"[⚠️] Could not determine user_id for paid invoice {invoice_id}. Skipping user update.")
+                    return {"status": "success"} # Avsluta här om vi inte kan koppla till en användare
+
+        else: # Om fakturan inte är kopplad till en prenumeration (t.ex. engångsköp av SMS-paket)
+            user_id = invoice.get("metadata", {}).get("user_id")
+            plan_id = invoice.get("metadata", {}).get("plan_id")
+            logger.info(f"[ℹ️] Non-subscription invoice {invoice_id}. User ID from invoice metadata: {user_id}, Plan ID from invoice metadata: {plan_id}")
+
+        # Logga informationen före DB-uppdatering
+        logger.info(f"[✅] Invoice paid: id={invoice_id} user_id={user_id}, plan_id={plan_id}, amount={invoice.get('amount_due')}, status={invoice.get('status')}")
+
         try:
             await upsert_invoice_from_stripe(invoice, user_id=user_id)
-            logger.info(f"[DB] Invoice marked as paid in DB: {invoice.get('id')}")
+            logger.info(f"[DB] Invoice marked as paid in DB: {invoice_id}")
         except Exception as e:
-            logger.error(f"[❌] Failed to mark invoice as paid in DB: {invoice.get('id')} – {e}")
+            logger.error(f"[❌] Failed to mark invoice as paid in DB: {invoice_id} – {e}", exc_info=True)
 
-        # Hantera även ev. user/plan-uppdatering
-        if user_id:
-            tier = plan_id.split("_")[0] if plan_id and "_" in plan_id else plan_id
+        # Hantera user/plan-uppdatering om user_id och plan_id hittats
+        if user_id and plan_id:
+            # Om det är en prenumerationsplan (t.ex. 'pro_monthly'), extrahera tier
+            if "_monthly" in plan_id or "_yearly" in plan_id: # Anpassa baserat på dina plan_id namngivningar
+                tier = plan_id.split("_")[0] # 'pro_monthly' -> 'pro'
+            elif plan_id.startswith("sms_"): # Hantera SMS-paket
+                # SMS-paket behöver inte uppdatera 'tier' i användarobjektet på samma sätt,
+                # utan hanteras av 'checkout.session.completed' för engångsbetalningar.
+                # Om du har recurring SMS-paket, kan det behövas mer logik här.
+                logger.info(f"[ℹ️] SMS package '{plan_id}' paid, user tier update not applicable here.")
+                tier = None # Säkerställ att vi inte försöker uppdatera tier för SMS-köp här
+            else:
+                tier = plan_id # För andra typer av planer som matchar direkt
+                logger.warning(f"[⚠️] Unrecognized plan_id format '{plan_id}'. Using as-is for tier.")
+
             if tier:
-                logger.info(f"[➡️] Renewing subscription for user {user_id} to tier {tier}")
+                logger.info(f"[➡️] Updating user {user_id} subscription to tier {tier}")
                 try:
                     await update_user_subscription(user_id=user_id, tier=tier)
-                    logger.info(f"[✅] Renewed {tier.capitalize()} for user {user_id}")
+                    logger.info(f"[✅] Updated {tier.capitalize()} for user {user_id}")
                 except Exception as e:
-                    logger.error(f"[❌] Failed to renew subscription for user {user_id}: {e}")
+                    logger.error(f"[❌] Failed to update subscription for user {user_id} to tier {tier}: {e}", exc_info=True)
+            else:
+                logger.info(f"[ℹ️] No tier update performed for plan_id '{plan_id}' for user {user_id}.")
+        else:
+            logger.warning(f"[⚠️] Paid invoice {invoice_id} received, but user_id ({user_id}) or plan_id ({plan_id}) was missing for tier update.")
 
+        # Logga att webhook-eventet är behandlat
+        await log_stripe_webhook(event, status="processed")
+        return {"status": "success"}
+    
     elif event_type == "invoice.created":
         invoice = data_object
         user_id = invoice.get("metadata", {}).get("user_id")
@@ -182,17 +236,46 @@ async def stripe_webhook(
 
     elif event_type in ["customer.subscription.created", "customer.subscription.updated"]:
         sub = data_object
-        user_id = None
-        # Stripe kan ibland använda .metadata eller ["metadata"]
-        if hasattr(sub, "metadata") and sub.metadata:
-            user_id = sub.metadata.get("user_id")
-        elif sub.get("metadata"):
-            user_id = sub.get("metadata").get("user_id")
+        user_id = sub.get("metadata", {}).get("user_id") # Föredrar metadata om den är satt
+        plan_id = sub.get("metadata", {}).get("plan_id") # Föredrar metadata om den är satt
+        subscription_id = sub.get("id")
+
+        # Fallback om metadata inte är satt (även om det borde vara det)
+        if not user_id and sub.get("customer"):
+            # Försök hämta user_id via customer_id om det behövs
+            user_id = await get_user_id_by_stripe_customer_id(sub.get("customer"))
+        
+        # Hämta den *aktuella* price_id från prenumerationens linjeobjekt
+        current_price_id_on_sub = sub.get("items", {}).get("data", [{}])[0].get("price", {}).get("id")
+        
+        # Försök mappa till intern tier
+        tier = None
+        if current_price_id_on_sub:
+            from app.storage.subscription import get_price_id_map # Se till att denna import är korrekt
+            price_id_map = await get_price_id_map()
+            for internal_plan_id, stripe_id in price_id_map.items():
+                if stripe_id == current_price_id_on_sub:
+                    tier = internal_plan_id.split("_")[0]
+                    break
+            if not tier:
+                logger.warning(f"[Stripe] Sub {subscription_id}: Could not map current_price_id {current_price_id_on_sub} to an internal tier.")
+
+        logger.info(f"[DB] Subscription upserted: id={subscription_id} status={sub.get('status')} customer_id={sub.get('customer')} user_id={user_id} tier={tier}")
+        
         try:
             await upsert_subscription_from_stripe(sub, user_id=user_id)
-            logger.info(f"[DB] Subscription upserted: id={sub.get('id')} status={sub.get('status')} customer_id={sub.get('customer')} user_id={user_id}")
+            # Uppdatera användarens tier baserat på den nya prenumerationsstatusen
+            if user_id and tier:
+                await update_user_subscription(user_id=user_id, tier=tier, status=sub.get('status'))
+                logger.info(f"[✅] User {user_id} tier updated to {tier} from sub.updated webhook.")
+            elif user_id and not tier:
+                logger.warning(f"[⚠️] Sub {subscription_id}: User {user_id} updated, but no tier could be determined for update from sub.updated webhook.")
         except Exception as e:
-            logger.error(f"[❌] Failed to upsert subscription: id={sub.get('id')} error={e}")
+            logger.error(f"[❌] Failed to upsert subscription and update user tier for sub {subscription_id}: {e}", exc_info=True)
+
+        # Logga att webhook-eventet är behandlat
+        await log_stripe_webhook(event, status="processed")
+        return {"status": "success"}
 
     elif event_type == "customer.subscription.deleted":
         subscription = data_object

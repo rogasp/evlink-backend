@@ -16,8 +16,12 @@ from app.storage.user import (
 )
 from app.storage.subscription import get_price_id_map
 
+# >>> NY IMPORT HÄR: Importera den nya funktionen från stripe_utils <<<
+from app.services.stripe_utils import handle_subscription_plan_change_request
+
 logger = logging.getLogger(__name__)
 
+# Se till att Stripe API-nyckeln sätts korrekt, som den redan gör
 stripe.api_key = STRIPE_SECRET_KEY
 
 router = APIRouter()
@@ -85,67 +89,38 @@ async def handle_checkout(
         return {"clientSecret": session.id, "status": "subscription_created"}
 
     elif req.action == "change_plan":
-        logger.info(f"[🔄] Change plan requested to plan_id: {req.plan_id} (price_id: {price_id})")
-        # Get active subscription
-        subs = stripe.Subscription.list(customer=customer_id, status="active", limit=1)
-        if not subs.data:
-            logger.error("[❌] No active subscription to update")
-            raise HTTPException(400, "No active subscription to update")
-        subscription = subs.data[0]
-        current_item = subscription["items"]["data"][0]
-        current_price_id = current_item["price"]["id"]
-        current_unit_amount = current_item["price"]["unit_amount"]
-        logger.info(f"[ℹ️] Current price id: {current_price_id} ({current_unit_amount} cents)")
-
-        # Get new price
-        new_price = stripe.Price.retrieve(price_id)
-        new_unit_amount = new_price["unit_amount"]
-        logger.info(f"[ℹ️] New price id: {price_id} ({new_unit_amount} cents)")
-
-        is_upgrade = new_unit_amount > current_unit_amount
-        logger.info(f"[🔎] is_upgrade={is_upgrade}")
-
-        if is_upgrade:
-            logger.info(f"[⬆️] Upgrading: changing plan immediately with proration")
-            stripe.Subscription.modify(
-                subscription.id,
-                cancel_at_period_end=False,
-                proration_behavior="create_prorations",
-                items=[{
-                    "id": current_item.id,
-                    "price": price_id,
-                }],
-                metadata={"user_id": user_record.id, "plan_id": req.plan_id},
+        logger.info(f"[🔄] Change plan requested for customer {customer_id} to plan_id: {req.plan_id} (price_id: {price_id})")
+        
+        try:
+            # >>> ANROPA DEN KONSOLIDERADE TJÄNSTEN HÄR ISTÄLLET <<<
+            # All logik för att hämta subs, avgöra upp/nedgradering och fakturera ligger nu i service-lagret
+            await handle_subscription_plan_change_request(
+                customer_id=customer_id,
+                new_price_id=price_id,
+                user_id=user_record.id # Skicka med user_id
             )
-            logger.info(f"[✅] Subscription upgraded immediately")
-            return {"clientSecret": None, "status": "subscription_upgraded"}
-        else:
-            logger.info(f"[⬇️] Downgrading: plan change will occur at end of billing period")
-            stripe.Subscription.modify(
-                subscription.id,
-                cancel_at_period_end=True,
-                proration_behavior="none",
-                items=[{
-                    "id": current_item.id,
-                    "price": price_id,
-                }],
-                metadata={"user_id": user_record.id, "plan_id": req.plan_id},
-            )
-            logger.info(f"[✅] Subscription downgrade scheduled for period end")
-            return {"clientSecret": None, "status": "subscription_downgrade_scheduled"}
+            logger.info(f"[✅] Change plan processed by Stripe service successfully.")
+            # Uppdatera statusmeddelandet för att reflektera att servicen hanterade det
+            return {"clientSecret": None, "status": "subscription_change_processed"}
+        except ValueError as e: # Fånga specifika fel från service-lagret (t.ex. "No active subscription")
+            logger.error(f"[❌] Failed to change plan (ValueError): {e}")
+            raise HTTPException(400, str(e))
+        except Exception as e: # Fånga andra oväntade fel
+            logger.error(f"[❌] Unexpected error changing plan: {e}", exc_info=True)
+            raise HTTPException(500, "Internal server error during plan change.")
 
     elif req.action == "cancel":
-        logger.info(f"[🛑] Cancel subscription requested")
+        logger.info(f"[🛑] Cancel subscription requested for customer {customer_id}")
         subs = stripe.Subscription.list(customer=customer_id, limit=1)
         if not subs.data:
-            logger.error("[❌] No subscription to cancel")
+            logger.error("[❌] No subscription to cancel for this customer")
             raise HTTPException(400, "No subscription to cancel")
         stripe.Subscription.delete(subs.data[0].id)
         logger.info(f"[✅] Subscription canceled")
         return {"clientSecret": None, "status": "subscription_canceled"}
 
     elif req.action == "purchase_sms":
-        logger.info(f"[💬] Purchase SMS pack requested: {req.plan_id} (price_id: {price_id})")
+        logger.info(f"[💬] Purchase SMS pack requested: {req.plan_id} (price_id: {price_id}) for customer {customer_id}")
         session = stripe.checkout.Session.create(
             customer=customer_id,
             payment_method_types=["card"],
@@ -193,3 +168,4 @@ async def process_successful_payment_intent(
         logger.info(f"Added 100 SMS credits to user {user_id}")
     else:
         logger.warning(f"Unknown plan_id '{plan_id}' in payment_intent.metadata")
+        
