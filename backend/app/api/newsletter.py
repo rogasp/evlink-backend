@@ -1,6 +1,6 @@
 # backend/app/api/newsletter.py
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Request
 from pydantic import BaseModel, EmailStr
 
 from app.storage.user import get_user_by_email
@@ -11,10 +11,12 @@ from brevo_python.rest import ApiException
 
 from app.services.brevo import (
     add_or_update_brevo_contact,
+    get_brevo_subscription_status,
     remove_brevo_contact_from_list,
 )
 
 from app.config import BREVO_CUSTOMERS_LIST_ID
+from app.auth.supabase_auth import get_supabase_user
 
 router = APIRouter(prefix="/newsletter", tags=["newsletter"])
 
@@ -28,13 +30,11 @@ class SubscriptionRequest(BaseModel):
     """
     email: EmailStr
 
-
 class UnsubscribeRequest(BaseModel):
     """
     Request body for unsubscribing a user from the newsletter.
     """
     email: EmailStr
-
 
 # -------------------------------------------------------------------
 # Endpoint: Subscribe a user
@@ -81,7 +81,6 @@ async def subscribe(request: SubscriptionRequest):
         logger.error("❌ Internal error during subscribe for %s: %s", request.email, e)
         raise HTTPException(status_code=500, detail=f"Internal error: {e}")
 
-
 # -------------------------------------------------------------------
 # Endpoint: Unsubscribe a user
 # -------------------------------------------------------------------
@@ -124,3 +123,16 @@ async def unsubscribe(request: UnsubscribeRequest):
         logger.error("❌ Internal error during unsubscribe for %s: %s", request.email, e)
         raise HTTPException(status_code=500, detail=f"Internal error: {e}")
        
+@router.get("/manage/status")
+async def newsletter_status(
+    user=Depends(get_supabase_user)
+):
+    email = user.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Missing email")
+    try:
+        is_subscribed = await get_brevo_subscription_status(email)
+        return {"is_subscribed": is_subscribed}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not check status: {e}")
+

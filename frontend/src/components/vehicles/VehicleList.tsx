@@ -1,155 +1,253 @@
-'use client';
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Vehicle } from "@/types/vehicle";
+import clsx from "clsx";
 
-import { Button } from '@/components/ui/button';
-import type { Vehicle } from '@/types/vehicle';
-
-interface VehicleListProps {
+type Props = {
   vehicles: Vehicle[];
+  loading: boolean;
   onUnlinkVendor: (vendor: string) => void;
   onDetailsClick: (vehicle: Vehicle) => void;
   onCopyIdClick: (vehicle: Vehicle) => void;
-}
+};
 
 export default function VehicleList({
   vehicles,
+  loading,
   onUnlinkVendor,
   onDetailsClick,
   onCopyIdClick,
-}: VehicleListProps) {
+}: Props) {
+  if (loading) {
+    return (
+      <>
+        {/* Desktop skeleton */}
+        <div className="hidden md:block">
+          <div className="rounded-xl border bg-white overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="px-6 py-3 text-left font-bold text-gray-800">Vehicle</th>
+                  <th className="px-6 py-3 text-left font-bold text-gray-800">Battery</th>
+                  <th className="px-6 py-3 text-left font-bold text-gray-800">Range</th>
+                  <th className="px-6 py-3 text-left font-bold text-gray-800">Status</th>
+                  <th className="px-6 py-3 text-left font-bold text-gray-800">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(2)].map((_, i) => (
+                  <tr key={i} className="border-b">
+                    <td className="px-6 py-4">
+                      <Skeleton className="h-6 w-52 bg-indigo-100" />
+                      <Skeleton className="h-4 w-40 mt-1 bg-indigo-100" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <Skeleton className="h-6 w-12 bg-indigo-100" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <Skeleton className="h-6 w-12 bg-indigo-100" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <Skeleton className="h-6 w-16 bg-indigo-100" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-2">
+                        <Skeleton className="h-9 w-20 bg-indigo-100" />
+                        <Skeleton className="h-9 w-20 bg-indigo-100" />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {/* Mobil skeleton */}
+        <div className="md:hidden flex flex-col gap-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="rounded-xl border bg-white p-4">
+              <Skeleton className="h-7 w-2/3 mb-2 bg-indigo-100" />
+              <Skeleton className="h-4 w-1/2 mb-1 bg-indigo-100" />
+              <Skeleton className="h-4 w-1/3 mb-4 bg-indigo-100" />
+              <div className="flex flex-row gap-2">
+                <Skeleton className="h-9 flex-1 bg-indigo-100" />
+                <Skeleton className="h-9 flex-1 bg-indigo-100" />
+                <Skeleton className="h-9 flex-1 bg-indigo-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  if (!vehicles || vehicles.length === 0) {
+    return (
+      <div className="p-4 text-gray-500 text-center">
+        No vehicles linked yet.
+      </div>
+    );
+  }
+
+  // Desktop/tablet
   return (
-    <div className="space-y-4">
-      {/* Mobilvy */}
-      <div className="lg:hidden flex flex-col gap-4">
-        {vehicles.map((v) => {
-          const info = v.information;
+    <>
+      <div className="hidden md:block">
+        <div className="rounded-xl border bg-white overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-6 py-3 text-left font-bold text-gray-800">Vehicle</th>
+                <th className="px-6 py-3 text-left font-bold text-gray-800">Battery</th>
+                <th className="px-6 py-3 text-left font-bold text-gray-800">Range</th>
+                <th className="px-6 py-3 text-left font-bold text-gray-800">Status</th>
+                <th className="px-6 py-3 text-left font-bold text-gray-800">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vehicles.map((vehicle) => {
+                const displayName =
+                  vehicle.information?.displayName ||
+                  [vehicle.information?.brand, vehicle.information?.model]
+                    .filter(Boolean)
+                    .join(" ") ||
+                  vehicle.id;
+
+                const battery =
+                  vehicle.chargeState?.batteryLevel != null
+                    ? `${vehicle.chargeState.batteryLevel}%`
+                    : "-";
+                const range =
+                  vehicle.chargeState?.range != null
+                    ? `${vehicle.chargeState.range} km`
+                    : "-";
+                const status =
+                  vehicle.isReachable === true
+                    ? "Online"
+                    : vehicle.isReachable === false
+                    ? "Offline"
+                    : "-";
+
+                return (
+                  <tr key={vehicle.id} className="border-b">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900">{displayName}</div>
+                      <div className="text-xs text-gray-400">
+                        Vehicle id: {vehicle.id}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">{battery}</td>
+                    <td className="px-6 py-4">{range}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={clsx(
+                          status === "Online" && "text-green-600 font-medium",
+                          status === "Offline" && "text-red-500 font-medium"
+                        )}
+                      >
+                        {status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-row gap-2 w-full">
+                        <button
+                          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition"
+                          onClick={() => onDetailsClick(vehicle)}
+                        >
+                          Details
+                        </button>
+                        <button
+                          className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+                          onClick={() => onUnlinkVendor(vehicle.vendor)}
+                        >
+                          Unlink
+                        </button>
+                        <button
+                          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition"
+                          onClick={() => onCopyIdClick(vehicle)}
+                        >
+                          Copy ID
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Mobil/kort, actions bredvid varandra */}
+      <div className="md:hidden flex flex-col gap-4">
+        {vehicles.map((vehicle) => {
+          const displayName =
+            vehicle.information?.displayName ||
+            [vehicle.information?.brand, vehicle.information?.model]
+              .filter(Boolean)
+              .join(" ") ||
+            vehicle.id;
+
+          const battery =
+            vehicle.chargeState?.batteryLevel != null
+              ? `${vehicle.chargeState.batteryLevel}%`
+              : "-";
+          const range =
+            vehicle.chargeState?.range != null
+              ? `${vehicle.chargeState.range} km`
+              : "-";
+          const status =
+            vehicle.isReachable === true
+              ? "Online"
+              : vehicle.isReachable === false
+              ? "Offline"
+              : "-";
 
           return (
             <div
-              key={v.id}
-              className="rounded-lg border bg-white p-4 shadow-sm"
+              key={vehicle.id}
+              className="rounded-xl border bg-white p-4 flex flex-col gap-2 shadow-sm"
             >
-              <div className="text-sm font-semibold text-gray-700 mb-1">
-                {info
-                  ? `${info.brand} ${info.model} (${info.vin})`
-                  : 'Unnamed Vehicle'}
+              <div className="font-semibold text-lg text-gray-900">{displayName}</div>
+              <div className="text-xs text-gray-400 mb-1">Vehicle id: {vehicle.id}</div>
+              <div className="text-sm text-gray-600 mb-1">
+                Battery: <span className="font-medium">{battery}</span>
+                {" · "}
+                Range: <span className="font-medium">{range}</span>
               </div>
-              <div className="text-xs text-gray-400 break-all">
-                Vehicle id: {v.db_id}
+              <div className="text-sm mb-2">
+                Status:{" "}
+                <span
+                  className={clsx(
+                    status === "Online" && "text-green-600 font-medium",
+                    status === "Offline" && "text-red-500 font-medium"
+                  )}
+                >
+                  {status}
+                </span>
               </div>
-
-              <div className="text-sm text-gray-500 mb-2">
-                Battery:{' '}
-                {v.chargeState?.batteryLevel != null
-                  ? `${v.chargeState.batteryLevel}%`
-                  : '–'}
-                {' · '}
-                Range:{' '}
-                {v.chargeState?.range != null
-                  ? `${Math.round(v.chargeState.range)} km`
-                  : '–'}
-              </div>
-
-              <div className="mb-2 text-sm">
-                Status:{' '}
-                {v.isReachable ? (
-                  <span className="text-green-600 font-medium">Online</span>
-                ) : (
-                  <span className="text-gray-400">Offline</span>
-                )}
-              </div>
-
-              <div className="flex gap-2 mt-2">
-                <Button size="sm" variant="outline" onClick={() => onDetailsClick(v)}>
+              <div className="flex flex-row gap-2 mt-2">
+                <button
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition"
+                  onClick={() => onDetailsClick(vehicle)}
+                >
                   Details
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => onUnlinkVendor(v.vendor)}
+                </button>
+                <button
+                  className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+                  onClick={() => onUnlinkVendor(vehicle.vendor)}
                 >
                   Unlink
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onCopyIdClick(v)}
+                </button>
+                <button
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition"
+                  onClick={() => onCopyIdClick(vehicle)}
                 >
                   Copy ID
-                </Button>
-
+                </button>
               </div>
             </div>
           );
         })}
       </div>
-
-      {/* Desktop-tabell */}
-      <div className="hidden lg:block overflow-x-auto rounded-md border bg-white shadow-sm">
-        <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-gray-100 text-left text-sm font-semibold text-gray-600">
-            <tr>
-              <th className="px-4 py-2">Vehicle</th>
-              <th className="px-4 py-2">Battery</th>
-              <th className="px-4 py-2">Range</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vehicles.map((v) => {
-              const info = v.information;
-              return (
-                <tr key={v.id} className="border-t text-sm">
-                  <td className="px-4 py-2">
-                    {info
-                      ? `${info.brand} ${info.model} (${info.vin})`
-                      : 'Unnamed Vehicle'}
-                    <div className="text-xs text-gray-400 break-all">
-                      Vehicle id: {v.db_id}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">
-                    {v.chargeState?.batteryLevel != null
-                      ? `${v.chargeState.batteryLevel}%`
-                      : '–'}
-                  </td>
-                  <td className="px-4 py-2">
-                    {v.chargeState?.range != null
-                      ? `${Math.round(v.chargeState.range)} km`
-                      : '–'}
-                  </td>
-                  <td className="px-4 py-2">
-                    {v.isReachable ? (
-                      <span className="text-green-600">Online</span>
-                    ) : (
-                      <span className="text-gray-400">Offline</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => onDetailsClick(v)}>
-                      Details
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => onUnlinkVendor(v.vendor)}
-                    >
-                      Unlink
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onCopyIdClick(v)}
-                      >
-                        Copy ID
-                      </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </>
   );
 }
