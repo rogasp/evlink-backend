@@ -1,11 +1,14 @@
 import stripe
 import logging
-from app.config import STRIPE_SECRET_KEY
-from app.lib.supabase import get_supabase_admin_client # Antar att denna import är korrekt
+from app.config import STRIPE_SECRET_KEY, STRIPE_API_VERSION # OBS: Ny import för STRIPE_API_VERSION
+from app.lib.supabase import get_supabase_admin_client
+from app.storage.subscription import get_price_id_map, get_subscription_by_stripe_id 
+import time
 
 logger = logging.getLogger("app.services.stripe_utils")
 
 stripe.api_key = STRIPE_SECRET_KEY
+stripe.api_version = STRIPE_API_VERSION # Sätt API-versionen här
 supabase = get_supabase_admin_client()
 
 def extract_price_and_product(data_object: dict):
@@ -148,6 +151,25 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
 
     logger.info(f"[Stripe] Current: {current_price_id} ({current_unit_amount}), New: {new_price_id} ({new_unit_amount}), Upgrade: {is_upgrade}")
 
+    # Hämta den interna plan_id (t.ex. "pro_monthly") baserat på new_price_id
+    internal_plan_id_for_new_price = None
+    price_id_map = await get_price_id_map() 
+    for p_id, s_id in price_id_map.items():
+        if s_id == new_price_id:
+            internal_plan_id_for_new_price = p_id
+            break
+    if not internal_plan_id_for_new_price:
+        logger.warning(f"[Stripe] Could not map new_price_id {new_price_id} to internal plan_id for metadata. Defaulting to new_price_id for plan_id metadata.")
+        internal_plan_id_for_new_price = new_price_id # Fallback om ingen match hittas
+
+    # Skapa gemensam metadata som alltid skickas med prenumerationsändringar
+    common_metadata = {
+        "user_id": user_id, # Detta är Kritiskt för att spåra användaren
+        "plan_id": internal_plan_id_for_new_price, # Detta är Kritiskt för att spåra den nya planen
+        "changed_by": user_id,
+        "change_action": "upgrade" if is_upgrade else "downgrade"
+    }
+
     try:
         if is_upgrade:
             logger.info(f"[⬆️] Upgrading (immediate/prorate)")
@@ -160,10 +182,7 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
                 }],
                 proration_behavior="always_invoice",
                 cancel_at_period_end=False,
-                metadata={
-                    "changed_by": user_id,
-                    "upgrade_type": "upgrade"
-                }
+                metadata=common_metadata # Använd den gemensamma metadatan här
             )
 
             logger.info(f"[✅] Subscription upgraded immediately. Subscription ID: {updated_subscription.id}")
@@ -209,37 +228,85 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
             logger.info(f"[DEBUG_TRACE] End of upgrade flow.")
             return updated_subscription
 
-        else: # Downgrade logic
-            logger.info(f"[⬇️] Downgrading (at period end, no proration)")
+        else: # Downgrade logic - Använder Subscription Schedules för att schemalägga
+            logger.info(f"[⬇️] Downgrading (at period end, using Subscription Schedules)")
             
-            # REMOVING the problematic line that tries to access current_period_end
-            # It seems Stripe isn't reliably providing it in this specific context.
+            # Försök hämta current_period_end från Stripe-objektet först (det mest korrekta)
+            current_period_end_timestamp = subscription_obj.get("current_period_end")
 
-            updated_subscription = stripe.Subscription.modify(
-                subscription_id,
-                items=[{
-                    'id': current_item["id"],
-                    'price': new_price_id,
-                }],
-                proration_behavior="none", # No proration (no refund/extra charge now)
-                # This combination usually schedules the change for the next billing cycle.
-                # billing_cycle_anchor="unchanged" is usually implied with proration_behavior="none"
-                # but making it explicit for clarity.
-                billing_cycle_anchor="unchanged", 
-                cancel_at_period_end=False, # Continue the subscription, but with the new plan at next renewal
-                metadata={
-                    "changed_by": user_id,
-                    "upgrade_type": "downgrade"
-                }
-            )
-            logger.info(f"[✅] Downgrade scheduled for subscription {subscription_id} at period end. New plan: {new_price_id}")
-            return updated_subscription
+            if current_period_end_timestamp is None:
+                # Om det saknas från Stripe-objektet, hämta från lokal databas som backup
+                logger.warning(f"[⚠️] current_period_end missing from Stripe subscription {subscription_id}. Attempting to retrieve from local DB.")
+                local_sub_record = await get_subscription_by_stripe_id(subscription_id)
+                if local_sub_record and local_sub_record.current_period_end:
+                    # Konvertera datetime från DB till Unix timestamp om det behövs
+                    current_period_end_timestamp = int(local_sub_record.current_period_end.timestamp())
+                    logger.info(f"[✅] Retrieved current_period_end {current_period_end_timestamp} from local DB for {subscription_id}.")
+                else:
+                    logger.error(f"[❌] CRITICAL: current_period_end is missing for subscription {subscription_id} in both Stripe and local DB. Cannot schedule downgrade accurately.")
+                    raise ValueError(f"Cannot schedule downgrade for subscription {subscription_id}: current_period_end missing.")
+
+            try:
+                # KORRIGERING HÄR: Försök hitta befintligt schema, annars skapa ett nytt.
+                # Och ta bort 'end_behavior' från faserna.
+                
+                schedule_obj = None
+                # Försök hitta ett befintligt schema kopplat till prenumerationen
+                existing_schedules_for_sub = stripe.SubscriptionSchedule.list(
+                    customer=subscription_obj.customer, 
+                    subscription=subscription_id, 
+                    limit=1
+                ).data
+                
+                if existing_schedules_for_sub:
+                    schedule_obj = existing_schedules_for_sub[0]
+                    logger.info(f"[Stripe] Found existing SubscriptionSchedule {schedule_obj.id} for sub {subscription_id}.")
+                else:
+                    logger.info(f"[Stripe] No existing SubscriptionSchedule found for sub {subscription_id}. Will create a new one.")
+                    
+                
+                # Skapa faserna för schemat UTAN 'end_behavior'
+                phases_config = [{
+                    "items": [{"price": current_price_id, "quantity": 1}],
+                    "end_date": current_period_end_timestamp,
+                    "proration_behavior": "none",
+                }, {
+                    "items": [{"price": new_price_id, "quantity": 1}],
+                    "proration_behavior": "none",
+                    "iterations": 12 if "yearly" in internal_plan_id_for_new_price else None
+                }]
+
+                if schedule_obj:
+                    # Modifiera befintligt schema
+                    updated_schedule = stripe.SubscriptionSchedule.modify(
+                        schedule_obj.id,
+                        phases=phases_config,
+                        metadata=common_metadata,
+                        release_at=None # Behåll schemat aktivt
+                    )
+                    logger.info(f"[✅] Downgrade scheduled via modifying SubscriptionSchedule {updated_schedule.id} for sub {subscription_id}. New plan: {new_price_id}")
+                else:
+                    # Skapa ett nytt schema från prenumerationen
+                    new_schedule = stripe.SubscriptionSchedule.create(
+                        from_subscription=subscription_id,
+                        phases=phases_config,
+                        metadata=common_metadata
+                    )
+                    logger.info(f"[✅] Downgrade scheduled by creating new SubscriptionSchedule {new_schedule.id} for sub {subscription_id}. New plan: {new_price_id}")
+                
+                return stripe.Subscription.retrieve(subscription_id) 
+
+            except stripe.error.StripeError as se:
+                logger.error(f"[❌] Stripe API error when handling downgrade with Subscription Schedules for {subscription_id}: {se}", exc_info=True)
+                raise ValueError(f"Failed to schedule downgrade for {subscription_id} due to Stripe API error: {se.user_message}") from se
+            except Exception as e:
+                logger.error(f"[❌] Unexpected error handling downgrade with Subscription Schedules for {subscription_id}: {e}", exc_info=True)
+                raise 
 
     except Exception as e:
         logger.error(f"[❌] Failed to change subscription plan: {e}", exc_info=True)
         raise
 
-# --- NY FUNKTION: handle_subscription_plan_change_request ---
 async def handle_subscription_plan_change_request(customer_id: str, new_price_id: str, user_id: str):
     """
     Handles the entire flow for changing a user's subscription plan,
@@ -248,9 +315,12 @@ async def handle_subscription_plan_change_request(customer_id: str, new_price_id
     """
     logger.info(f"[StripeService] Initiating subscription plan change for customer {customer_id} to new price {new_price_id}.")
 
-    # 1. Hämta den aktiva prenumerationen för kunden *med expand* här, för att garantera alla fält
-    # Det är här vi behöver se till att prenumerationsobjektet är komplett.
-    subs = stripe.Subscription.list(customer=customer_id, status="active", limit=1, expand=['data.latest_invoice']) # Lade till latest_invoice för att den är standard att expandera
+    # Hämta den aktiva prenumerationen för kunden.
+    subs = stripe.Subscription.list(
+        customer=customer_id, 
+        status="active", 
+        limit=1
+    ) 
     if not subs.data:
         logger.error(f"[StripeService] No active subscription found for customer {customer_id}.")
         raise ValueError("No active subscription to update for this customer.")
@@ -259,10 +329,9 @@ async def handle_subscription_plan_change_request(customer_id: str, new_price_id
 
     logger.info(f"[StripeService] Found active subscription {subscription_obj.id} for customer {customer_id}.")
 
-    # 2. Anropa din befintliga funktion för att utföra ändringen och hantera fakturering
-    # Skicka in hela prenumerationsobjektet istället för bara ID:t
+    # Anropa din befintliga funktion för att utföra ändringen och hantera fakturering
     updated_subscription = await change_user_subscription_plan(
-        subscription_obj=subscription_obj, # SKICKA IN HELA OBJEKTET
+        subscription_obj=subscription_obj,
         new_price_id=new_price_id,
         user_id=user_id
     )

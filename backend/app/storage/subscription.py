@@ -1,12 +1,33 @@
 # backend/app/storage/subscription.py
 import logging
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field
 from app.lib.supabase import get_supabase_admin_client
 from app.storage.user import get_user_id_by_stripe_customer_id
 
 # Initialize Supabase admin client
 supabase = get_supabase_admin_client()
 logger = logging.getLogger(__name__)
+
+class DBSubscription(BaseModel):
+    id: str
+    subscription_id: str = Field(..., alias="stripe_subscription_id") # Mappar till Stripe ID
+    user_id: str
+    stripe_customer_id: str
+    status: str
+    plan_name: str # Eller en `price_id`
+    price_id: str # Den Stripe Price ID som prenumerationen använder
+    current_period_start: datetime
+    current_period_end: datetime # Viktigt för oss nu
+    latest_invoice: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    created_at: datetime
+
+    class Config:
+        populate_by_name = True
+
 
 def to_iso(ts):
     from datetime import datetime, timezone
@@ -178,3 +199,30 @@ async def get_user_subscription(user_id: str) -> dict | None:
     supabase = get_supabase_admin_client()
     res = supabase.table("subscriptions").select("*").eq("user_id", user_id).maybe_single().execute()
     return res.data if hasattr(res, "data") else None
+
+async def get_subscription_by_stripe_id(stripe_subscription_id: str) -> Optional[DBSubscription]:
+    """
+    Hämtar en prenumerationspost från den lokala databasen med hjälp av Stripe Subscription ID.
+    """
+    try:
+        response = supabase.table("subscriptions") \
+            .select("*, current_period_start, current_period_end") \
+            .eq("subscription_id", stripe_subscription_id) \
+            .single()  \
+            .execute()
+        
+        if response.data:
+            # Kontrollera att det är ett datetime-objekt och konvertera om det behövs
+            # Supabase Python SDK kan ibland returnera strängar, då behövs konvertering
+            if isinstance(response.data.get("current_period_start"), str):
+                response.data["current_period_start"] = datetime.fromisoformat(response.data["current_period_start"].replace('Z', '+00:00'))
+            if isinstance(response.data.get("current_period_end"), str):
+                response.data["current_period_end"] = datetime.fromisoformat(response.data["current_period_end"].replace('Z', '+00:00'))
+
+            return DBSubscription(**response.data)
+        logger.warning(f"No local subscription found for Stripe ID: {stripe_subscription_id}")
+        return None
+    except Exception as e:
+        logger.error(f"Failed to retrieve local subscription for Stripe ID {stripe_subscription_id}: {e}", exc_info=True)
+        return None
+    
