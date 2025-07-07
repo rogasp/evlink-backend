@@ -44,6 +44,7 @@ async def push_to_homeassistant(event: dict, user_id: str | None):
     except Exception as e:
         logger.error("Failed to push to HA webhook: %s", e)
 
+
 @router.post("/webhook/enode")
 async def handle_webhook(
     request: Request,

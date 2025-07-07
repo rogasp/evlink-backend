@@ -388,7 +388,7 @@ def get_ha_webhook_settings(user_id: str) -> dict | None:
     except Exception as e:
         print(f"[❌ get_ha_webhook_settings] {e}")
         return None
-
+      
 async def update_user_subscription(user_id: str, tier: str, status: str = "active"):
     """Update the user's tier (e.g. 'free', 'basic', 'pro') and status (e.g. 'active', 'canceled')."""
     try:
@@ -421,4 +421,3 @@ async def get_user_id_by_stripe_customer_id(stripe_customer_id):
     if result and hasattr(result, "data") and result.data:
         return result.data[0]["id"]
     return None
-
