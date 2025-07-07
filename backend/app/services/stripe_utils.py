@@ -1,6 +1,6 @@
 import stripe
 import logging
-from app.config import STRIPE_SECRET_KEY, STRIPE_API_VERSION # OBS: Ny import för STRIPE_API_VERSION
+from app.config import STRIPE_SECRET_KEY # OBS: STRIPE_API_VERSION ÄR BORTTAGEN HÄR
 from app.lib.supabase import get_supabase_admin_client
 from app.storage.subscription import get_price_id_map, get_subscription_by_stripe_id 
 import time
@@ -8,7 +8,7 @@ import time
 logger = logging.getLogger("app.services.stripe_utils")
 
 stripe.api_key = STRIPE_SECRET_KEY
-stripe.api_version = STRIPE_API_VERSION # Sätt API-versionen här
+# stripe.api_version = STRIPE_API_VERSION # DENNA RAD ÄR BORTTAGEN
 supabase = get_supabase_admin_client()
 
 def extract_price_and_product(data_object: dict):
@@ -228,80 +228,27 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
             logger.info(f"[DEBUG_TRACE] End of upgrade flow.")
             return updated_subscription
 
-        else: # Downgrade logic - Använder Subscription Schedules för att schemalägga
-            logger.info(f"[⬇️] Downgrading (at period end, using Subscription Schedules)")
+        else: # Downgrade logic - Använder den enkla modify-logiken som fungerade i Stripe tidigare
+            logger.info(f"[⬇️] Downgrading (at period end - using direct Subscription.modify as per earlier working state)")
             
-            # Försök hämta current_period_end från Stripe-objektet först (det mest korrekta)
-            current_period_end_timestamp = subscription_obj.get("current_period_end")
+            # Detta är den exakta kombinationen som du rapporterade resulterade i
+            # "Pro i din DB men Basic i Stripe, schemalagd för nästa faktura" tidigare.
+            # Vi tar bort alla anrop till current_period_end och Subscription Schedules här,
+            # eftersom de orsakade kraschar.
 
-            if current_period_end_timestamp is None:
-                # Om det saknas från Stripe-objektet, hämta från lokal databas som backup
-                logger.warning(f"[⚠️] current_period_end missing from Stripe subscription {subscription_id}. Attempting to retrieve from local DB.")
-                local_sub_record = await get_subscription_by_stripe_id(subscription_id)
-                if local_sub_record and local_sub_record.current_period_end:
-                    # Konvertera datetime från DB till Unix timestamp om det behövs
-                    current_period_end_timestamp = int(local_sub_record.current_period_end.timestamp())
-                    logger.info(f"[✅] Retrieved current_period_end {current_period_end_timestamp} from local DB for {subscription_id}.")
-                else:
-                    logger.error(f"[❌] CRITICAL: current_period_end is missing for subscription {subscription_id} in both Stripe and local DB. Cannot schedule downgrade accurately.")
-                    raise ValueError(f"Cannot schedule downgrade for subscription {subscription_id}: current_period_end missing.")
-
-            try:
-                # KORRIGERING HÄR: Försök hitta befintligt schema, annars skapa ett nytt.
-                # Och ta bort 'end_behavior' från faserna.
-                
-                schedule_obj = None
-                # Försök hitta ett befintligt schema kopplat till prenumerationen
-                existing_schedules_for_sub = stripe.SubscriptionSchedule.list(
-                    customer=subscription_obj.customer, 
-                    subscription=subscription_id, 
-                    limit=1
-                ).data
-                
-                if existing_schedules_for_sub:
-                    schedule_obj = existing_schedules_for_sub[0]
-                    logger.info(f"[Stripe] Found existing SubscriptionSchedule {schedule_obj.id} for sub {subscription_id}.")
-                else:
-                    logger.info(f"[Stripe] No existing SubscriptionSchedule found for sub {subscription_id}. Will create a new one.")
-                    
-                
-                # Skapa faserna för schemat UTAN 'end_behavior'
-                phases_config = [{
-                    "items": [{"price": current_price_id, "quantity": 1}],
-                    "end_date": current_period_end_timestamp,
-                    "proration_behavior": "none",
-                }, {
-                    "items": [{"price": new_price_id, "quantity": 1}],
-                    "proration_behavior": "none",
-                    "iterations": 12 if "yearly" in internal_plan_id_for_new_price else None
-                }]
-
-                if schedule_obj:
-                    # Modifiera befintligt schema
-                    updated_schedule = stripe.SubscriptionSchedule.modify(
-                        schedule_obj.id,
-                        phases=phases_config,
-                        metadata=common_metadata,
-                        release_at=None # Behåll schemat aktivt
-                    )
-                    logger.info(f"[✅] Downgrade scheduled via modifying SubscriptionSchedule {updated_schedule.id} for sub {subscription_id}. New plan: {new_price_id}")
-                else:
-                    # Skapa ett nytt schema från prenumerationen
-                    new_schedule = stripe.SubscriptionSchedule.create(
-                        from_subscription=subscription_id,
-                        phases=phases_config,
-                        metadata=common_metadata
-                    )
-                    logger.info(f"[✅] Downgrade scheduled by creating new SubscriptionSchedule {new_schedule.id} for sub {subscription_id}. New plan: {new_price_id}")
-                
-                return stripe.Subscription.retrieve(subscription_id) 
-
-            except stripe.error.StripeError as se:
-                logger.error(f"[❌] Stripe API error when handling downgrade with Subscription Schedules for {subscription_id}: {se}", exc_info=True)
-                raise ValueError(f"Failed to schedule downgrade for {subscription_id} due to Stripe API error: {se.user_message}") from se
-            except Exception as e:
-                logger.error(f"[❌] Unexpected error handling downgrade with Subscription Schedules for {subscription_id}: {e}", exc_info=True)
-                raise 
+            updated_subscription = stripe.Subscription.modify(
+                subscription_id,
+                items=[{
+                    'id': current_item["id"],
+                    'price': new_price_id,
+                }],
+                proration_behavior="none", # Ingen proratering
+                billing_cycle_anchor="unchanged", # Behåll nuvarande faktureringscykel
+                cancel_at_period_end=False, # Fortsätt prenumerationen med nya priset vid nästa förnyelse
+                metadata=common_metadata # Behåll metadatan
+            )
+            logger.info(f"[✅] Downgrade scheduled (Subscription.modify) for {subscription_id}. New plan: {new_price_id}")
+            return updated_subscription
 
     except Exception as e:
         logger.error(f"[❌] Failed to change subscription plan: {e}", exc_info=True)
