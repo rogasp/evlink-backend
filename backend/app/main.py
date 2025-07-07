@@ -16,6 +16,7 @@ import sentry_sdk
 
 from app.logger import logger
 from app.api import admin, ha, me, private, public, webhook, newsletter, payments
+from app.api.admin import routers as admin_routers
 from app.storage.telemetry import log_api_telemetry
 from app.auth.api_key_auth import get_api_key_user
 from app.config import (
@@ -159,12 +160,14 @@ app.add_middleware(
 # -------------------------
 app.include_router(public.router, prefix="/api")
 app.include_router(private.router, prefix="/api")
-app.include_router(admin.router, prefix="/api")
+# app.include_router(admin.router, prefix="/api")
 app.include_router(webhook.router, prefix="/api")
 app.include_router(me.router, prefix="/api")
 app.include_router(ha.router, prefix="/api")
 app.include_router(newsletter.router, prefix="/api")
 app.include_router(payments.router, prefix="/api/payments")
+for router in admin_routers:
+    app.include_router(router, prefix="/api")
 
 # -------------------------
 # Swagger / OpenAPI JWT support

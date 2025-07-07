@@ -60,7 +60,6 @@ async def add_or_update_brevo_contact(email: str, first_name: str | None):
         else brevo_response
     )
 
-
 async def remove_brevo_contact_from_list(email: str):
     """
     Remove the Customers list ID from an existing Brevo contact, leaving other list IDs intact.
@@ -131,5 +130,25 @@ async def set_onboarding_step(email: str, step: str):
         return response.to_dict() if hasattr(response, "to_dict") else response
     except ApiException as e:
         logger.error("❌ Failed to set onboarding step for %s: %s", email, e)
+        raise
+
+async def get_brevo_subscription_status(email: str) -> bool:
+    """
+    Kolla om användaren är aktivt prenumererad på nyhetsbrev i Brevo.
+    Returnerar True om prenumererad, False om ej (eller kontakt saknas).
+    """
+    try:
+        contact = _contacts_api.get_contact_info(email)
+        # Det här fältet finns i Brevo-kontakten:
+        # email_blacklisted: bool (True = avregistrerad från ALLT)
+        # unsubscribe: bool (True = klickat unsubscribe på nyhetsbrev)
+        # Vill du returnera mer data? Lägg till fler fält!
+        subscribed = not getattr(contact, "email_blacklisted", False) and not getattr(contact, "unsubscribe", False)
+        return subscribed
+    except ApiException as e:
+        if e.status == 404:
+            # Kontakt finns inte, så räknas ej som prenumererad
+            return False
+        logger.error(f"❌ Brevo API error checking subscription for {email}: {e}")
         raise
 
