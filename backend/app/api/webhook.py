@@ -11,7 +11,7 @@ import httpx
 from app.api.payments import process_successful_payment_intent
 from app.config import ENODE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET  # se till att du har detta i .env
 from app.lib.webhook_logic import process_event  # lagd i separat fil för logik
-from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, get_user_by_id, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription
+from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, get_user_by_id, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription, update_user
 from app.storage.subscription import get_price_id_map, update_subscription_status, upsert_subscription_from_stripe
 from app.enode.verify import verify_signature
 from app.storage.webhook import save_webhook_event
@@ -296,6 +296,8 @@ async def stripe_webhook(
 
         logger.info(f"[DB] Subscription upserted: id={subscription_id} status={sub.get('status')} customer_id={customer_id} user_id={user_id} tier={tier}")
         
+        
+
         try:
             await upsert_subscription_from_stripe(sub, user_id=user_id) # Se till att upsert_subscription_from_stripe använder user_id
             
@@ -320,6 +322,12 @@ async def stripe_webhook(
             else: # Fallback för ny sub eller om tier/user_id inte kan matchas
                 await update_user_subscription(user_id=user_id, tier=tier, status=sub.get('status'))
                 logger.info(f"[✅] User {user_id} tier updated to {tier} (fallback logic) from sub.updated webhook.")
+
+            # Om prenumerationen är aktiv eller i provperiod, rensa is_on_trial och trial_ends_at
+            if sub.get("status") in ["active", "trialing"]:
+                if user_record.is_on_trial or user_record.trial_ends_at:
+                    logger.info(f"[✅] Clearing trial status for user {user_id} due to active Stripe subscription.")
+                    await update_user(user_id=user_id, is_on_trial=False, trial_ends_at=None)
 
         except Exception as e:
             logger.error(f"[❌] Failed to upsert subscription and update user tier for sub {subscription_id}: {e}", exc_info=True)

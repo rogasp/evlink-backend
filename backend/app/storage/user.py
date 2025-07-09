@@ -101,7 +101,7 @@ async def get_user_by_id(user_id: str) -> User | None:
     """
     try:
         response = supabase.table("users") \
-            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits") \
+            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits, is_on_trial, trial_ends_at") \
             .eq("id", user_id) \
             .maybe_single() \
             .execute()
@@ -421,3 +421,33 @@ async def get_user_id_by_stripe_customer_id(stripe_customer_id):
     if result and hasattr(result, "data") and result.data:
         return result.data[0]["id"]
     return None
+
+async def update_user(user_id: str, **kwargs):
+    """
+    Updates one or more fields for a given user in the database.
+    Example: await update_user(user_id="some_id", tier="pro", is_on_trial=True)
+    """
+    try:
+        if not kwargs:
+            logger.warning(f"[⚠️] update_user called for {user_id} with no fields to update.")
+            return
+
+        update_data = {k: v for k, v in kwargs.items() if v is not None}
+        
+        if not update_data:
+            logger.warning(f"[⚠️] update_user called for {user_id} with only None values, no update performed.")
+            return
+
+        result = supabase.table("users") \
+            .update(update_data) \
+            .eq("id", user_id) \
+            .execute()
+        
+        if not result.data:
+            raise Exception(f"No rows were updated for user {user_id}")
+        
+        logger.info(f"[✅] Updated user {user_id} with: {update_data}")
+        return result
+    except Exception as e:
+        logger.error(f"[❌ update_user] Failed to update user {user_id}: {e}", exc_info=True)
+        raise

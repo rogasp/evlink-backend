@@ -1,7 +1,8 @@
 # backend/app/api/me.py
 
 from typing import Optional
-from fastapi import APIRouter, Depends
+from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
 from app.storage.user import (
@@ -16,6 +17,8 @@ from app.storage.user import (
 )
 from app.logger import logger
 from app.services.brevo import add_or_update_brevo_contact
+from app.storage.user import update_user
+
 
 router = APIRouter()
 
@@ -35,7 +38,8 @@ class MeResponse(BaseModel):
     sms_credits: int = 0
     stripe_customer_id: Optional[str] = None
     is_subscribed: bool  # NEW: whether the user is subscribed to the newsletter
-    
+    is_on_trial: bool # NEW: if the user is on a trial
+    trial_ends_at: Optional[str] # NEW: when the trial ends
 
 @router.get("/me", response_model=MeResponse)
 async def get_me(user=Depends(get_supabase_user)):
@@ -108,9 +112,37 @@ async def get_me(user=Depends(get_supabase_user)):
             sms_credits=local_user.sms_credits if local_user else 0,
             stripe_customer_id=local_user.stripe_customer_id,
             is_subscribed=is_subscribed,  # NEW field
+            is_on_trial=local_user.is_on_trial if local_user else False, # NEW field
+            trial_ends_at=local_user.trial_ends_at if local_user else None # NEW field
         )
 
     except Exception as e:
         logger.error(f"[❌ get_me] Unexpected error: {e}")
         # If an error occurs while fetching, re-raise as appropriate (or customize)
         raise
+
+@router.post("/me/activate-pro-trial")
+async def activate_pro_trial(user=Depends(get_supabase_user)):
+    user_id = user["id"]
+    local_user = await get_user_by_id(user_id)
+
+    if not local_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if user already has a paid subscription or has already had a trial
+    if local_user.tier in ["pro", "basic"] or local_user.is_on_trial or local_user.trial_ends_at:
+        raise HTTPException(status_code=400, detail="User is not eligible for a Pro trial.")
+
+    # Calculate trial end date (30 days from now)
+    trial_ends_at = datetime.now() + timedelta(days=30)
+
+    # Update user in database
+    await update_user(
+        user_id=user_id,
+        tier="pro",
+        is_on_trial=True,
+        trial_ends_at=trial_ends_at.isoformat() # Store as ISO format string
+    )
+
+    logger.info(f"[✅] User {user_id} activated Pro trial until {trial_ends_at}")
+    return {"message": "Pro trial activated successfully", "trial_ends_at": trial_ends_at.isoformat()}

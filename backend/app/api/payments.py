@@ -76,36 +76,62 @@ async def handle_checkout(
     # 3) Handle actions
     if req.action == "subscribe":
         logger.info(f"[🟢] Starting subscription for plan_id: {req.plan_id}, price_id: {price_id}")
-        session = stripe.checkout.Session.create(
-            customer=customer_id,
-            payment_method_types=["card"],
-            mode="subscription",
-            line_items=[{"price": price_id, "quantity": 1}],
-            success_url=SUCCESS_URL,
-            cancel_url=CANCEL_URL,
-            metadata={"user_id": user_record.id, "plan_id": req.plan_id},
-        )
+        
+        # Check if user is on trial and set trial_end for Stripe
+        trial_end_timestamp = None
+        if user_record.is_on_trial and user_record.trial_ends_at:
+            try:
+                # Convert ISO format string to datetime object, then to Unix timestamp
+                trial_end_dt = datetime.fromisoformat(user_record.trial_ends_at)
+                trial_end_timestamp = int(trial_end_dt.timestamp())
+                logger.info(f"[ℹ️] User {user_record.id} is on trial, setting Stripe trial_end to {trial_end_timestamp}")
+            except ValueError as e:
+                logger.error(f"[❌] Error parsing trial_ends_at for user {user_record.id}: {e}")
+                # Continue without trial_end if parsing fails
+
+        session_params = {
+            "customer": customer_id,
+            "payment_method_types": ["card"],
+            "mode": "subscription",
+            "line_items": [{"price": price_id, "quantity": 1}],
+            "success_url": SUCCESS_URL,
+            "cancel_url": CANCEL_URL,
+            "metadata": {"user_id": user_record.id, "plan_id": req.plan_id},
+        }
+        if trial_end_timestamp:
+            session_params["subscription_data"] = {"trial_end": trial_end_timestamp}
+
+        session = stripe.checkout.Session.create(**session_params)
         logger.info(f"[✅] Stripe Checkout Session created: {session.id}")
         return {"clientSecret": session.id, "status": "subscription_created"}
 
     elif req.action == "change_plan":
         logger.info(f"[🔄] Change plan requested for customer {customer_id} to plan_id: {req.plan_id} (price_id: {price_id})")
         
+        # If user is on trial, ensure the new subscription starts after the trial ends
+        trial_end_timestamp = None
+        if user_record.is_on_trial and user_record.trial_ends_at:
+            try:
+                trial_end_dt = datetime.fromisoformat(user_record.trial_ends_at)
+                trial_end_timestamp = int(trial_end_dt.timestamp())
+                logger.info(f"[ℹ️] User {user_record.id} is on trial, setting Stripe trial_end for plan change to {trial_end_timestamp}")
+            except ValueError as e:
+                logger.error(f"[❌] Error parsing trial_ends_at for user {user_record.id} during plan change: {e}")
+
         try:
-            # >>> ANROPA DEN KONSOLIDERADE TJÄNSTEN HÄR ISTÄLLET <<<
-            # All logik för att hämta subs, avgöra upp/nedgradering och fakturera ligger nu i service-lagret
+            # Pass trial_end_timestamp to the service layer if applicable
             await handle_subscription_plan_change_request(
                 customer_id=customer_id,
                 new_price_id=price_id,
-                user_id=user_record.id # Skicka med user_id
+                user_id=user_record.id,
+                trial_end=trial_end_timestamp # Pass the trial_end to the service
             )
             logger.info(f"[✅] Change plan processed by Stripe service successfully.")
-            # Uppdatera statusmeddelandet för att reflektera att servicen hanterade det
             return {"clientSecret": None, "status": "subscription_change_processed"}
-        except ValueError as e: # Fånga specifika fel från service-lagret (t.ex. "No active subscription")
+        except ValueError as e: 
             logger.error(f"[❌] Failed to change plan (ValueError): {e}")
             raise HTTPException(400, str(e))
-        except Exception as e: # Fånga andra oväntade fel
+        except Exception as e: 
             logger.error(f"[❌] Unexpected error changing plan: {e}", exc_info=True)
             raise HTTPException(500, "Internal server error during plan change.")
 
