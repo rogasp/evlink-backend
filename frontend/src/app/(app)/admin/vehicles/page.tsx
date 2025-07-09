@@ -66,6 +66,8 @@ export default function VehicleAdminPage() {
         </Button>
       </header>
 
+      <div className="text-sm text-gray-600">Showing {vehicles.length} vehicles</div>
+
       {/* Table for desktop */}
       <Card className="hidden lg:block overflow-auto">
         <table className="min-w-full divide-y divide-gray-200">
