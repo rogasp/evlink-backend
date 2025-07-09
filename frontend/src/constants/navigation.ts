@@ -9,6 +9,7 @@ import {
   Truck,
   Network,
   FileText,
+  BarChart2,
 } from 'lucide-react';
 
 export type NavigationItem = {
@@ -36,6 +37,7 @@ export const navigation: NavigationGroup[] = [
     items: [
       { title: 'Integration Guide', href: '/integration-guide', icon: BookOpen },
       { title: 'HA API', href: '/docs/ha-api', icon: Terminal },
+  { title: 'Insights', href: '/insights', icon: BarChart2 },
     ],
   },
   {
