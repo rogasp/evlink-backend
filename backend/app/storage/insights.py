@@ -6,9 +6,8 @@ supabase = get_supabase_admin_client()
 def get_global_stats_row() -> dict | None:
     result = (
         supabase
-        .table("global_stats")
+        .table("charging_summary_view")
         .select("*")
-        .eq("id", 1)
         .maybe_single()
         .execute()
     )

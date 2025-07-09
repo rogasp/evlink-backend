@@ -7,10 +7,14 @@ import { authFetch } from "@/lib/authFetch";
 import { supabase } from "@/lib/supabaseClient";
 
 type GlobalStats = {
-  total_users: number;
-  total_vehicles: number;
+  unique_users: number;
+  unique_vehicles: number;
   total_sessions: number;
-  total_kwh: number;
+  total_kwh_charged: number;
+  total_minutes_charged: number;
+  average_charge_rate_kwh_per_hour: number;
+  highest_max_charge_rate_kw: number;
+  highest_average_charge_rate_kw: number;
 };
 
 export default function GlobalStats() {
@@ -42,10 +46,10 @@ export default function GlobalStats() {
   if (!stats) return null;
 
   const statItems = [
-    { icon: Users, label: "Users", value: stats.total_users },
-    { icon: Car, label: "Vehicles", value: stats.total_vehicles },
+    { icon: Users, label: "Users", value: stats.unique_users },
+    { icon: Car, label: "Vehicles", value: stats.unique_vehicles },
     { icon: BatteryCharging, label: "Charging Sessions", value: stats.total_sessions },
-    { icon: Zap, label: "Total kWh Charged", value: `${Math.round(stats.total_kwh)} kWh` },
+    { icon: Zap, label: "Total kWh Charged", value: `${Math.round(stats.total_kwh_charged)} kWh` },
   ];
 
   return (
