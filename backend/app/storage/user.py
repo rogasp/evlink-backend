@@ -451,3 +451,30 @@ async def update_user(user_id: str, **kwargs):
     except Exception as e:
         logger.error(f"[❌ update_user] Failed to update user {user_id}: {e}", exc_info=True)
         raise
+
+async def get_total_user_count() -> int:
+    """
+    Returns the total number of users in the database.
+    """
+    try:
+        res = supabase.table("users").select("id", count="exact").execute()
+        return res.count
+    except Exception as e:
+        logger.error(f"[❌ get_total_user_count] {e}")
+        return 0
+
+async def get_new_user_count(days: int) -> int:
+    """
+    Returns the number of new users created within the last 'days' days.
+    """
+    from datetime import datetime, timedelta # Import here to avoid circular dependency issues if datetime is used elsewhere
+    try:
+        # Calculate the datetime 'days' ago
+        time_ago = datetime.utcnow() - timedelta(days=days)
+        time_ago_iso = time_ago.isoformat() + "Z" # Supabase expects ISO format with Z for UTC
+
+        res = supabase.table("users").select("id", count="exact").gte("created_at", time_ago_iso).execute()
+        return res.count
+    except Exception as e:
+        logger.error(f"[❌ get_new_user_count] {e}")
+        return 0

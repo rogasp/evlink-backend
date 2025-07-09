@@ -1,6 +1,6 @@
 # 📄 backend/app/storage/vehicle.py
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from app.lib.supabase import get_supabase_admin_client
 from app.logic.vehicle import handle_offline_notification_if_needed
@@ -112,3 +112,30 @@ async def get_vehicle_by_vehicle_id(vehicle_id: str):
         return None
 
     return response.data
+
+async def get_total_vehicle_count() -> int:
+    """
+    Returns the total number of vehicles in the database.
+    """
+    supabase = get_supabase_admin_client()
+    try:
+        res = supabase.table("vehicles").select("id", count="exact").execute()
+        return res.count
+    except Exception as e:
+        print(f"[❌ get_total_vehicle_count] {e}")
+        return 0
+
+async def get_new_vehicle_count(days: int) -> int:
+    """
+    Returns the number of new vehicles created within the last 'days' days.
+    """
+    supabase = get_supabase_admin_client()
+    try:
+        time_ago = datetime.utcnow() - timedelta(days=days)
+        time_ago_iso = time_ago.isoformat() + "Z"
+
+        res = supabase.table("vehicles").select("id", count="exact").gte("created_at", time_ago_iso).execute()
+        return res.count
+    except Exception as e:
+        print(f"[❌ get_new_vehicle_count] {e}")
+        return 0

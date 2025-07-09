@@ -225,4 +225,31 @@ async def get_subscription_by_stripe_id(stripe_subscription_id: str) -> Optional
     except Exception as e:
         logger.error(f"Failed to retrieve local subscription for Stripe ID {stripe_subscription_id}: {e}", exc_info=True)
         return None
+
+async def count_subscriptions_by_plan(plan_name: str) -> int:
+    """
+    Counts the number of active subscriptions for a given plan name.
+    """
+    try:
+        res = supabase.table("subscriptions").select("id", count="exact") \
+            .eq("plan_name", plan_name) \
+            .eq("status", "active") \
+            .execute()
+        return res.count
+    except Exception as e:
+        logger.error(f"[❌ count_subscriptions_by_plan] {e}")
+        return 0
+
+async def count_users_on_trial() -> int:
+    """
+    Counts the number of users currently on a trial period.
+    """
+    try:
+        res = supabase.table("users").select("id", count="exact") \
+            .eq("is_on_trial", True) \
+            .execute()
+        return res.count
+    except Exception as e:
+        logger.error(f"[❌ count_users_on_trial] {e}")
+        return 0
     

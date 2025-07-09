@@ -120,3 +120,67 @@ async def get_user_invoices(user_id: str) -> list[dict]:
     supabase = get_supabase_admin_client()
     res = supabase.table("invoices").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
     return res.data if hasattr(res, "data") else []
+
+async def get_total_revenue() -> float:
+    """
+    Calculates the total revenue from all paid invoices.
+    """
+    try:
+        res = supabase.table("invoices").select("amount_due", "currency").eq("status", "paid").execute()
+        total_revenue = 0.0
+        for invoice in res.data:
+            # Assuming all amounts are in the same currency or need conversion
+            # For simplicity, we'll just sum them up. Real-world might need currency conversion.
+            total_revenue += invoice["amount_due"]
+        return total_revenue / 100 # Convert from cents to dollars/öre to kronor
+    except Exception as e:
+        logger.error(f"[❌ get_total_revenue] {e}")
+        return 0.0
+
+async def get_monthly_revenue(year: int, month: int) -> float:
+    """
+    Calculates the revenue for a specific month from paid invoices.
+    """
+    try:
+        # Supabase 'created_at' is stored as ISO string
+        start_date = datetime(year, month, 1, 0, 0, 0, tzinfo=timezone.utc)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        else:
+            end_date = datetime(year, month + 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+        res = supabase.table("invoices").select("amount_due", "currency") \
+            .eq("status", "paid") \
+            .gte("created_at", start_date.isoformat().replace("+00:00", "Z")) \
+            .lt("created_at", end_date.isoformat().replace("+00:00", "Z")) \
+            .execute()
+
+        monthly_revenue = 0.0
+        for invoice in res.data:
+            monthly_revenue += invoice["amount_due"]
+        return monthly_revenue / 100
+    except Exception as e:
+        logger.error(f"[❌ get_monthly_revenue] {e}")
+        return 0.0
+
+async def get_yearly_revenue(year: int) -> float:
+    """
+    Calculates the revenue for a specific year from paid invoices.
+    """
+    try:
+        start_date = datetime(year, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        end_date = datetime(year + 1, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+        res = supabase.table("invoices").select("amount_due", "currency") \
+            .eq("status", "paid") \
+            .gte("created_at", start_date.isoformat().replace("+00:00", "Z")) \
+            .lt("created_at", end_date.isoformat().replace("+00:00", "Z")) \
+            .execute()
+
+        yearly_revenue = 0.0
+        for invoice in res.data:
+            yearly_revenue += invoice["amount_due"]
+        return yearly_revenue / 100
+    except Exception as e:
+        logger.error(f"[❌ get_yearly_revenue] {e}")
+        return 0.0

@@ -43,6 +43,7 @@ export const navigation: NavigationGroup[] = [
   {
     title: 'Admin',
     items: [
+      { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, adminOnly: true },
       { title: 'Settings', href: '/admin/settings', icon: Settings, adminOnly: true },
       { title: 'Vendors', href: '/admin/vendors', icon: Network, adminOnly: true },
       { title: 'Users', href: '/admin/users', icon: Users, adminOnly: true },
