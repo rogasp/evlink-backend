@@ -14,11 +14,10 @@ from app.storage.user import (
     get_user_online_status,
     is_subscriber,
     set_welcome_sent_if_needed,
+    update_user,
 )
 from app.logger import logger
 from app.services.brevo import add_or_update_brevo_contact
-from app.storage.user import update_user
-
 
 router = APIRouter()
 
