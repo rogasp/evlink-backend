@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { authFetch } from '@/lib/authFetch';
-import type { User } from '@supabase/supabase-js';
+export type { User } from '@supabase/supabase-js';
 
 interface MergedUser {
   id: string;
@@ -18,6 +18,7 @@ interface MergedUser {
   stripe_customer_id?: string;
   sms_credits?: number;
   tier?: 'free' | 'basic' | 'pro';
+  is_on_trial?: boolean;
 }
 
 type UserContextType = {

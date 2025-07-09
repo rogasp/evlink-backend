@@ -1,34 +1,55 @@
-import React from 'react';
+'use client';
+
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { useUserContext } from '@/contexts/UserContext';
-import { startTrial } from '@/lib/authFetch';
+import { authFetch } from '@/lib/authFetch';
 
-const TrialButton: React.FC = () => {
-  const { accessToken, refreshUser } = useUserContext();
+export function TrialButton() {
+  const { mergedUser: user, refreshUser: mutateUser, accessToken } = useUserContext();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleStartTrial = async () => {
-    if (accessToken) {
-      try {
-        const response = await startTrial(accessToken);
-        if (response.data) {
-          alert('Trial started successfully!');
-          refreshUser(); // Refresh user data to reflect trial status
-        } else if (response.error) {
-          alert(`Failed to start trial: ${response.error.message}`);
-        }
-      } catch (error) {
-        alert(`An unexpected error occurred: ${error}`);
+  const handleActivateTrial = async () => {
+    if (!user) {
+      toast.error('You must be logged in to activate the trial period.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await authFetch('/api/me/activate-pro-trial', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        accessToken: accessToken || '',
+      });
+
+      if (!response.error) {
+        const data = response.data;
+        toast.success(data.message || 'Pro trial activated!');
+        mutateUser(); // Update user data after activation
+      } else {
+        const errorData = response.error;
+        toast.error(errorData.message || 'Could not activate trial period.');
       }
-    } else {
-      alert('No access token available. Please log in.');
+    } catch (error) {
+      console.error('Error activating trial period:', error);
+      toast.error('An unexpected error occurred.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Visa inte knappen om användaren redan är Pro, Basic, eller har en aktiv provperiod
+  if (user?.tier === 'pro' || user?.tier === 'basic' || user?.is_on_trial) {
+    return null;
+  }
+
   return (
-    <Button onClick={handleStartTrial}>
-      Start 30-day Free Trial
+    <Button onClick={handleActivateTrial} disabled={isLoading}>
+      {isLoading ? 'Activating...' : 'Try Pro for free for 30 days'}
     </Button>
   );
-};
-
-export default TrialButton;
+}
