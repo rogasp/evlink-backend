@@ -11,10 +11,20 @@ export default function PrivacyContent() {
         <li>Email and name (upon registration)</li>
         <li>Vehicle data (via Enode)</li>
         <li>Basic usage info</li>
+        <li>Charging data (battery level, timestamps, etc.)</li>
       </ul>
 
       <h3 className="font-semibold">Why is it collected?</h3>
-      <p>Only to provide the intended functionality. No tracking or resale occurs.</p>
+      <p>
+        Only to provide the intended functionality. No tracking or resale occurs.
+        Charging data is used to generate personal insights and to calculate anonymous group statistics.
+      </p>
+
+      <h3 className="font-semibold">How is charging data used?</h3>
+      <p>
+        Aggregated and anonymized statistics may be calculated across all users to provide comparison and
+        feedback. No personally identifiable information is shared with anyone outside the service.
+      </p>
 
       <h3 className="font-semibold">Who has access?</h3>
       <p>Only the developer. No third parties are involved.</p>

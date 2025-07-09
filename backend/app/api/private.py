@@ -8,13 +8,15 @@ from app.auth.supabase_auth import get_supabase_user
 from app.enode.link import create_link_session
 from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
+from app.storage.insights import get_global_stats_row
+from app.storage.invoice import get_user_invoices
 from app.storage.subscription import get_user_record, get_user_subscription 
 from app.storage.user import get_ha_webhook_settings, get_onboarding_status, set_ha_webhook_settings, update_notify_offline, update_user_terms
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
-from app.storage.invoice import get_user_invoices
 
 import json
 import logging
+
 
 
 # Create a module-specific logger
@@ -288,3 +290,10 @@ async def api_get_user_invoices(
         raise HTTPException(status_code=403, detail="Forbidden")
     invoices = await get_user_invoices(user_id)
     return invoices or []
+
+@router.get("/stats/global")
+async def get_global_stats():
+    row = get_global_stats_row()
+    if not row:
+        raise HTTPException(status_code=404, detail="No global stats found")
+    return row
