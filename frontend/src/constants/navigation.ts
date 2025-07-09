@@ -50,6 +50,7 @@ export const navigation: NavigationGroup[] = [
       { title: 'Vehicles', href: '/admin/vehicles', icon: Truck, adminOnly: true },
       { title: 'Webhooks', href: '/admin/webhooks', icon: Network, adminOnly: true },
       { title: 'Logs', href: '/admin/logs', icon: FileText, adminOnly: true },
+      { title: 'Finance', href: '/admin/finance', icon: BarChart2, adminOnly: true },
     ],
   },
 ];
