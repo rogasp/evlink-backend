@@ -5,6 +5,12 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
+from typing import Optional
+from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
+from app.auth.supabase_auth import get_supabase_user
 from app.storage.user import (
     create_onboarding_row,
     get_onboarding_status,
@@ -16,6 +22,10 @@ from app.storage.user import (
     set_welcome_sent_if_needed,
     update_user,
 )
+from app.storage.subscription import get_user_record
+from app.storage.poll_logs import count_polls_since, count_polls_since_for_vehicle
+from app.storage.vehicles import get_vehicle_by_id_and_user_id
+from app.storage.settings import get_setting_by_name
 from app.logger import logger
 from app.services.brevo import add_or_update_brevo_contact
 
@@ -39,6 +49,68 @@ class MeResponse(BaseModel):
     is_subscribed: bool  # NEW: whether the user is subscribed to the newsletter
     is_on_trial: bool # NEW: if the user is on a trial
     trial_ends_at: Optional[str] # NEW: when the trial ends
+
+class ApiUsageStatsResponse(BaseModel):
+    current_calls: int
+    max_calls: int
+    max_linked_vehicles: int
+    linked_vehicle_count: int
+    tier: str
+
+async def _get_setting_value(setting_name: str, default_value: int) -> int:
+    try:
+        s = await get_setting_by_name(setting_name)
+        return int(s.get("value", default_value))
+    except Exception:
+        return default_value
+
+@router.get("/me/api-usage", response_model=ApiUsageStatsResponse)
+async def get_api_usage_stats(user=Depends(get_supabase_user)):
+    user_id = user["id"]
+    record = await get_user_record(user_id)
+    tier = record.get("tier", "free")
+    linked_vehicle_count = record.get("linked_vehicle_count", 0)
+
+    now = datetime.utcnow()
+    window = timedelta(days=1) # All tiers are daily limits
+
+    max_calls = 0
+    max_linked_vehicles = 0
+    current_calls = 0
+
+    # Load settings dynamically
+    free_max_calls = await _get_setting_value("rate_limit.free.max_calls", 2)
+    basic_max_calls = await _get_setting_value("rate_limit.basic.max_calls", 10)
+    pro_max_calls = await _get_setting_value("rate_limit.pro.max_calls", 100)
+    basic_max_linked_vehicles = await _get_setting_value("rate_limit.basic.max_linked_vehicles", 2)
+    pro_max_linked_vehicles = await _get_setting_value("rate_limit.pro.max_linked_vehicles", 5)
+
+    if tier == "free":
+        max_calls = free_max_calls
+        current_calls = await count_polls_since(user_id, now - window)
+    elif tier == "basic":
+        max_calls = basic_max_calls
+        max_linked_vehicles = basic_max_linked_vehicles
+        # For Basic/Pro, we need to sum calls across all linked vehicles
+        # This requires fetching all vehicles for the user and summing their individual counts
+        # For now, we'll count user-wide for Basic/Pro as well, but the max_linked_vehicles still applies.
+        current_calls = await count_polls_since(user_id, now - window) # This is a simplification
+    elif tier == "pro":
+        max_calls = pro_max_calls
+        max_linked_vehicles = pro_max_linked_vehicles
+        current_calls = await count_polls_since(user_id, now - window) # This is a simplification
+    else:
+        # Default to free tier limits if tier is unknown
+        max_calls = free_max_calls
+        current_calls = await count_polls_since(user_id, now - window)
+
+    return ApiUsageStatsResponse(
+        current_calls=current_calls,
+        max_calls=max_calls,
+        max_linked_vehicles=max_linked_vehicles,
+        linked_vehicle_count=linked_vehicle_count,
+        tier=tier
+    )
 
 @router.get("/me", response_model=MeResponse)
 async def get_me(user=Depends(get_supabase_user)):

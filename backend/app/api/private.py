@@ -12,6 +12,7 @@ from app.storage.insights import get_global_stats_row, get_user_stats_row
 from app.storage.invoice import get_user_invoices
 from app.storage.subscription import get_user_record, get_user_subscription 
 from app.storage.user import get_ha_webhook_settings, get_onboarding_status, set_ha_webhook_settings, update_notify_offline, update_user_terms
+from app.api.dependencies import require_pro_tier
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
 
 import json

@@ -12,7 +12,7 @@ from app.api.payments import process_successful_payment_intent
 from app.config import ENODE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET  # se till att du har detta i .env
 from app.lib.webhook_logic import process_event  # lagd i separat fil för logik
 from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, get_user_by_id, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription, update_user
-from app.storage.subscription import get_price_id_map, update_subscription_status, upsert_subscription_from_stripe
+from app.storage.subscription import get_price_id_map, update_subscription_status, upsert_subscription_from_stripe, get_user_record
 from app.enode.verify import verify_signature
 from app.storage.webhook import save_webhook_event
 from app.services.stripe_utils import log_stripe_webhook
@@ -27,6 +27,12 @@ async def push_to_homeassistant(event: dict, user_id: str | None):
     """Pusha ett enskilt event till Home Assistant via webhook-inställningar i DB."""
     if not user_id:
         # Inga loggar, bara tyst return om user saknas (t.ex. systemhook)
+        return
+
+    # Hämta användarens tier
+    user_record = await get_user_record(user_id)
+    if not user_record or user_record.get("tier") != "pro":
+        logger.info("Webhook push skipped for user %s: Not a Pro tier user.", user_id)
         return
 
     settings = get_ha_webhook_settings(user_id)
