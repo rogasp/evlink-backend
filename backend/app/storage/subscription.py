@@ -226,6 +226,17 @@ async def get_subscription_by_stripe_id(stripe_subscription_id: str) -> Optional
         logger.error(f"Failed to retrieve local subscription for Stripe ID {stripe_subscription_id}: {e}", exc_info=True)
         return None
 
+async def get_all_subscriptions() -> list[dict]:
+    """
+    Fetches all subscriptions from the database, ordered by creation date.
+    """
+    try:
+        res = supabase.table("subscriptions").select("*").order("created_at", desc=True).execute()
+        return res.data if hasattr(res, "data") else []
+    except Exception as e:
+        logger.error(f"[❌ get_all_subscriptions] {e}")
+        return []
+
 async def count_subscriptions_by_plan(plan_name: str) -> int:
     """
     Counts the number of active subscriptions for a given plan name.

@@ -121,6 +121,17 @@ async def get_user_invoices(user_id: str) -> list[dict]:
     res = supabase.table("invoices").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
     return res.data if hasattr(res, "data") else []
 
+async def get_all_invoices() -> list[dict]:
+    """
+    Fetches all invoices from the database, ordered by creation date.
+    """
+    try:
+        res = supabase.table("invoices").select("*").order("created_at", desc=True).execute()
+        return res.data if hasattr(res, "data") else []
+    except Exception as e:
+        logger.error(f"[❌ get_all_invoices] {e}")
+        return []
+
 async def get_total_revenue() -> float:
     """
     Calculates the total revenue from all paid invoices.

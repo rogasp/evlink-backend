@@ -478,3 +478,19 @@ async def get_new_user_count(days: int) -> int:
     except Exception as e:
         logger.error(f"[❌ get_new_user_count] {e}")
         return 0
+
+async def get_all_customers() -> list[dict]:
+    """
+    Fetches all users who are considered 'customers' (have a stripe_customer_id or an active subscription).
+    """
+    try:
+        # This query fetches users who have a stripe_customer_id OR
+        # whose 'tier' is not 'free' (implying a basic/pro subscription)
+        # You might need to adjust the 'tier' logic based on your exact schema for active subscriptions.
+        res = supabase.table("users").select("id, email, name, stripe_customer_id, tier, subscription_status") \
+            .or_("stripe_customer_id.not.is.null,tier.neq.free") \
+            .execute()
+        return res.data if hasattr(res, "data") else []
+    except Exception as e:
+        logger.error(f"[❌ get_all_customers] {e}")
+        return []
