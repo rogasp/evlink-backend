@@ -16,7 +16,7 @@ async def log_api_telemetry(
     timestamp: str,
     request_size: Optional[int] = None,
     response_size: Optional[int] = None,
-    request_payload: Optional[dict] = None,
+    request_payload: Optional[dict | str] = None,
     response_payload: Optional[str] = None,
     cost_tokens: int = 0,
 ) -> None:
