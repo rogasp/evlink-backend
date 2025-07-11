@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta
+"""FastAPI dependencies for rate limiting and subscription tier requirements."""
+
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import Depends, HTTPException, Request, BackgroundTasks
 
@@ -9,12 +11,17 @@ from app.storage.poll_logs import log_poll, count_polls_since, count_polls_since
 from app.storage.vehicles import get_vehicle_by_id_and_user_id
 from app.storage.settings import get_setting_by_name
 
+# TODO: This function can be removed once pydantic-settings is fully implemented.
 async def _get_setting_value(setting_name: str, default_value: int) -> int:
-    try:
-        s = await get_setting_by_name(setting_name)
+    """Retrieves a setting value by name, with a fallback default."""
+    s = await get_setting_by_name(setting_name)
+    if s:
         return int(s.get("value", default_value))
-    except Exception:
-        return default_value
+    return default_value
+
+# TODO: Define tier names (e.g., "free", "basic", "pro") as constants or an Enum.
+
+
 
 async def api_key_rate_limit(
     request: Request,
@@ -29,7 +36,7 @@ async def api_key_rate_limit(
     tier = record.get("tier", "free")
     linked_vehicle_count = record.get("linked_vehicle_count", 0)
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     window = timedelta(days=1) # All tiers are daily limits
 
     max_calls = 0
@@ -129,25 +136,24 @@ async def rate_limit_dependency(
     tier = record.get("tier", "free")
 
     # Load settings or use defaults
-    free_max = free_window = pro_max = pro_window = None
-    try:
-        s = await get_setting_by_name("rate_limit.free.max_calls")
-        free_max = int(s.get("value", 3))
-        s = await get_setting_by_name("rate_limit.free.window_minutes")
-        free_window = int(s.get("value", 30))
-        s = await get_setting_by_name("rate_limit.pro.max_calls")
-        pro_max = int(s.get("value", 2))
-        s = await get_setting_by_name("rate_limit.pro.window_minutes")
-        pro_window = int(s.get("value", 1))
-    except Exception:
-        free_max, free_window, pro_max, pro_window = 3, 30, 2, 1
+    free_max_s = await get_setting_by_name("rate_limit.free.max_calls")
+    free_max = int(free_max_s.get("value", 3)) if free_max_s else 3
+
+    free_window_s = await get_setting_by_name("rate_limit.free.window_minutes")
+    free_window = int(free_window_s.get("value", 30)) if free_window_s else 30
+
+    pro_max_s = await get_setting_by_name("rate_limit.pro.max_calls")
+    pro_max = int(pro_max_s.get("value", 2)) if pro_max_s else 2
+
+    pro_window_s = await get_setting_by_name("rate_limit.pro.window_minutes")
+    pro_window = int(pro_window_s.get("value", 1)) if pro_window_s else 1
 
     if tier == "free":
         max_calls, window = free_max, timedelta(minutes=free_window)
     else:
         max_calls, window = pro_max, timedelta(minutes=pro_window)
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     since = now - window
     count = await count_polls_since(user_id, since)
     if count >= max_calls:

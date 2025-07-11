@@ -1,5 +1,6 @@
 # backend/app/api/admin/interest.py
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from app.auth.supabase_auth import get_supabase_user
 from app.services.email_utils import send_access_invite_email, send_interest_email
@@ -12,20 +13,22 @@ from app.storage.interest import (
     count_uncontacted_interest,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 def require_admin(user=Depends(get_supabase_user)):
-    print("🔍 Admin check - Full user object:")
-    # print(user)
+    logger.info("🔍 Admin check - Full user object:")
+    # logger.info(user)
 
     role = user.get("user_metadata", {}).get("role")
-    print(f"🔐 Extracted role: {role}")
+    logger.info(f"🔐 Extracted role: {role}")
 
     if role != "admin":
-        print(f"⛔ Access denied: user {user['id']} with role '{role}' tried to access admin route")
+        logger.warning(f"⛔ Access denied: user {user['id']} with role '{role}' tried to access admin route")
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    print(f"✅ Admin access granted to user {user['id']}")
+    logger.info(f"✅ Admin access granted to user {user['id']}")
     return user
 
 @router.post("/admin/interest/contact")
@@ -39,7 +42,7 @@ async def contact_all_interested(user=Depends(require_admin)):
             await mark_interest_contacted(entry["id"])
             contacted += 1
         except Exception as e:
-            print(f"[❌] Could not contact {entry['email']}: {e}")
+            logger.error(f"[❌] Could not contact {entry['email']}: {e}")
 
     return {"message": f"Contacted {contacted} interest submissions."}
 
@@ -92,6 +95,6 @@ async def send_access_invites(request: Request, user=Depends(require_admin)):
             )
             sent += 1
         except Exception as e:
-            print(f"[❌] Failed to send to {result['email']}: {e}")
+            logger.error(f"[❌] Failed to send to {result['email']}: {e}")
 
     return {"sent": sent}
