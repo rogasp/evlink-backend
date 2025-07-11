@@ -5,6 +5,7 @@ from app.config import ENODE_AUTH_URL, CLIENT_ID, CLIENT_SECRET
 _token_cache = {"access_token": None, "expires_at": 0}
 
 async def get_access_token():
+    """Retrieves and caches the Enode API access token."""
     if _token_cache["access_token"] and _token_cache["expires_at"] > time.time():
         return _token_cache["access_token"]
 

@@ -10,7 +10,7 @@ from app.enode.user import get_user_vehicles_enode, unlink_vendor
 from app.storage.api_key import create_api_key, get_api_key_info
 from app.storage.insights import get_global_stats_row, get_user_stats_row
 from app.storage.invoice import get_user_invoices
-from app.storage.subscription import get_user_record, get_user_subscription 
+from app.storage.subscription import get_user_record, get_user_subscription
 from app.storage.user import get_ha_webhook_settings, get_onboarding_status, set_ha_webhook_settings, update_notify_offline, update_user_terms
 from app.api.dependencies import require_pro_tier
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_vehicle_id, save_vehicle_data_with_client
@@ -32,7 +32,7 @@ class LinkVehicleRequest(BaseModel):
 
 class LinkVehicleResponse(BaseModel):
     url: str
-    linkToken: str 
+    linkToken: str
 
 class UnlinkRequest(BaseModel):
     vendor: str
@@ -50,6 +50,7 @@ class SubscriptionStatusResponse(BaseModel):
 
 @router.get("/user/vehicles", response_model=list)
 async def get_user_vehicles(user=Depends(get_supabase_user)):
+    """Fetches all vehicles linked to the current user, utilizing a cache."""
     user_id = user["id"]
     now = datetime.now(timezone.utc)
 
@@ -88,7 +89,7 @@ async def get_user_vehicles(user=Depends(get_supabase_user)):
 
         logger.info(f"💾 Saved {len(fresh_vehicles)} vehicle(s) to Supabase")
 
-        # Hämta cachen på nytt och returnera från cache
+        # Fetch the cache again and return from the newly populated cache
         cached_data = get_all_cached_vehicles(user_id)
         logger.debug(f"[DEBUG] post-save cached_data: {cached_data}")
         vehicles_from_cache = []
@@ -101,13 +102,14 @@ async def get_user_vehicles(user=Depends(get_supabase_user)):
 
     except Exception as e:
         logger.error(f"[❌ fetch_fresh] Failed to fetch or save vehicles: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch vehicles")    
+        raise HTTPException(status_code=500, detail="Failed to fetch vehicles")
 
 @router.get("/vehicle/by_vid")
 async def get_vehicle_by_vid(
     vehicle_id: str = Query(..., alias="vehicle_id"),
     user=Depends(get_supabase_user)
 ):
+    """Retrieves a specific vehicle by its Enode vehicle ID (vid)."""
     logger.info(f"🔐 Authenticated user: {user['id']} ({user['email']})")
     try:
         vehicle = await get_vehicle_by_vehicle_id(vehicle_id)
@@ -124,6 +126,7 @@ async def get_vehicle_by_vid(
 
 @router.post("/users/{user_id}/apikey")
 async def create_user_api_key(user_id: str = Path(...), user=Depends(get_supabase_user)):
+    """Creates a new API key for the specified user."""
     if user["id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized to create API key for another user")
 
@@ -134,6 +137,7 @@ async def create_user_api_key(user_id: str = Path(...), user=Depends(get_supabas
 
 @router.get("/users/{user_id}/apikey")
 async def get_user_api_key_info(user_id: str = Path(...), user=Depends(get_supabase_user)):
+    """Retrieves information about the API key for the specified user."""
     if user["id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized to view API key for another user")
 
@@ -149,15 +153,13 @@ async def get_user_api_key_info(user_id: str = Path(...), user=Depends(get_supab
     else:
         logger.warning(f"⚠️ No API key found for user: {user_id}")
         return {"api_key_masked": None}
-    
+
 @router.post("/user/link-vehicle", response_model=LinkVehicleResponse)
 async def api_create_link_session(
     request: LinkVehicleRequest,
     user=Depends(get_supabase_user),
 ):
-    """
-    Create a linking session for a vehicle vendor via Enode v3
-    """
+    """Create a linking session for a vehicle vendor via Enode v3."""
     try:
         user_id = user["id"]
         logger.info(f"🔗 Creating link session for user {user_id} and vendor {request.vendor}")
@@ -185,6 +187,7 @@ async def api_create_link_session(
 
 @router.post("/user/unlink")
 async def unlink_vendor_route(payload: UnlinkRequest, user=Depends(get_supabase_user)):
+    """Unlinks a vehicle vendor for the current user."""
     user_id = user["id"]
 
     success, error = await unlink_vendor(user_id=user_id, vendor=payload.vendor)
@@ -192,10 +195,11 @@ async def unlink_vendor_route(payload: UnlinkRequest, user=Depends(get_supabase_
     if not success:
         raise HTTPException(status_code=500, detail=f"Unlink failed: {error}")
 
-    return {"success": True, "message": f"Vendor {payload.vendor} unlinked"}  
+    return {"success": True, "message": f"Vendor {payload.vendor} unlinked"}
 
 @router.patch("/user/{user_id}")
 async def patch_user_terms(user_id: str, payload: dict, user=Depends(get_supabase_user)):
+    """Updates the terms and conditions acceptance status for a user."""
     if user["id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized to modify this user.")
 
@@ -208,6 +212,7 @@ async def patch_user_terms(user_id: str, payload: dict, user=Depends(get_supabas
 
 @router.patch("/user/{user_id}/notify")
 async def update_notify(user_id: str, payload: UpdateNotifyRequest, user=Depends(get_supabase_user)):
+    """Updates the notification preference for when a vehicle goes offline."""
     if user["id"] != user_id:
         raise HTTPException(status_code=403, detail="You can only modify your own settings.")
 
@@ -216,9 +221,7 @@ async def update_notify(user_id: str, payload: UpdateNotifyRequest, user=Depends
 
 @router.get("/user/subscription-status", response_model=SubscriptionStatusResponse)
 async def user_subscription_status(user=Depends(get_supabase_user)):
-    """
-    Returns the current user's subscription tier and status.
-    """
+    """Returns the current user's subscription tier and status."""
     user_id = user["id"]
     record = await get_user_record(user_id)
     return SubscriptionStatusResponse(
@@ -232,6 +235,7 @@ async def get_user_onboarding_status(
     user_id: str = Path(...),
     user=Depends(get_supabase_user)
 ):
+    """Retrieves the onboarding status for the specified user."""
     if user["id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
@@ -246,6 +250,7 @@ async def get_user_onboarding_status(
 
 @router.get("/user/{user_id}/webhook")
 async def api_get_webhook(user_id: str, user=Depends(get_supabase_user)):
+    """Gets the Home Assistant webhook settings for a user."""
     if user["id"] != user_id and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Not allowed")
     webhook = get_ha_webhook_settings(user_id)
@@ -259,6 +264,7 @@ async def api_patch_webhook(
     body: dict = Body(...),
     user=Depends(get_supabase_user)
 ):
+    """Creates or updates the Home Assistant webhook settings for a user."""
     if user["id"] != user_id and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Not allowed")
     url = body.get("webhook_url")
@@ -273,7 +279,8 @@ async def api_get_user_subscription(
     user_id: str,
     user=Depends(get_supabase_user)
 ):
-    # Endast tillåt att användaren hämtar sin egen eller admin
+    """Retrieves subscription details for a specific user."""
+    # Allow access only for the user themselves or an admin.
     if user["id"] != user_id and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Forbidden")
     sub = await get_user_subscription(user_id)
@@ -286,7 +293,8 @@ async def api_get_user_invoices(
     user_id: str,
     user=Depends(get_supabase_user)
 ):
-    # Endast tillåt att användaren hämtar sin egen eller admin
+    """Retrieves a list of invoices for a specific user."""
+    # Allow access only for the user themselves or an admin.
     if user["id"] != user_id and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Forbidden")
     invoices = await get_user_invoices(user_id)
@@ -294,6 +302,7 @@ async def api_get_user_invoices(
 
 @router.get("/stats/global")
 async def get_global_stats():
+    """Retrieves global, system-wide statistics."""
     row = get_global_stats_row()
     if not row:
         raise HTTPException(status_code=404, detail="No global stats found")
@@ -301,6 +310,7 @@ async def get_global_stats():
 
 @router.get("/stats/user")
 async def get_user_stats(user=Depends(get_supabase_user)):
+    """Retrieves statistics for the current authenticated user."""
     user_id = user["id"]
     row = get_user_stats_row(user_id)
     if not row:

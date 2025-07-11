@@ -18,7 +18,7 @@ supabase: Client = get_supabase_admin_client()
 
 async def get_all_users_with_enode_info():
     """
-    Fetch all users from Supabase and enrich them with Enode info.
+    Fetches all users from Supabase and enriches them with Enode information.
     """
     try:
         logger.info("🔎 Fetching Supabase users...")
@@ -106,7 +106,7 @@ async def get_user_by_id(user_id: str) -> User | None:
             .maybe_single() \
             .execute()
 
-        print(f"Response data: {response.data}")  # Debugging line
+        logger.info(f"Response data: {response.data}")  # Debugging line
 
         row = response.data
         if not row:
@@ -264,17 +264,15 @@ async def set_user_subscription(email: str, is_subscribed: bool) -> dict:
         logger.error(f"[❌ set_user_subscription] {e}")
         raise
     
-# backend/app/storage/user.py
-
 async def update_user_subscription(
     user_id: str,
     tier: str,
     status: str = "active",
 ) -> None:
     """
-    Uppdatera användarens prenumerationstyp och status i Supabase.
-    - tier: t.ex. "free", "pro", "fleet"
-    - status: "active", "canceled", "past_due" osv.
+    Updates the user's subscription tier and status in Supabase.
+    - tier: e.g., "free", "pro", "fleet"
+    - status: "active", "canceled", "past_due", etc.
     """
     try:
         resp = (
@@ -283,7 +281,7 @@ async def update_user_subscription(
             .eq("id", user_id)
             .execute()
         )
-        # Kontrollera att någon rad uppdaterades
+        # Check that a row was updated
         if not resp.data:
             raise Exception(f"No rows updated for user {user_id}")
         logger.info(
@@ -295,12 +293,12 @@ async def update_user_subscription(
     
 async def add_user_sms_credits(user_id: str, credits: int) -> None:
     """
-    Addera SMS‐krediter till användarens saldo i en kolumn `sms_credits`.
+    Adds SMS credits to the user's balance in the `sms_credits` column.
     """
     from app.lib.supabase import get_supabase_admin_client
     supabase = get_supabase_admin_client()
 
-    # Läs nuvarande kredit
+    # Read current credits
     resp = supabase \
         .table("users") \
         .select("sms_credits") \
@@ -309,7 +307,7 @@ async def add_user_sms_credits(user_id: str, credits: int) -> None:
         .execute()
     current = resp.data.get("sms_credits", 0) if resp.data else 0
 
-    # Uppdatera med nya credits
+    # Update with new credits
     supabase \
         .table("users") \
         .update({"sms_credits": current + credits}) \
@@ -317,6 +315,7 @@ async def add_user_sms_credits(user_id: str, credits: int) -> None:
         .execute()
 
 async def get_onboarding_status(user_id: str) -> dict | None:
+    """Retrieves the onboarding progress status for a given user."""
     try:
         result = supabase.table("onboarding_progress") \
             .select("*") \
@@ -328,17 +327,18 @@ async def get_onboarding_status(user_id: str) -> dict | None:
             return result.data
         return None
     except Exception as e:
-        print(f"[❌ get_onboarding_status] {e}")
+        logger.error(f"[❌ get_onboarding_status] {e}")
         return None
     
 async def set_welcome_sent_if_needed(user_id: str) -> None:
+    """Sets the `welcome_sent` flag to True for a user's onboarding progress."""
     try:
         supabase.table("onboarding_progress") \
             .update({"welcome_sent": True}) \
             .eq("user_id", user_id) \
             .execute()
     except Exception as e:
-        print(f"[❌ set_welcome_sent_if_needed] {e}")
+        logger.error(f"[❌ set_welcome_sent_if_needed] {e}")
 
 async def create_onboarding_row(user_id: str) -> dict | None:
     """
@@ -355,11 +355,11 @@ async def create_onboarding_row(user_id: str) -> dict | None:
         return None
 
     except Exception as e:
-        print(f"[❌ create_onboarding_row] {e}")
+        logger.error(f"[❌ create_onboarding_row] {e}")
         return None
 
 def set_ha_webhook_settings(user_id: str, webhook_id: str, external_url: str) -> bool:
-    """Spara Home Assistant webhook-inställningar för en användare."""
+    """Saves Home Assistant webhook settings for a user."""
     try:
         result = supabase.table("users") \
             .update({"ha_webhook_id": webhook_id, "ha_external_url": external_url}) \
@@ -367,11 +367,11 @@ def set_ha_webhook_settings(user_id: str, webhook_id: str, external_url: str) ->
             .execute()
         return result.status_code == 204
     except Exception as e:
-        print(f"[❌ set_ha_webhook_settings] {e}")
+        logger.error(f"[❌ set_ha_webhook_settings] {e}")
         return False
 
 def get_ha_webhook_settings(user_id: str) -> dict | None:
-    """Hämta Home Assistant webhook-inställningar för en användare."""
+    """Retrieves Home Assistant webhook settings for a user."""
     try:
         result = supabase.table("users") \
             .select("ha_webhook_id, ha_external_url") \
@@ -386,7 +386,7 @@ def get_ha_webhook_settings(user_id: str) -> dict | None:
             }
         return None
     except Exception as e:
-        print(f"[❌ get_ha_webhook_settings] {e}")
+        logger.error(f"[❌ get_ha_webhook_settings] {e}")
         return None
       
 async def update_user_subscription(user_id: str, tier: str, status: str = "active"):
@@ -416,6 +416,7 @@ async def remove_stripe_customer_id(user_id: str):
         raise
 
 async def get_user_id_by_stripe_customer_id(stripe_customer_id):
+    """Retrieves a user ID based on their Stripe customer ID."""
     supabase = get_supabase_admin_client()
     result = supabase.table("users").select("id").eq("stripe_customer_id", stripe_customer_id).execute()
     if result and hasattr(result, "data") and result.data:

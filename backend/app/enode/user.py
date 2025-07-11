@@ -32,6 +32,7 @@ async def delete_enode_user(user_id: str):
         return res.status_code
 
 async def unlink_vendor(user_id: str, vendor: str) -> tuple[bool, str | None]:
+    """Unlinks a specific vendor from a user in Enode."""
     token = await get_access_token()
     url = f"{ENODE_BASE_URL}/users/{user_id}/vendors/{vendor}"
     headers = {

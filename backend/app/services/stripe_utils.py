@@ -1,6 +1,6 @@
 import stripe
 import logging
-from app.config import STRIPE_SECRET_KEY # OBS: STRIPE_API_VERSION ÄR BORTTAGEN HÄR
+from app.config import STRIPE_SECRET_KEY # Note: STRIPE_API_VERSION is removed here
 from app.lib.supabase import get_supabase_admin_client
 from app.storage.subscription import get_price_id_map, get_subscription_by_stripe_id 
 import time
@@ -8,10 +8,11 @@ import time
 logger = logging.getLogger("app.services.stripe_utils")
 
 stripe.api_key = STRIPE_SECRET_KEY
-# stripe.api_version = STRIPE_API_VERSION # DENNA RAD ÄR BORTTAGEN
+# stripe.api_version = STRIPE_API_VERSION # This line is removed
 supabase = get_supabase_admin_client()
 
 def extract_price_and_product(data_object: dict):
+    """Extracts price_id and product_id from a Stripe data object."""
     if data_object.get("object") == "price":
         price_id = data_object.get("id")
         product_field = data_object.get("product")
@@ -25,6 +26,7 @@ def extract_price_and_product(data_object: dict):
     return None, None
 
 async def log_stripe_webhook(event: dict, status: str = "received", error: str = None):
+    """Logs Stripe webhook events to the database for auditing and debugging."""
     data_object = event.get("data", {}).get("object", {})
     metadata = data_object.get("metadata", {}) or {}
 
@@ -53,6 +55,7 @@ async def log_stripe_webhook(event: dict, status: str = "received", error: str =
         logger.error(f"[❌] Failed to log Stripe webhook: {e}")
 
 async def create_stripe_subscription_plan(payload):
+    """Creates a new product and price in Stripe and records it in the database."""
     logger.info(f"[Stripe] Creating product: {payload.name}")
     product = stripe.Product.create(
         name=payload.name,
@@ -86,6 +89,7 @@ async def create_stripe_subscription_plan(payload):
     return {"product": product, "price": price, "db_row": data}
 
 async def sync_stripe_plans_to_db():
+    """Synchronizes Stripe products and prices with the local database."""
     logger.info("[Stripe] Syncing Stripe plans and prices to database...")
     products = stripe.Product.list(active=True, limit=100)
     prices = stripe.Price.list(active=True, limit=100, expand=["data.product"])
@@ -151,7 +155,7 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
 
     logger.info(f"[Stripe] Current: {current_price_id} ({current_unit_amount}), New: {new_price_id} ({new_unit_amount}), Upgrade: {is_upgrade}")
 
-    # Hämta den interna plan_id (t.ex. "pro_monthly") baserat på new_price_id
+    # Retrieve the internal plan_id (e.g., "pro_monthly") based on new_price_id
     internal_plan_id_for_new_price = None
     price_id_map = await get_price_id_map() 
     for p_id, s_id in price_id_map.items():
@@ -160,12 +164,12 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
             break
     if not internal_plan_id_for_new_price:
         logger.warning(f"[Stripe] Could not map new_price_id {new_price_id} to internal plan_id for metadata. Defaulting to new_price_id for plan_id metadata.")
-        internal_plan_id_for_new_price = new_price_id # Fallback om ingen match hittas
+        internal_plan_id_for_new_price = new_price_id # Fallback if no match is found
 
-    # Skapa gemensam metadata som alltid skickas med prenumerationsändringar
+    # Create common metadata that is always sent with subscription changes
     common_metadata = {
-        "user_id": user_id, # Detta är Kritiskt för att spåra användaren
-        "plan_id": internal_plan_id_for_new_price, # Detta är Kritiskt för att spåra den nya planen
+        "user_id": user_id, # This is critical for tracking the user
+        "plan_id": internal_plan_id_for_new_price, # This is critical for tracking the new plan
         "changed_by": user_id,
         "change_action": "upgrade" if is_upgrade else "downgrade"
     }
@@ -182,7 +186,7 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
                 }],
                 proration_behavior="always_invoice",
                 cancel_at_period_end=False,
-                metadata=common_metadata # Använd den gemensamma metadatan här
+                metadata=common_metadata # Use the common metadata here
             )
 
             logger.info(f"[✅] Subscription upgraded immediately. Subscription ID: {updated_subscription.id}")
@@ -228,13 +232,13 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
             logger.info(f"[DEBUG_TRACE] End of upgrade flow.")
             return updated_subscription
 
-        else: # Downgrade logic - Använder den enkla modify-logiken som fungerade i Stripe tidigare
+        else: # Downgrade logic - Uses the simple modify logic that worked in Stripe previously
             logger.info(f"[⬇️] Downgrading (at period end - using direct Subscription.modify as per earlier working state)")
             
-            # Detta är den exakta kombinationen som du rapporterade resulterade i
-            # "Pro i din DB men Basic i Stripe, schemalagd för nästa faktura" tidigare.
-            # Vi tar bort alla anrop till current_period_end och Subscription Schedules här,
-            # eftersom de orsakade kraschar.
+            # This is the exact combination that you reported resulted in
+            # "Pro in your DB but Basic in Stripe, scheduled for next invoice" previously.
+            # We remove all calls to current_period_end and Subscription Schedules here,
+            # as they caused crashes.
 
             updated_subscription = stripe.Subscription.modify(
                 subscription_id,
@@ -242,10 +246,10 @@ async def change_user_subscription_plan(subscription_obj: stripe.Subscription, n
                     'id': current_item["id"],
                     'price': new_price_id,
                 }],
-                proration_behavior="none", # Ingen proratering
-                billing_cycle_anchor="unchanged", # Behåll nuvarande faktureringscykel
-                cancel_at_period_end=False, # Fortsätt prenumerationen med nya priset vid nästa förnyelse
-                metadata=common_metadata # Behåll metadatan
+                proration_behavior="none", # No proration
+                billing_cycle_anchor="unchanged", # Keep current billing cycle
+                cancel_at_period_end=False, # Continue subscription with new price at next renewal
+                metadata=common_metadata # Keep metadata
             )
             logger.info(f"[✅] Downgrade scheduled (Subscription.modify) for {subscription_id}. New plan: {new_price_id}")
             return updated_subscription
@@ -262,7 +266,7 @@ async def handle_subscription_plan_change_request(customer_id: str, new_price_id
     """
     logger.info(f"[StripeService] Initiating subscription plan change for customer {customer_id} to new price {new_price_id}.")
 
-    # Hämta den aktiva prenumerationen för kunden.
+    # Retrieve the active subscription for the customer.
     subs = stripe.Subscription.list(
         customer=customer_id, 
         status="active", 
@@ -272,11 +276,11 @@ async def handle_subscription_plan_change_request(customer_id: str, new_price_id
         logger.error(f"[StripeService] No active subscription found for customer {customer_id}.")
         raise ValueError("No active subscription to update for this customer.")
 
-    subscription_obj = subs.data[0] # Hela subscription-objektet
+    subscription_obj = subs.data[0] # The entire subscription object
 
     logger.info(f"[StripeService] Found active subscription {subscription_obj.id} for customer {customer_id}.")
 
-    # Anropa din befintliga funktion för att utföra ändringen och hantera fakturering
+    # Call your existing function to perform the change and handle invoicing
     updated_subscription = await change_user_subscription_plan(
         subscription_obj=subscription_obj,
         new_price_id=new_price_id,

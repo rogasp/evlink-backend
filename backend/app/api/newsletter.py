@@ -1,22 +1,19 @@
 # backend/app/api/newsletter.py
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Request
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 
-from app.storage.user import get_user_by_email
-from app.storage.newsletter import set_subscriber
+from app.auth.supabase_auth import get_supabase_user
+from app.config import BREVO_CUSTOMERS_LIST_ID
 from app.logger import logger
-
-from brevo_python.rest import ApiException
-
 from app.services.brevo import (
     add_or_update_brevo_contact,
     get_brevo_subscription_status,
     remove_brevo_contact_from_list,
 )
-
-from app.config import BREVO_CUSTOMERS_LIST_ID
-from app.auth.supabase_auth import get_supabase_user
+from app.storage.newsletter import set_subscriber
+from app.storage.user import get_user_by_email
+from brevo_python.rest import ApiException
 
 router = APIRouter(prefix="/newsletter", tags=["newsletter"])
 
@@ -24,21 +21,27 @@ router = APIRouter(prefix="/newsletter", tags=["newsletter"])
 # Request models (Pydantic)
 # -------------------------------------------------------------------
 
+
 class SubscriptionRequest(BaseModel):
     """
     Request body for subscribing a user to the newsletter.
     """
+
     email: EmailStr
+
 
 class UnsubscribeRequest(BaseModel):
     """
     Request body for unsubscribing a user from the newsletter.
     """
+
     email: EmailStr
+
 
 # -------------------------------------------------------------------
 # Endpoint: Subscribe a user
 # -------------------------------------------------------------------
+
 
 @router.post("/manage/subscribe", summary="Subscribe an existing user")
 async def subscribe(request: SubscriptionRequest):
@@ -55,13 +58,15 @@ async def subscribe(request: SubscriptionRequest):
         logger.warning(f"[⚠️] User not found in Supabase: {request.email}")
         raise HTTPException(status_code=404, detail="User not found in Supabase")
 
-     # 2) Update/insert interest row
+    # 2) Update/insert interest row
     try:
         updated_rows = await set_subscriber(request.email, True)
         logger.info("📈 Set newsletter flags for %s", request.email)
     except Exception as e:
         logger.error("❌ Failed to update subscription for %s: %s", request.email, e)
-        raise HTTPException(status_code=500, detail=f"Failed to update subscription in database: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update subscription in database: {e}"
+        )
 
     # 3) Add or update contact in Brevo
     try:
@@ -81,9 +86,11 @@ async def subscribe(request: SubscriptionRequest):
         logger.error("❌ Internal error during subscribe for %s: %s", request.email, e)
         raise HTTPException(status_code=500, detail=f"Internal error: {e}")
 
+
 # -------------------------------------------------------------------
 # Endpoint: Unsubscribe a user
 # -------------------------------------------------------------------
+
 
 @router.post("/manage/unsubscribe", summary="Unsubscribe an existing user")
 async def unsubscribe(request: UnsubscribeRequest):
@@ -94,15 +101,28 @@ async def unsubscribe(request: UnsubscribeRequest):
     """
     logger.info(f"📤 Received unsubscribe request for email={request.email}")
 
-    # 1) Update/insert interest row
+    # 1) Fetch user from Supabase to ensure they exist
+    user = await get_user_by_email(request.email)
+    if not user:
+        logger.warning(f"[⚠️] User not found in Supabase: {request.email}")
+        # We can choose to return a 404 or a success response since the user is not subscribed anyway.
+        # Returning success to avoid leaking user existence information.
+        return {
+            "status": "success",
+            "detail": "User not found, considered unsubscribed.",
+        }
+
+    # 2) Update subscription status in our database
     try:
         updated_rows = await set_subscriber(request.email, False)
         logger.info("📤 Cleared newsletter flags for %s", request.email)
     except Exception as e:
         logger.error("❌ Failed to update subscription for %s: %s", request.email, e)
-        raise HTTPException(status_code=500, detail=f"Failed to update subscription in database: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update subscription in database: {e}"
+        )
 
-    # 2) Remove from Brevo’s list
+    # 3) Remove from Brevo’s list
     try:
         brevo_result = await remove_brevo_contact_from_list(request.email)
         if brevo_result is None:
@@ -117,16 +137,19 @@ async def unsubscribe(request: UnsubscribeRequest):
             "brevo_response": brevo_result,
         }
     except ApiException as e:
-        logger.error("❌ Brevo API error during unsubscribe for %s: %s", request.email, e)
+        logger.error(
+            "❌ Brevo API error during unsubscribe for %s: %s", request.email, e
+        )
         raise HTTPException(status_code=500, detail=f"Brevo API error: {e}")
     except Exception as e:
-        logger.error("❌ Internal error during unsubscribe for %s: %s", request.email, e)
+        logger.error(
+            "❌ Internal error during unsubscribe for %s: %s", request.email, e
+        )
         raise HTTPException(status_code=500, detail=f"Internal error: {e}")
-       
+
+
 @router.get("/manage/status")
-async def newsletter_status(
-    user=Depends(get_supabase_user)
-):
+async def newsletter_status(user=Depends(get_supabase_user)):
     email = user.get("email")
     if not email:
         raise HTTPException(status_code=400, detail="Missing email")

@@ -1,4 +1,3 @@
-""
 # backend/app/storage/telemetry.py
 
 from typing import Optional
@@ -52,4 +51,3 @@ async def log_api_telemetry(
     }
     # Insert the payload into the api_telemetry table
     supabase.table("api_telemetry").insert(payload).execute()
-""

@@ -2,9 +2,11 @@
 
 import uuid
 from datetime import datetime, timedelta, timezone
+import logging
 
 from app.lib.supabase import get_supabase_admin_client
 
+logger = logging.getLogger(__name__)
 supabase = get_supabase_admin_client()
 
 VERIFICATION_CODE_TTL_HOURS = 48  # Adjust if you want a shorter/longer expiry

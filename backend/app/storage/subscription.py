@@ -1,4 +1,3 @@
-# backend/app/storage/subscription.py
 import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -12,15 +11,16 @@ supabase = get_supabase_admin_client()
 logger = logging.getLogger(__name__)
 
 class DBSubscription(BaseModel):
+    """Represents a subscription record stored in the database."""
     id: str
-    subscription_id: str = Field(..., alias="stripe_subscription_id") # Mappar till Stripe ID
+    subscription_id: str = Field(..., alias="stripe_subscription_id") # Maps to Stripe ID
     user_id: str
     stripe_customer_id: str
     status: str
-    plan_name: str # Eller en `price_id`
-    price_id: str # Den Stripe Price ID som prenumerationen använder
+    plan_name: str # Or a `price_id`
+    price_id: str # The Stripe Price ID that the subscription uses
     current_period_start: datetime
-    current_period_end: datetime # Viktigt för oss nu
+    current_period_end: datetime # Important for us now
     latest_invoice: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
     created_at: datetime
@@ -41,17 +41,17 @@ def to_iso(ts):
 
 async def extract_subscription_fields(sub, user_id=None):
     """
-    Extracts and normalizes subscription fields from Stripe subscription object.
+    Extracts and normalizes subscription fields from a Stripe subscription object.
     """
     if hasattr(sub, "metadata") and sub.metadata:
         user_id = sub.metadata.get("user_id")
     elif isinstance(sub.get("metadata"), dict):
         user_id = sub.get("metadata").get("user_id")
-    # Om user_id saknas, slå upp via Stripe customer
+    # If user_id is missing, look up via Stripe customer if possible
     if not user_id and sub.get("customer"):
         user_id = await get_user_id_by_stripe_customer_id(sub.get("customer"))
 
-    # Hämta första item (det är alltid den aktiva produkten/priset)
+    # Get the first item (it is always the active product/price)
     items = sub.get("items", {}).get("data", [])
     period_start = period_end = None
     plan_name = price_id = None
@@ -59,7 +59,7 @@ async def extract_subscription_fields(sub, user_id=None):
         first = items[0]
         period_start = first.get("current_period_start")
         period_end = first.get("current_period_end")
-        # Plan/pris info
+        # Plan/price info
         plan_name = (
             first.get("plan", {}).get("nickname") or
             first.get("plan", {}).get("id") or
@@ -72,7 +72,7 @@ async def extract_subscription_fields(sub, user_id=None):
 
     return {
         "subscription_id": sub.get("id"),
-        "user_id": user_id,  # Om du får in None, överväg att slå upp user via stripe_customer_id om möjligt!
+        "user_id": user_id,  # If None, consider looking up user via stripe_customer_id if possible!
         "stripe_customer_id": sub.get("customer"),
         "status": sub.get("status"),
         "plan_name": plan_name,
@@ -109,7 +109,7 @@ async def get_user_record(user_id: str) -> dict:
 
 async def update_linked_vehicle_count(user_id: str, new_count: int) -> None:
     """
-    Update the linked_vehicle_count for a user.
+    Updates the linked_vehicle_count for a user in the database.
     """
     supabase \
         .table("users") \
@@ -144,7 +144,7 @@ async def get_all_subscription_plans() -> list[dict]:
 
 async def get_price_id_map() -> dict:
     """
-    Return a dict mapping local plan keys (name or type) to Stripe price_id.
+    Return a dict mapping local plan codes to Stripe price_ids.
     Example: { "pro_monthly": "price_xxx", "sms_50": "price_yyy" }
     """
     response = supabase.table("subscription_plans") \
@@ -168,20 +168,21 @@ async def update_subscription_status(subscription_id: str, status: str):
         raise
 
 async def upsert_subscription_from_stripe(sub, user_id=None):
+    """Inserts or updates a subscription record in the database based on a Stripe subscription object."""
     supabase = get_supabase_admin_client()
-    # 1. Plocka ut alla fält
+    # 1. Extract all fields
     data = await extract_subscription_fields(sub, user_id)
     if not data:
         logger.error("[❌] Subscription upsert: No data extracted!")
         return False
 
-    # 2. Kontrollera så subscription_id finns
+    # 2. Check if subscription_id exists
     subscription_id = data.get("subscription_id")
     if not subscription_id:
         logger.error("[❌] Subscription upsert: subscription_id missing!")
         return False
 
-    # 3. Finns redan?
+    # 3. Does the subscription already exist?
     result = supabase.table("subscriptions").select("id").eq("subscription_id", subscription_id).execute()
     logger.info(f"[🔎] Subscription upsert: select result: {result.data if hasattr(result, 'data') else result}")
     exists = result and hasattr(result, "data") and result.data and len(result.data) > 0
@@ -196,13 +197,14 @@ async def upsert_subscription_from_stripe(sub, user_id=None):
     return True
 
 async def get_user_subscription(user_id: str) -> dict | None:
+    """Retrieves a single subscription record for a given user ID."""
     supabase = get_supabase_admin_client()
     res = supabase.table("subscriptions").select("*").eq("user_id", user_id).maybe_single().execute()
     return res.data if hasattr(res, "data") else None
 
 async def get_subscription_by_stripe_id(stripe_subscription_id: str) -> Optional[DBSubscription]:
     """
-    Hämtar en prenumerationspost från den lokala databasen med hjälp av Stripe Subscription ID.
+    Retrieves a subscription record from the local database using the Stripe Subscription ID.
     """
     try:
         response = supabase.table("subscriptions") \
@@ -212,8 +214,8 @@ async def get_subscription_by_stripe_id(stripe_subscription_id: str) -> Optional
             .execute()
         
         if response.data:
-            # Kontrollera att det är ett datetime-objekt och konvertera om det behövs
-            # Supabase Python SDK kan ibland returnera strängar, då behövs konvertering
+            # Check if it's a datetime object and convert if needed
+            # Supabase Python SDK can sometimes return strings, then conversion is needed
             if isinstance(response.data.get("current_period_start"), str):
                 response.data["current_period_start"] = datetime.fromisoformat(response.data["current_period_start"].replace('Z', '+00:00'))
             if isinstance(response.data.get("current_period_end"), str):
@@ -263,4 +265,3 @@ async def count_users_on_trial() -> int:
     except Exception as e:
         logger.error(f"[❌ count_users_on_trial] {e}")
         return 0
-    

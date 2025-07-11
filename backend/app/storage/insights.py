@@ -15,6 +15,7 @@ def get_global_stats_row() -> dict | None:
     return result.data
 
 def get_user_stats_row(user_id: str) -> dict | None:
+    """Retrieves user-specific statistics by calling the 'get_user_stats' RPC function."""
     try:
         result = (
             supabase

@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class User(BaseModel):
+    """Represents a user in the system, including their subscription and notification preferences."""
     id: str
     email: str
     role: str
