@@ -117,6 +117,7 @@ export default function AdminFinancePage() {
             }
 
             combinedInsights[result.key as keyof FinanceInsightsData] = value;
+
           }
         });
 
@@ -160,6 +161,7 @@ export default function AdminFinancePage() {
                 <div className="text-2xl font-bold">
                   ${insights.total_revenue != null ? parseFloat(String(insights.total_revenue)).toFixed(2) : 'N/A'}
                 </div>
+
               </CardContent>
             </Card>
             <Card>
@@ -170,6 +172,7 @@ export default function AdminFinancePage() {
                 <div className="text-2xl font-bold">
                   ${insights.monthly_revenue != null ? parseFloat(String(insights.monthly_revenue)).toFixed(2) : 'N/A'}
                 </div>
+
               </CardContent>
             </Card>
             <Card>
