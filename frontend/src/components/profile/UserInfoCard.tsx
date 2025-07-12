@@ -52,7 +52,7 @@ export default function UserInfoCard({
     const fetchApiUsage = async () => {
       if (!accessToken) return; // Don't fetch if no access token
       try {
-        const response = await authFetch<ApiUsageStats>("/me/api-usage", { accessToken });
+        const response = await authFetch("/me/api-usage", { accessToken });
         if (response.data) {
           setApiUsage(response.data);
         }
