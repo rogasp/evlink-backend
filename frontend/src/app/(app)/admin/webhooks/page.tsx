@@ -25,7 +25,7 @@ type WebhookSubscription = {
 };
 
 export default function AdminPage() {
-  const { user, accessToken } = useAuth();
+  const { accessToken } = useAuth();
   const [subscriptions, setSubscriptions] = useState<WebhookSubscription[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSub, setSelectedSub] = useState<WebhookSubscription | null>(null);
