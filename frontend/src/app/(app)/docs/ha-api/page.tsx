@@ -22,7 +22,7 @@ export default function HAApiPage() {
 
         {/* Hardcoded string */}
         <h2 className='text-2xl font-semibold mt-6'>Endpoint</h2>
-        <CodeBlock code='GET https://evlinkha.se/api/status/{vehicle_id}' language='http' />
+        <CodeBlock code='GET https://api.evlinkha.se/api/ha/status/{vehicle_id}' language='http' />
 
         {/* Hardcoded string */}
         <h2 className='text-2xl font-semibold mt-6'>Authentication</h2>
@@ -248,7 +248,7 @@ export default function HAApiPage() {
 
           {/* Hardcoded string */}
           <h3 className='text-xl font-semibold mt-6'>Endpoint</h3>
-          <CodeBlock code='POST https://evlinkha.se/api/charging/{vehicle_id}' language='http' />
+          <CodeBlock code='POST https://api.evlinkha.se/api/ha/charging/{vehicle_id}' language='http' />
 
           {/* Hardcoded string */}
           <h3 className='text-xl font-semibold mt-6'>Request Body</h3>
