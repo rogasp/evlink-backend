@@ -8,5 +8,8 @@ export type UserDetails = {
   is_subscribed?: boolean;
   role: string | null;
   created_at: string | null;
+  stripe_customer_id?: string | null;
+  tier?: 'free' | 'pro' | 'basic';
+  subscription_status?: string | null;
   // ...add more fields you want to display/update!
 };
