@@ -8,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserDetails } from "@/hooks/useUserDetails";
 import { UserDetailHeader } from "@/components/admin/user/UserDetailHeader";
-import type { UserDetails } from "@/types/userDetails";
 
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
