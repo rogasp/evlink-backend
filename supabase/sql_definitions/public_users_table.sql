@@ -1,31 +1,40 @@
-create table public.users (
-  id uuid not null,
-  email text not null,
-  created_at timestamp with time zone null default now(),
-  role text null default ''::text,
-  name text null,
-  is_approved boolean not null default false,
-  accepted_terms boolean null default false,
-  notify_offline boolean not null default false,
-  sms_credits integer not null default 0,
-  is_subscribed boolean not null default false,
-  tier text not null default 'free'::text,
-  linked_vehicle_count integer not null default 0,
-  stripe_customer_id text not null default ''::text,
-  subscription_status text not null default ''::text,
-  ha_webhook_id text null,
-  ha_external_url text null,
-  is_on_trial boolean not null default false,
-  trial_ends_at timestamp with time zone null,
-  constraint users_pkey primary key (id),
-  constraint users_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE
-) TABLESPACE pg_default;
+-- Function to handle new user creation and populate public.users table
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (
+    id,
+    email,
+    created_at,
+    name,
+    role,
+    -- New trial fields
+    tier,
+    is_on_trial,
+    trial_ends_at
+  ) VALUES (
+    NEW.id,
+    NEW.email,
+    now(),
+    NEW.raw_user_meta_data ->> 'name',
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'role', ''),
+      'user'
+    ),
+    -- Set trial details
+    'pro',
+    TRUE,
+    NOW() + interval '30 days'
+  )
+  ON CONFLICT (id) DO NOTHING;
 
-create trigger trg_init_onboarding_progress
-after INSERT on users for EACH row
-execute FUNCTION fn_init_onboarding_progress ();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-create trigger trg_on_users_update_terms
-after
-update on users for EACH row
-execute FUNCTION fn_update_onboarding_accepted_terms ();
+-- Trigger to execute the function on new user creation
+-- Drop if exists to ensure the script can be re-run
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
