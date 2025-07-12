@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import type { UserDetails } from "@/hooks/useUserDetails";
+import type { UserDetails } from "@/types/userDetails";
 import { FieldWithCopy } from "@/components/admin/user/FieldWithCopy";
 
 type Props = {
