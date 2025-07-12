@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState }g from 'react';
+import { useEffect, useState } from 'react';
 import RegisterForm from '@/components/register/RegisterForm';
 import RegisterInterestForm from '@/components/register/RegisterInterestForm';
 import RegisterSuccess from '@/components/register/RegisterSuccess';
