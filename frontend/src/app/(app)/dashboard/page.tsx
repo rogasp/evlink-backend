@@ -69,14 +69,14 @@ export default function DashboardPage() {
   const handleCopyID = useCallback(
     async (vehicle: Vehicle) => {
       if (!accessToken || !vehicle.id) {
-        toast.error("Missing access token or vehicle ID");
+        toast.error("Missing access token or vehicle ID"); /* Hardcoded string */
         return;
       }
       try {
         await navigator.clipboard.writeText(vehicle.id);
-        toast.success("Vehicle ID copied to clipboard!");
+        toast.success("Vehicle ID copied to clipboard!"); /* Hardcoded string */
       } catch {
-        toast.error("Failed to copy vehicle ID");
+        toast.error("Failed to copy vehicle ID"); /* Hardcoded string */
       }
     },
     [accessToken]
@@ -98,13 +98,13 @@ export default function DashboardPage() {
       const result = await response.json();
 
       if (result.error) {
-        toast.error("Failed to unlink vendor");
+        toast.error("Failed to unlink vendor"); /* Hardcoded string */
       } else {
-        toast.success(`Vendor ${selectedVendor} unlinked`);
+        toast.success(`Vendor ${selectedVendor} unlinked`); /* Hardcoded string */
         fetchVehicles(); // Uppdatera fordon efter unlink
       }
     } catch {
-      toast.error("Failed to unlink vendor");
+      toast.error("Failed to unlink vendor"); /* Hardcoded string */
     }
     setUnlinkDialogOpen(false);
   }, [accessToken, selectedVendor, fetchVehicles]);
@@ -128,11 +128,13 @@ export default function DashboardPage() {
       </main>
     );
   }
+
   if (!user || !accessToken) return null;
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6">
       <div className="space-y-6">
+        {/* Hardcoded string */}
         <h1 className="text-2xl sm:text-3xl font-bold text-indigo-700">
           Welcome, {user.user_metadata?.name ?? "User"}
         </h1>

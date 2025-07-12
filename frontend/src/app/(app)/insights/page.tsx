@@ -14,7 +14,9 @@ export default function InsightsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
+        {/* Hardcoded string */}
         <h2 className="text-2xl font-semibold">EVLinkHA Insights</h2>
+        {/* Hardcoded string */}
         <div>Loading insights...</div>
       </div>
     );
@@ -24,6 +26,7 @@ export default function InsightsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Hardcoded string */}
       <h2 className="text-2xl font-semibold">EVLinkHA Insights</h2>
       <GlobalStats />
 
@@ -32,11 +35,14 @@ export default function InsightsPage() {
       ) : (
         <Card className="p-4 text-center">
           <CardHeader className="px-0 pt-0">
+            {/* Hardcoded string */}
             <CardTitle>Unlock Personal Insights</CardTitle>
           </CardHeader>
           <CardContent className="p-0 space-y-4">
+            {/* Hardcoded string */}
             <p className="text-muted-foreground">Want to see your personal charging statistics and compare them with the community average?</p>
             <Button asChild>
+              {/* Hardcoded string */}
               <Link href="/billing">Go Pro!</Link>
             </Button>
           </CardContent>

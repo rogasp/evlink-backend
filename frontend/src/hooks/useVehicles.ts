@@ -29,7 +29,7 @@ export function useVehicles(userId?: string): UseVehiclesResult {
         .eq("user_id", userId);
 
       if (error) {
-        setError(error.message);
+        setError(error.message); /* Hardcoded string */
         setVehicles([]);
       } else {
         setVehicles(data ?? []);

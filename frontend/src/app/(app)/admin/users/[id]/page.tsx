@@ -9,18 +9,22 @@ import { UserDetailHeader } from "@/components/admin/user/UserDetailHeader";
 
 type Props = { params: Promise<{ id: string }> };
 
+/**
+ * AdminUserDetailPage component displays detailed information for a specific user in the admin panel.
+ * It includes various tabs for different categories of user data like vehicles, logs, and Stripe information.
+ */
 export default function AdminUserDetailPage(props: Props) {
-  // Hämta params-id korrekt enligt Next.js 15.3+
+  // Get params-id correctly according to Next.js 15.3+
   const { id } = React.use(props.params);
 
   const { user, loading, updateUserField } = useUserDetails(id);
   const [tab, setTab] = useState("vehicles");
 
-  // Visa toast om error uppstår (kan tas bort om du hellre bara visar error inline)
+  // Show toast if error occurs (can be removed if you prefer to show error inline)
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8">
-      {/* Övre del: Statisk info + inline-edit (grundlayout) */}
+      {/* Top section: Static info + inline-edit (base layout) */}
       <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-6">
         {user && (
           <UserDetailHeader
@@ -30,7 +34,7 @@ export default function AdminUserDetailPage(props: Props) {
           />
         )}
         {!user && !loading && (
-          <div className="text-red-600">User not found.</div>
+          <div className="text-red-600">User not found.</div> /* Hardcoded string */
         )}
         {loading && (
           <div className="flex flex-col gap-2 flex-1">
@@ -40,22 +44,22 @@ export default function AdminUserDetailPage(props: Props) {
           </div>
         )}
       </div>
-      {/* Nedre del: Tabbar */}
+      {/* Bottom section: Tabs */}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
-          <TabsTrigger value="stripe">Stripe</TabsTrigger>
-          {/* Lägg till fler flikar här */}
+          <TabsTrigger value="vehicles">Vehicles</TabsTrigger> {/* Hardcoded string */}
+          <TabsTrigger value="logs">Logs</TabsTrigger> {/* Hardcoded string */}
+          <TabsTrigger value="stripe">Stripe</TabsTrigger> {/* Hardcoded string */}
+          {/* Add more tabs here */}
         </TabsList>
         <TabsContent value="vehicles">
           <div className="mt-4">
             {loading ? (
               <Skeleton className="h-8 w-32 bg-indigo-100" />
             ) : user ? (
-              <span>Vehicle-list kommer här för <span className="font-mono">{user.id}</span></span>
+              <span>Vehicle list will go here for <span className="font-mono">{user.id}</span></span> /* Hardcoded string */
             ) : (
-              <span className="text-red-600">No user to show vehicles for.</span>
+              <span className="text-red-600">No user to show vehicles for.</span> /* Hardcoded string */
             )}
           </div>
         </TabsContent>
@@ -64,9 +68,9 @@ export default function AdminUserDetailPage(props: Props) {
             {loading ? (
               <Skeleton className="h-8 w-32 bg-indigo-100" />
             ) : user ? (
-              <span>Loggar kommer här för <span className="font-mono">{user.id}</span></span>
+              <span>Logs will go here for <span className="font-mono">{user.id}</span></span> /* Hardcoded string */
             ) : (
-              <span className="text-red-600">No user to show logs for.</span>
+              <span className="text-red-600">No user to show logs for.</span> /* Hardcoded string */
             )}
           </div>
         </TabsContent>
@@ -75,9 +79,9 @@ export default function AdminUserDetailPage(props: Props) {
             {loading ? (
               <Skeleton className="h-8 w-32 bg-indigo-100" />
             ) : user ? (
-              <span>Stripe-information för <span className="font-mono">{user.id}</span></span>
+              <span>Stripe information for <span className="font-mono">{user.id}</span></span> /* Hardcoded string */
             ) : (
-              <span className="text-red-600">No user to show stripe info for.</span>
+              <span className="text-red-600">No user to show Stripe info for.</span> /* Hardcoded string */
             )}
           </div>
         </TabsContent>

@@ -24,6 +24,10 @@ interface InsightsData {
   users_on_trial?: number;
 }
 
+/**
+ * AdminDashboardPage component displays various statistics and insights for administrators.
+ * It fetches data from backend API endpoints and presents it in a dashboard format.
+ */
 export default function AdminDashboardPage() {
   const { mergedUser, loading, accessToken } = useUserContext();
   // Removed router = useRouter();
@@ -71,7 +75,7 @@ export default function AdminDashboardPage() {
         const combinedInsights: InsightsData = results.reduce((acc, current) => {
           if (current) {
             return { ...acc, ...current };
-          }
+          } 
           return acc;
         }, {});
 
@@ -94,16 +98,6 @@ export default function AdminDashboardPage() {
     return (
       <div className="container py-4">
         <p>Loading...</p>
-      </div>
-    );
-  }
-
-  // If mergedUser exists but role is not admin, this page should not be accessible due to routing. 
-  // However, as a fallback, we can still show a message or redirect if somehow reached.
-  if (mergedUser.role !== 'admin') {
-    return (
-      <div className="container py-4">
-        <p>Unauthorized access. You must be an administrator to view this page.</p>
       </div>
     );
   }

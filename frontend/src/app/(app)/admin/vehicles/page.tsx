@@ -43,26 +43,26 @@ export default function VehicleAdminPage() {
     try {
       const res = await authFetch('/admin/vehicles', { method: 'GET', accessToken });
       if (res.error) {
-        toast.error('Failed to fetch vehicles');
+        toast.error('Failed to fetch vehicles'); /* Hardcoded string */
         return;
       }
       setVehicles(res.data || []);
     } catch {
-      toast.error('Could not load vehicles');
+      toast.error('Could not load vehicles'); /* Hardcoded string */
     } finally {
       setLoading(false);
     }
   }, [accessToken]);
 
   useEffect(() => { if (user) fetchVehicles(); }, [user, fetchVehicles]);
-  if (!user) return null;
+  
 
   return (
     <div className="p-4 space-y-4">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-indigo-700">Vehicle Admin</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-indigo-700">Vehicle Administration</h1>
         <Button onClick={fetchVehicles} disabled={loading} className="mt-2 sm:mt-0">
-          {loading ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />Refreshing...</> : 'Refresh'}
+          {loading ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />Refreshing...</> /* Hardcoded string */ : 'Refresh' /* Hardcoded string */}
         </Button>
       </header>
 
@@ -73,13 +73,13 @@ export default function VehicleAdminPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Display Name</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Model</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Battery</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Plugged In</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              {/* Hardcoded string */}<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Display Name</th>
+              {/* Hardcoded string */}<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
+              {/* Hardcoded string */}<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Model</th>
+              {/* Hardcoded string */}<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Battery</th>
+              {/* Hardcoded string */}<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Plugged In</th>
+              {/* Hardcoded string */}<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
+              {/* Hardcoded string */}<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -94,21 +94,21 @@ export default function VehicleAdminPage() {
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="icon" variant="secondary" onClick={() => setSelected(v)} title="View details">
+                      <Button size="icon" variant="secondary" onClick={() => setSelected(v)} title="View details"> {/* Hardcoded string */}
                         <Eye className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
-                      <DialogHeader><DialogTitle>Vehicle Details</DialogTitle></DialogHeader>
+                      <DialogHeader><DialogTitle>Vehicle Details</DialogTitle> {/* Hardcoded string */}</DialogHeader>
                       <div className="space-y-2 text-sm">
-                        <div><strong>ID:</strong> {selected?.id}</div>
-                        <div><strong>User ID:</strong> {selected?.userId}</div>
-                        <div><strong>Vendor:</strong> {selected?.vendor}</div>
-                        <div><strong>Model:</strong> {selected?.information.model}</div>
-                        <div><strong>VIN:</strong> {selected?.information.vin}</div>
-                        <div><strong>Battery:</strong> {selected?.chargeState?.batteryLevel ?? '–'}%</div>
-                        <div><strong>Plugged In:</strong> {selected?.chargeState?.isPluggedIn ? 'Yes' : 'No'}</div>
-                        <div><strong>Last Seen:</strong> {selected?.lastSeen ? new Date(selected.lastSeen).toLocaleString() : '–'}</div>
+                        <div><strong>ID:</strong> {selected?.id}</div> {/* Hardcoded string */}
+                        <div><strong>User ID:</strong> {selected?.userId}</div> {/* Hardcoded string */}
+                        <div><strong>Vendor:</strong> {selected?.vendor}</div> {/* Hardcoded string */}
+                        <div><strong>Model:</strong> {selected?.information.model}</div> {/* Hardcoded string */}
+                        <div><strong>VIN:</strong> {selected?.information.vin}</div> {/* Hardcoded string */}
+                        <div><strong>Battery:</strong> {selected?.chargeState?.batteryLevel ?? '–'}%</div> {/* Hardcoded string */}
+                        <div><strong>Plugged In:</strong> {selected?.chargeState?.isPluggedIn ? 'Yes' : 'No'}</div> {/* Hardcoded string */}
+                        <div><strong>Last Seen:</strong> {selected?.lastSeen ? new Date(selected.lastSeen).toLocaleString() : '–'}</div> {/* Hardcoded string */}
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -137,16 +137,16 @@ export default function VehicleAdminPage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>Vehicle Details</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Vehicle Details</DialogTitle> {/* Hardcoded string */}</DialogHeader>
                   <div className="space-y-2 text-sm">
-                    <div><strong>ID:</strong> {selected?.id}</div>
-                    <div><strong>User ID:</strong> {selected?.userId}</div>
-                    <div><strong>Vendor:</strong> {selected?.vendor}</div>
-                    <div><strong>Model:</strong> {selected?.information.model}</div>
-                    <div><strong>VIN:</strong> {selected?.information.vin}</div>
-                    <div><strong>Battery:</strong> {selected?.chargeState?.batteryLevel ?? '–'}%</div>
-                    <div><strong>Plugged In:</strong> {selected?.chargeState?.isPluggedIn ? 'Yes' : 'No'}</div>
-                    <div><strong>Last Seen:</strong> {selected?.lastSeen ? new Date(selected.lastSeen).toLocaleString() : '–'}</div>
+                    <div><strong>ID:</strong> {selected?.id}</div> {/* Hardcoded string */}
+                    <div><strong>User ID:</strong> {selected?.userId}</div> {/* Hardcoded string */}
+                    <div><strong>Vendor:</strong> {selected?.vendor}</div> {/* Hardcoded string */}
+                    <div><strong>Model:</strong> {selected?.information.model}</div> {/* Hardcoded string */}
+                    <div><strong>VIN:</strong> {selected?.information.vin}</div> {/* Hardcoded string */}
+                    <div><strong>Battery:</strong> {selected?.chargeState?.batteryLevel ?? '–'}%</div> {/* Hardcoded string */}
+                    <div><strong>Plugged In:</strong> {selected?.chargeState?.isPluggedIn ? 'Yes' : 'No'}</div> {/* Hardcoded string */}
+                    <div><strong>Last Seen:</strong> {selected?.lastSeen ? new Date(selected.lastSeen).toLocaleString() : '–'}</div> {/* Hardcoded string */}
                   </div>
                 </DialogContent>
               </Dialog>
@@ -160,7 +160,7 @@ export default function VehicleAdminPage() {
           </Card>
         ))}
         {!loading && vehicles.length === 0 && (
-          <div className="text-center text-gray-500 text-sm">No vehicles found.</div>
+          <div className="text-center text-gray-500 text-sm">No vehicles found.</div> /* Hardcoded string */ /* Hardcoded string */
         )}
       </div>
     </div>

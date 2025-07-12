@@ -99,8 +99,6 @@ export default function UserAdminPage() {
         </Button>
       </header>
 
-      <div className="text-sm text-gray-600">Showing {users.length} users</div>
-
       {/* Desktop Table */}
       <Card className="hidden lg:block overflow-auto">
         <table className="min-w-full divide-y divide-gray-200">

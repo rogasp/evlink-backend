@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authFetch } from '@/lib/authFetch';
 
-// Anpassa dessa typer efter din backend!
+// Adapt these types to your backend! /* Hardcoded string */ /* Hardcoded string */
 export interface Subscription {
   subscription_id: string;
   plan_name: string;
@@ -51,7 +51,7 @@ export function useBillingInfo(
 
   const fetchAll = useCallback(async () => {
     if (!accessToken) {
-      setError('No access token');
+      setError('No access token'); /* Hardcoded string */
       setLoading(false);
       return;
     }
@@ -60,7 +60,7 @@ export function useBillingInfo(
     setError(null);
 
     try {
-      // Du kan byta till `/me/subscription` och `/me/invoices` om du vill
+      // Du kan byta till `/me/subscription` och `/me/invoices` om du vill /* Hardcoded string */
       const subRes = await authFetch(`/user/${userId}/subscription`, {
         method: 'GET',
         accessToken,
@@ -70,13 +70,13 @@ export function useBillingInfo(
         accessToken,
       });
 
-      if (subRes.error) throw new Error(subRes.error.message || 'Failed to fetch subscription');
-      if (invRes.error) throw new Error(invRes.error.message || 'Failed to fetch invoices');
+      if (subRes.error) throw new Error(subRes.error.message || 'Failed to fetch subscription'); /* Hardcoded string */
+      if (invRes.error) throw new Error(invRes.error.message || 'Failed to fetch invoices'); /* Hardcoded string */
 
       setSubscription(subRes.data ?? null);
       setInvoices(Array.isArray(invRes.data) ? invRes.data : []);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load billing info');
+      setError(err instanceof Error ? err.message : 'Failed to load billing info'); /* Hardcoded string */
     } finally {
       setLoading(false);
     }

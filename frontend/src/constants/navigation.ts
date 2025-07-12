@@ -26,31 +26,31 @@ export type NavigationGroup = {
 
 export const navigation: NavigationGroup[] = [
   {
-    title: 'General',
+    title: 'General', /* Hardcoded string */
     items: [
-      { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { title: 'Status', href: '/status', icon: Activity },
+      { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }, /* Hardcoded string */
+      { title: 'Status', href: '/status', icon: Activity }, /* Hardcoded string */
     ],
   },
   {
-    title: 'Guides',
+    title: 'Guides', /* Hardcoded string */
     items: [
-      { title: 'Integration Guide', href: '/integration-guide', icon: BookOpen },
-      { title: 'HA API', href: '/docs/ha-api', icon: Terminal },
-  { title: 'Insights', href: '/insights', icon: BarChart2 },
+      { title: 'Integration Guide', href: '/integration-guide', icon: BookOpen }, /* Hardcoded string */
+      { title: 'HA API', href: '/docs/ha-api', icon: Terminal }, /* Hardcoded string */
+  { title: 'Insights', href: '/insights', icon: BarChart2 }, /* Hardcoded string */
     ],
   },
   {
-    title: 'Admin',
+    title: 'Admin', /* Hardcoded string */
     items: [
-      { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, adminOnly: true },
-      { title: 'Settings', href: '/admin/settings', icon: Settings, adminOnly: true },
-      { title: 'Vendors', href: '/admin/vendors', icon: Network, adminOnly: true },
-      { title: 'Users', href: '/admin/users', icon: Users, adminOnly: true },
-      { title: 'Vehicles', href: '/admin/vehicles', icon: Truck, adminOnly: true },
-      { title: 'Webhooks', href: '/admin/webhooks', icon: Network, adminOnly: true },
-      { title: 'Logs', href: '/admin/logs', icon: FileText, adminOnly: true },
-      { title: 'Finance', href: '/admin/finance', icon: BarChart2, adminOnly: true },
+      { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, adminOnly: true }, /* Hardcoded string */
+      { title: 'Settings', href: '/admin/settings', icon: Settings, adminOnly: true }, /* Hardcoded string */
+      { title: 'Vendors', href: '/admin/vendors', icon: Network, adminOnly: true }, /* Hardcoded string */
+      { title: 'Users', href: '/admin/users', icon: Users, adminOnly: true }, /* Hardcoded string */
+      { title: 'Vehicles', href: '/admin/vehicles', icon: Truck, adminOnly: true }, /* Hardcoded string */
+      { title: 'Webhooks', href: '/admin/webhooks', icon: Network, adminOnly: true }, /* Hardcoded string */
+      { title: 'Logs', href: '/admin/logs', icon: FileText, adminOnly: true }, /* Hardcoded string */
+      { title: 'Finance', href: '/admin/finance', icon: BarChart2, adminOnly: true }, /* Hardcoded string */
     ],
   },
 ];

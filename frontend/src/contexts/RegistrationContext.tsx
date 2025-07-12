@@ -23,7 +23,7 @@ export function RegistrationProvider({ children }: { children: React.ReactNode }
       const json = await res.json();
       setRegistrationAllowed(json.allowed === true);
     } catch (err) {
-      console.error('❌ Failed to load registration setting', err);
+      console.error('❌ Failed to load registration setting', err); /* Hardcoded string */
       setRegistrationAllowed(null);
     }
   };

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { apiFetchSafe } from '@/lib/api';
 
-export type Tier = "free" | "basic" | "pro" | "custom";
+export type Tier = "free" | "basic" | "pro" | "custom"; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
 
 /**
  * Custom React hook to fetch and track user authentication and subscription status.
@@ -19,21 +19,21 @@ export type Tier = "free" | "basic" | "pro" | "custom";
 export function useUser() {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [tier, setTier] = useState<Tier>('free');
+  const [tier, setTier] = useState<Tier>('free'); /* Hardcoded string */
 
   useEffect(() => {
     let mounted = true;
 
     async function loadUser() {
       try {
-        // 1. Retrieve Supabase session
+        // 1. Retrieve Supabase session /* Hardcoded string */
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
         if (!mounted) return;
 
-        // 2. If no token, user is logged out
+        // 2. If no token, user is logged out /* Hardcoded string */
         if (!session?.access_token) {
           setIsLoggedIn(false);
           return;
@@ -41,9 +41,9 @@ export function useUser() {
 
         setIsLoggedIn(true);
 
-        // 3. Fetch subscription status via Next.js proxy
+        // 3. Fetch subscription status via Next.js proxy /* Hardcoded string */
         const { data, error } = await apiFetchSafe(
-          '/api/user/subscription-status', // ensure /api prefix
+          '/api/user/subscription-status', /* Hardcoded string */
           {
             headers: {
               Authorization: `Bearer ${session.access_token}`,
@@ -54,12 +54,12 @@ export function useUser() {
         if (!mounted) return;
 
         if (error) {
-          console.warn('Subscription status fetch error:', error);
+          console.warn('Subscription status fetch error:', error); /* Hardcoded string */
         } else if (data?.tier) {
           setTier(data.tier as Tier);
         }
       } catch (err) {
-        console.error('useUser loadUser error:', err);
+        console.error('useUser loadUser error:', err); /* Hardcoded string */
       } finally {
         if (mounted) setLoading(false);
       }

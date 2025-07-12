@@ -18,14 +18,14 @@ export function useUncontactedCount() {
       });
 
       if (res.error) {
-        // 👇 Om användaren inte är admin, ignorera felet och sätt count = 0
+        // If the user is not an admin, ignore the error and set count = 0 /* Hardcoded string */
         if (res.error.status === 403) {
           setCount(0);
           return;
         }
 
-        // Logga andra fel
-        console.error('🔴 Failed to fetch uncontacted count:', res.error);
+        // Log other errors /* Hardcoded string */
+        console.error('🔴 Failed to fetch uncontacted count:', res.error); /* Hardcoded string */
         return;
       }
 

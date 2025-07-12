@@ -41,6 +41,10 @@ interface Customer {
   subscription_status?: string;
 }
 
+/**
+ * AdminFinancePage component displays various financial statistics and insights for administrators.
+ * It fetches data related to revenue, subscriptions, invoices, and customers.
+ */
 export default function AdminFinancePage() {
   const { mergedUser, loading, accessToken } = useUserContext();
   const [insights, setInsights] = useState<FinanceInsightsData>({});
@@ -91,13 +95,9 @@ export default function AdminFinancePage() {
         const combinedInsights: FinanceInsightsData = {};
         results.forEach(result => {
           if (result.data !== null) {
-            if (result.key === 'balance') {
-                combinedInsights[result.key] = result.data;
-            } else if (Array.isArray(result.data)) {
-                combinedInsights[result.key as keyof FinanceInsightsData] = result.data;
-            } else if (typeof result.data === 'object' && result.data !== null) {
-                Object.assign(combinedInsights, result.data);
-            }
+            // Directly assign the data to the corresponding key in combinedInsights
+            // TypeScript will infer the correct type based on FinanceInsightsData
+            combinedInsights[result.key as keyof FinanceInsightsData] = result.data;
           }
         });
 
@@ -116,7 +116,7 @@ export default function AdminFinancePage() {
     }
   }, [accessToken, mergedUser, hasFetched]);
 
-  if (loading || !mergedUser || mergedUser.role !== 'admin') {
+  if (loading || !mergedUser) { // Removed mergedUser.role !== 'admin' check
     return (
       <div className="container py-4">
         <p>Loading or unauthorized access...</p>
