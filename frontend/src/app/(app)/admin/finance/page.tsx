@@ -17,8 +17,17 @@ interface FinanceInsightsData {
   users_on_trial?: number;
   balance?: { available: { amount: number; currency: string }[]; pending: { amount: number; currency: string }[] };
   invoices?: Invoice[]; // Changed to Invoice type
-  subscriptions?: any[]; // Replace 'any' with actual Subscription type later
+  subscriptions?: Subscription[]; // Replace 'any' with actual Subscription type later
   customers?: Customer[]; // Changed to Customer type
+}
+
+interface Subscription {
+  id: string;
+  user_id: string;
+  plan_name: string;
+  status: string;
+  current_period_start: string;
+  current_period_end: string;
 }
 
 interface Invoice {
@@ -95,9 +104,19 @@ export default function AdminFinancePage() {
         const combinedInsights: FinanceInsightsData = {};
         results.forEach(result => {
           if (result.data !== null) {
-            // Directly assign the data to the corresponding key in combinedInsights
-            // TypeScript will infer the correct type based on FinanceInsightsData
-            combinedInsights[result.key as keyof FinanceInsightsData] = result.data;
+            let value = result.data;
+
+            // Handle endpoints that return an object with the value inside, e.g., { total_revenue: 123 }
+            if (typeof value === 'object' && value !== null && !Array.isArray(value) && result.key in value) {
+              value = value[result.key as keyof typeof value];
+            }
+
+            // Convert potential numeric strings to numbers for revenue fields
+            if (['total_revenue', 'monthly_revenue', 'yearly_revenue'].includes(result.key)) {
+              value = typeof value === 'string' ? parseFloat(value) : value;
+            }
+
+            combinedInsights[result.key as keyof FinanceInsightsData] = value;
           }
         });
 
@@ -138,7 +157,9 @@ export default function AdminFinancePage() {
                 <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${insights.total_revenue?.toFixed(2) ?? 'N/A'}</div>
+                <div className="text-2xl font-bold">
+                  ${insights.total_revenue != null ? parseFloat(String(insights.total_revenue)).toFixed(2) : 'N/A'}
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -146,7 +167,9 @@ export default function AdminFinancePage() {
                 <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${insights.monthly_revenue?.toFixed(2) ?? 'N/A'}</div>
+                <div className="text-2xl font-bold">
+                  ${insights.monthly_revenue != null ? parseFloat(String(insights.monthly_revenue)).toFixed(2) : 'N/A'}
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -154,7 +177,9 @@ export default function AdminFinancePage() {
                 <CardTitle className="text-sm font-medium">Yearly Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${insights.yearly_revenue?.toFixed(2) ?? 'N/A'}</div>
+                <div className="text-2xl font-bold">
+                  ${insights.yearly_revenue != null ? parseFloat(String(insights.yearly_revenue)).toFixed(2) : 'N/A'}
+                </div>
               </CardContent>
             </Card>
             <Card>

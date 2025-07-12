@@ -112,7 +112,7 @@ export default function PersonalStatsCard() {
         </CardHeader>
         <CardContent className="p-0 space-y-4 text-center">
           <p className="text-muted-foreground">
-            You haven't linked a vehicle yet or lack charging sessions.
+            You haven&apos;t linked a vehicle yet or lack charging sessions.
           </p>
           <Button asChild>
             <Link href="/dashboard">Go to Dashboard</Link>

@@ -11,7 +11,7 @@ import { AdminSettingsTable } from '@/components/admin/AdminSettingsTable';
  * It uses AdminSettingsTable to render the settings in a tabular format.
  */
 export default function AdminSettingsPage() {
-  const { accessToken, user } = useAuth();
+  const { accessToken } = useAuth();
   const [settings, setSettings] = useState<AdminSetting[]>([]);
   const [loading, setLoading] = useState(true);
 
