@@ -14,6 +14,7 @@ export default function SuccessPage(): React.ReactNode {
       className="flex min-h-screen items-center justify-center bg-green-50"
     >
       <div className="max-w-md mx-auto p-8 bg-white shadow-lg rounded-2xl text-center">
+        {/* Hardcoded string */}
         <motion.h1
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -22,6 +23,7 @@ export default function SuccessPage(): React.ReactNode {
         >
           Thank You!
         </motion.h1>
+        {/* Hardcoded string */}
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -35,6 +37,7 @@ export default function SuccessPage(): React.ReactNode {
           animate={{ scale: 1 }}
           transition={{ delay: 0.6 }}
         >
+          {/* Hardcoded string */}
           <Link
             href="/dashboard"
             className="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700"

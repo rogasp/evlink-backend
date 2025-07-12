@@ -5,8 +5,8 @@ export type UserDetails = {
   is_approved: boolean;
   accepted_terms: boolean | null;
   notify_offline: boolean;
-  is_subscribed: boolean;
+  is_subscribed?: boolean;
   role: string | null;
   created_at: string | null;
-  // ...lägg till fler fields du vill visa/uppdatera!
+  // ...add more fields you want to display/update!
 };

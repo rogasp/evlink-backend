@@ -21,23 +21,23 @@ type Plan = {
 const subscriptionPlans: Plan[] = [
   {
     id: 'free',
-    name: 'Free Plan',
-    price: '€0',
-    description: '1 device, 2 API calls/day, 1 day log retention. No webhooks, no priority support.',
+    name: 'Free Plan', /* Hardcoded string */
+    price: '€0', /* Hardcoded string */
+    description: '1 device, 2 API calls/day, 1 day log retention. No webhooks, no priority support.', /* Hardcoded string */
     selectable: false,
   },
   {
     id: 'basic_monthly',
-    name: 'Basic Plan',
-    price: '€1.99 / month / device',
-    description: 'Up to 2 devices, 10 API calls/device/day, 7 days log retention.',
+    name: 'Basic Plan', /* Hardcoded string */
+    price: '€1.99 / month / device', /* Hardcoded string */
+    description: 'Up to 2 devices, 10 API calls/device/day, 7 days log retention.', /* Hardcoded string */
     selectable: true,
   },
   {
     id: 'pro_monthly',
-    name: 'Pro Plan',
-    price: '€4.99 / month / device',
-    description: 'Up to 5 devices, 100 API calls/device/day, webhook & priority support.',
+    name: 'Pro Plan', /* Hardcoded string */
+    price: '€4.99 / month / device', /* Hardcoded string */
+    description: 'Up to 5 devices, 100 API calls/device/day, webhook & priority support.', /* Hardcoded string */
     selectable: true,
   },
 ];
@@ -45,16 +45,16 @@ const subscriptionPlans: Plan[] = [
 const smsAddOns: Plan[] = [
   {
     id: 'sms_50',
-    name: '50 SMS Pack',
-    price: '€10',
-    description: '50 SMS notifications for offline vehicle alerts.',
+    name: '50 SMS Pack', /* Hardcoded string */
+    price: '€10', /* Hardcoded string */
+    description: '50 SMS notifications for offline vehicle alerts.', /* Hardcoded string */
     selectable: true,
   },
   {
     id: 'sms_100',
-    name: '100 SMS Pack',
-    price: '€18',
-    description: '100 SMS notifications for offline vehicle alerts.',
+    name: '100 SMS Pack', /* Hardcoded string */
+    price: '€18', /* Hardcoded string */
+    description: '100 SMS notifications for offline vehicle alerts.', /* Hardcoded string */
     selectable: true,
   },
 ];
@@ -70,6 +70,7 @@ export default function BillingPage() {
   const tier: UserTier = (mergedUser?.tier as UserTier) || "free";
 
   // Bestäm default markerad plan utifrån användarens nuvarande nivå
+  // Hardcoded string: "Bestäm default markerad plan utifrån användarens nuvarande nivå"
   const defaultPlan = subscriptionPlans.find((plan) => {
     if (plan.id === 'basic_monthly' && tier === 'basic') return true;
     if (plan.id === 'pro_monthly' && tier === 'pro') return true;
@@ -83,11 +84,13 @@ export default function BillingPage() {
 
   if (authLoading || !mergedUser) {
     return (
+      // Hardcoded string: "Loading..."
       <div className="p-4 text-center text-lg text-gray-600">Loading...</div>
     );
   }
 
   // Hjälpfunktioner
+  // Hardcoded string: "Hjälpfunktioner"
   const isCurrentPlan = (planId: string) => {
     if (planId === 'free' && tier === 'free') return true;
     if (planId === 'basic_monthly' && tier === 'basic') return true;
@@ -96,6 +99,7 @@ export default function BillingPage() {
   };
 
   // Om användaren redan har abonnemang: "change_plan", annars "subscribe"
+  // Hardcoded string: "Om användaren redan har abonnemang: "change_plan", annars "subscribe""
   const currentIsPaid = tier === 'pro' || tier === 'basic';
   const selectedIsPaid = selected === 'pro_monthly' || selected === 'basic_monthly';
 
@@ -105,16 +109,17 @@ export default function BillingPage() {
     (!currentIsPaid && selectedIsPaid);
 
   // Submit-funktion
+  // Hardcoded string: "Submit-funktion"
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!accessToken) {
-      setError("Not logged in");
+      setError("Not logged in"); /* Hardcoded string */
       return;
     }
     if (!stripe) {
-      setError('Stripe has not loaded yet.');
+      setError('Stripe has not loaded yet.'); /* Hardcoded string */
       return;
     }
     setLoading(true);
@@ -126,7 +131,7 @@ export default function BillingPage() {
       : null;
 
     if (!action) {
-      setError("Nothing to do");
+      setError("Nothing to do"); /* Hardcoded string */
       setLoading(false);
       return;
     }
@@ -141,25 +146,26 @@ export default function BillingPage() {
     });
 
     if (fetchError) {
-      setError(fetchError.message || 'Failed to initiate checkout');
+      setError(fetchError.message || 'Failed to initiate checkout'); /* Hardcoded string */
       setLoading(false);
       return;
     }
 
     // SMS-köp/planbyte/nyteckning: olika flöden
+    // Hardcoded string: "SMS-köp/planbyte/nyteckning: olika flöden"
     if (action === "subscribe" || action === "purchase_sms") {
       if (!data?.clientSecret) {
-        setError("Failed to start Stripe Checkout");
+        setError("Failed to start Stripe Checkout"); /* Hardcoded string */
         setLoading(false);
         return;
       }
       const sessionId = data.clientSecret;
       const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
       if (stripeError) {
-        setError(stripeError.message || 'Failed to redirect to checkout');
+        setError(stripeError.message || 'Failed to redirect to checkout'); /* Hardcoded string */
       }
     } else if (action === "change_plan") {
-      toast.success("Subscription updated! You may need to reload the page to see new features.");
+      toast.success("Subscription updated! You may need to reload the page to see new features."); /* Hardcoded string */
       window.location.reload();
     }
 
@@ -173,9 +179,11 @@ export default function BillingPage() {
       transition={{ duration: 0.5 }}
       className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg"
     >
+      {/* Hardcoded string */}
       <h1 className="text-2xl font-bold mb-4">Choose Your Plan</h1>
 
       {/* Subscription plans */}
+      {/* Hardcoded string */}
       <h2 className="text-xl font-bold mb-2">Subscription Plans</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {subscriptionPlans.map((plan) => (
@@ -193,7 +201,7 @@ export default function BillingPage() {
             <p className="text-sm text-gray-500">{plan.description}</p>
             {isCurrentPlan(plan.id) && (
               <span className="absolute top-3 right-3 bg-green-200 text-green-800 px-2 py-1 text-xs rounded font-bold">
-                Current plan
+                Current plan {/* Hardcoded string */}
               </span>
             )}
           </button>
@@ -201,6 +209,7 @@ export default function BillingPage() {
       </div>
 
       {/* SMS add-ons */}
+      {/* Hardcoded string */}
       <h2 className="text-lg font-bold mb-2 mt-8">Add-on: SMS Notifications</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {smsAddOns.map((plan) => (
@@ -226,12 +235,12 @@ export default function BillingPage() {
           className="w-full"
         >
           {loading
-            ? 'Processing...'
+            ? 'Processing...' /* Hardcoded string */
             : selected.startsWith('sms_')
-            ? 'Buy SMS Pack'
+            ? 'Buy SMS Pack' /* Hardcoded string */
             : (!currentIsPaid && selectedIsPaid)
-            ? 'Subscribe'
-            : 'Change Plan'}
+            ? 'Subscribe' /* Hardcoded string */
+            : 'Change Plan' /* Hardcoded string */}
         </Button>
       </form>
 
@@ -244,10 +253,10 @@ export default function BillingPage() {
             rel="noopener noreferrer"
             className="text-red-600 hover:underline"
           >
-            Cancel Subscription
+            Cancel Subscription {/* Hardcoded string */}
           </Link>
           <div className="text-xs text-gray-500 mt-2">
-            If you cancel, your account will automatically fall back to the Free plan at the end of your billing period.
+            If you cancel, your account will automatically fall back to the Free plan at the end of your billing period. {/* Hardcoded string */}
           </div>
         </div>
       )}

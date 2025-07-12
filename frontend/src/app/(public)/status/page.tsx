@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-const STATUS_URL = 'https://status.evlinkha.se/status/evlinkha';
+const STATUS_URL = 'https://status.evlinkha.se/status/evlinkha'; /* Hardcoded URL */
 
 export default function StatusPage() {
   const opened = useRef(false);
@@ -20,12 +20,17 @@ export default function StatusPage() {
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
       </svg>
+      {/* Hardcoded string */}
       <h1 className="text-xl font-semibold text-indigo-700">The status page has moved!</h1>
+      {/* Hardcoded string */}
       <p className="text-gray-700 text-center max-w-lg">
         You are now being redirected to our new public status page.<br />
+        {/* Hardcoded string */}
         If nothing happens, the page should open automatically in a new tab.<br />
+        {/* Hardcoded string */}
         You can always check the EVLink system status at the link below.
       </p>
+      {/* Hardcoded string */}
       <a
         href={STATUS_URL}
         target="_blank"

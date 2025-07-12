@@ -51,7 +51,7 @@ export default function ProfilePage() {
         setIsSubscribed(!!data?.is_subscribed); // Fallback to false if undefined
       })
       .catch(() => {
-        toast.error('Could not check newsletter status');
+        toast.error('Could not check newsletter status'); /* Hardcoded string */
       })
       .finally(() => {
         setSubscribeLoading(false);
@@ -86,13 +86,13 @@ export default function ProfilePage() {
     });
 
     if (error) {
-      toast.error('Failed to update notification setting');
+      toast.error('Failed to update notification setting'); /* Hardcoded string */
     } else {
       setNotifyOffline(checked);
       toast.success(
         checked
-          ? 'You will now receive email when a vehicle goes offline.'
-          : 'Notifications disabled.'
+          ? 'You will now receive email when a vehicle goes offline.' /* Hardcoded string */
+          : 'Notifications disabled.' /* Hardcoded string */
       );
     }
     setNotifyLoading(false);
@@ -100,7 +100,7 @@ export default function ProfilePage() {
 
   const handleToggleNewsletter = async (checked: boolean) => {
     if (!accessToken || !user?.email) {
-      toast.error('User or access token missing');
+      toast.error('User or access token missing'); /* Hardcoded string */
       return;
     }
 
@@ -117,16 +117,16 @@ export default function ProfilePage() {
         body: JSON.stringify({ email: user.email }),
       });
 
-      if (error) throw new Error(error.message || 'Failed');
+      if (error) throw new Error(error.message || 'Failed'); /* Hardcoded string */
 
       setIsSubscribed(checked);
       toast.success(
         checked
-          ? 'You are now subscribed to the newsletter.'
-          : 'You have unsubscribed from the newsletter.'
+          ? 'You are now subscribed to the newsletter.' /* Hardcoded string */
+          : 'You have unsubscribed from the newsletter.' /* Hardcoded string */
       );
     } catch (error) {
-      let errorMessage = 'Could not update subscription';
+      let errorMessage = 'Could not update subscription'; /* Hardcoded string */
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -144,7 +144,7 @@ export default function ProfilePage() {
             userId={user.id}
             name={mergedUser?.name ?? ''}
             email={user.email ?? ''}
-            tier={mergedUser?.tier?.toUpperCase() ?? 'FREE'}
+            tier={mergedUser?.tier?.toUpperCase() ?? 'FREE'} /* Hardcoded string */
             smsCredits={mergedUser?.sms_credits ?? 0}
             notifyOffline={notifyOffline}
             notifyLoading={notifyLoading}
@@ -163,17 +163,17 @@ export default function ProfilePage() {
             <BillingCardSkeleton />
           ) : (
             <BillingCard
-              subscriptionPlan={subscription?.plan_name ?? 'Free'}
+              subscriptionPlan={subscription?.plan_name ?? 'Free'} /* Hardcoded string */
               price={
                 subscription && subscription.amount && subscription.currency
                   ? `${(subscription.amount / 100).toFixed(2)} ${subscription.currency.toUpperCase()}`
-                  : '—'
+                  : '—' /* Hardcoded string */
               }
               nextBillingDate={subscription?.current_period_end ?? undefined}
               current_period_start={subscription?.current_period_start ?? undefined}
               current_period_end={subscription?.current_period_end ?? undefined}
               invoices={invoices}
-              onManageClick={() => router.push('/billing')}
+              onManageClick={() => router.push('/billing')} /* Hardcoded string */
             />
           )}
         </div>

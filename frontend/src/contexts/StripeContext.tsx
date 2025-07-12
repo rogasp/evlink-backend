@@ -23,7 +23,7 @@ export const StripeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 export function useStripeContext(): StripeContextType {
   const context = useContext(StripeContext);
   if (!context) {
-    throw new Error('useStripeContext must be used within StripeProvider');
+    throw new Error('useStripeContext must be used within StripeProvider'); /* Hardcoded string */
   }
   return context;
 }

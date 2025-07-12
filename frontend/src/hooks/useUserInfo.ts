@@ -1,8 +1,9 @@
+// src/hooks/useUserInfo.ts
 'use client'
 
 import { useSupabase } from '@/lib/supabaseContext'
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation' // För redirect efter logout (valfritt)
+import { useRouter } from 'next/navigation' // For redirect after logout (optional) /* Hardcoded string */
 
 export function useUserInfo() {
   const { supabase } = useSupabase()
@@ -21,7 +22,7 @@ export function useUserInfo() {
     } = await supabase.auth.getSession()
 
     if (error) {
-      console.error('[🔴 useUserInfo] Supabase error:', error)
+      console.error('[🔴 useUserInfo] Supabase error:', error); /* Hardcoded string */
       return
     }
 
@@ -31,7 +32,7 @@ export function useUserInfo() {
       setAvatarUrl(user.user_metadata?.avatar_url)
       setUserName(user.user_metadata?.name || user.email)
       setUserEmail(user.email)
-      setIsAdmin(user.user_metadata?.role === 'admin')
+      setIsAdmin(user.user_metadata?.role === 'admin') /* Hardcoded string */
     } else {
       setIsLoggedIn(false)
       setAvatarUrl(undefined)
@@ -56,20 +57,20 @@ export function useUserInfo() {
   const logout = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
-      console.error('[🔴 Logout error]', error.message)
+      console.error('[🔴 Logout error]', error.message); /* Hardcoded string */
     } else {
-      console.log('[✅ Logout successful]')
-      router.push('/login') 
+      console.log('[✅ Logout successful]'); /* Hardcoded string */
+      router.push('/login') /* Hardcoded string */
     }
   }
 
   const initials = userName
     ? userName
-        .split(' ')
+        .split(' ') /* Hardcoded string */
         .map((n) => n[0])
-        .join('')
+        .join('') /* Hardcoded string */
         .toUpperCase()
-    : ''
+    : '' /* Hardcoded string */
 
   return {
     isLoggedIn,

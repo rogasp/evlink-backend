@@ -1,5 +1,3 @@
-// src/components/TermsContent.tsx
-
 export default function TermsContent() {
   return (
     <div className="space-y-4 text-sm text-gray-700 max-h-[70vh] overflow-y-auto pr-2">
@@ -15,6 +13,14 @@ export default function TermsContent() {
       <p>
         Your data is handled securely and never sold to third parties. Read our privacy policy for
         more details.
+      </p>
+
+      <h3 className="font-semibold mt-6">Insights & Aggregated Data</h3>
+      <p>
+        To provide helpful insights and improve the service, EVLinkHA may calculate statistics and
+        comparisons based on anonymized and aggregated charging data. This includes metrics such as
+        average charging speed or battery usage across vehicle models. These insights are never
+        shared with third parties and do not contain any personally identifiable information.
       </p>
 
       <h3 className="font-semibold mt-6">Corrections</h3>

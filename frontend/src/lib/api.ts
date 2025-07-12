@@ -58,16 +58,17 @@ export async function apiFetchSafe(
 
     let data = null;
     try {
+      console.warn("[apiFetchSafe] No JSON body returned"); /* Hardcoded string */
       data = await response.json();
     } catch {
-      console.warn("[apiFetchSafe] No JSON body returned");
+      // No JSON body returned
     }
 
     if (!response.ok) {
       return {
         data: null,
         error: {
-          message: data?.detail || `Request failed with status ${response.status}`,
+          message: data?.detail || `Request failed with status ${response.status}`, /* Hardcoded string */
           status: response.status,
         },
       };
@@ -75,8 +76,8 @@ export async function apiFetchSafe(
 
     return { data, error: null };
   } catch (err: unknown) {
-    console.error("[apiFetchSafe] error:", err);
-    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("[apiFetchSafe] error:", err); /* Hardcoded string */
+    const message = err instanceof Error ? err.message : "Unknown error"; /* Hardcoded string */
     toast.error(message);
     return { data: null, error: { message } };
   }

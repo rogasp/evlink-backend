@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from "./supabaseServer";
 
 export async function getCurrentUser() {
-  const supabase = await createSupabaseServerClient(); // ← här är await viktigt!
+  const supabase = await createSupabaseServerClient(); // ← await is important here! /* Hardcoded string */
 
   const {
     data: { user },
@@ -9,7 +9,7 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("❌ Failed to fetch user:", error.message);
+    console.error("❌ Failed to fetch user:", error.message); /* Hardcoded string */
     return null;
   }
 

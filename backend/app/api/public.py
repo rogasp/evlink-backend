@@ -37,26 +37,29 @@ class InterestSubmission(BaseModel):
 
 @router.get("/status")
 async def status():
+    """A simple health check endpoint to confirm the API is running."""
     return {"status": "ok"}
 
 @router.get("/ping")
 async def ping():
+    """A simple endpoint to check API responsiveness."""
     return {"message": "pong"}
 
 @router.post("/interest")
 async def submit_interest(data: InterestSubmission, request: Request):
+    """Submits a user's interest in the service before launch."""
     try:
         save_interest(data.name, data.email)
         return {"message": "Thanks! We'll notify you when we launch."}
     except Exception as e:
-        print(f"❌ Interest submission error: {e}")
+        logger.error(f"❌ Interest submission error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
-    
+
 @router.post("/user/link-result", response_model=dict)
 async def post_link_result(data: dict):
     """
-    Called by frontend after Enode redirects user back with a linkToken.
-    No auth required, but linkToken is validated server-side.
+    Receives the linkToken from the frontend after a user is redirected back from Enode.
+    This endpoint validates the token and confirms the vehicle link.
     """
     link_token = data.get("linkToken")
     if not link_token:
@@ -66,18 +69,11 @@ async def post_link_result(data: dict):
     user_id = result.get("userId")
     vendor = result.get("vendor")
 
-    print(f"🔗 Received link result for Enode user_id: {user_id} via token {link_token}")
+    logger.info(f"🔗 Received link result for Enode user_id: {user_id} via token {link_token}")
 
     if not user_id or not vendor:
-        print("⚠️ Incomplete data from Enode in link result")
+        logger.warning("⚠️ Incomplete data from Enode in link result")
         raise HTTPException(status_code=400, detail="Invalid link result")
-
-    # Optional: check if user exists in our system
-    # from app.storage.users import get_user
-    # user = await get_user(user_id)
-    # if not user:
-    #     print(f"⛔ user_id {user_id} not found in database")
-    #     raise HTTPException(status_code=404, detail="Unknown user")
 
     return {
         "vendor": vendor,
@@ -87,6 +83,7 @@ async def post_link_result(data: dict):
 
 @router.get("/public/registration-allowed")
 async def is_registration_allowed():
+    """Checks if public user registration is currently enabled in the settings."""
     from app.storage.settings import get_setting_by_name
     setting = await get_setting_by_name("allow_registration")
     if not setting:
@@ -99,6 +96,7 @@ async def webhook_status_panel(
     from_date: datetime = Query(...),
     to_date: datetime = Query(...)
 ):
+    """Provides data for the public webhook status panel."""
     return await get_status_panel_data(category, from_date, to_date)
 
 
@@ -108,11 +106,13 @@ async def get_uptime(
     from_date: datetime = Query(default_factory=lambda: datetime.utcnow() - timedelta(days=30)),
     to_date: datetime = Query(default_factory=lambda: datetime.utcnow()),
 ):
+    """Calculates the uptime for a specific webhook category over a date range."""
     uptime = await calculate_uptime(category, from_date, to_date)
     return {"uptime": uptime}
 
 @router.get("/public/access-code/{code}")
 async def validate_access_code(code: str):
+    """Validates an early access code to ensure it is valid and has not been used."""
     row = await get_interest_by_access_code(code)
 
     if not row or row.get("user_id") is not None:
@@ -126,23 +126,24 @@ async def validate_access_code(code: str):
 
 @router.post("/public/access-code/use")
 async def use_access_code(request: Request):
+    """Marks an early access code as used by associating it with a new user_id."""
     data = await request.json()
     code = data.get("code")
     user_id = data.get("user_id")
 
-    print(f"[🔐 use_access_code] Incoming: code={code}, user_id={user_id}")
+    logger.info(f"[🔐 use_access_code] Incoming: code={code}, user_id={user_id}")
 
     if not code or not user_id:
         raise HTTPException(status_code=400, detail="Missing code or user_id")
 
     row = await get_interest_by_access_code(code)
-    print(f"[🔍 interest lookup] Found: {row}")
+    logger.debug(f"[🔍 interest lookup] Found: {row}")
 
     if not row or row.get("user_id"):
         raise HTTPException(status_code=404, detail="Invalid or already used code")
 
     await assign_interest_user(code, user_id)
-    print(f"[✅ interest updated] {code} → {user_id}")
+    logger.info(f"[✅ interest updated] {code} → {user_id}")
 
     return {"success": True}
 

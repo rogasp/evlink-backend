@@ -18,6 +18,10 @@ type InterestEntry = {
   access_code?: string | null;
 };
 
+/**
+ * AdminInterestPage component displays and manages interest signups and access codes.
+ * It allows administrators to view, contact, generate codes for, and send invites to interested users.
+ */
 export default function AdminInterestPage() {
   const { user, accessToken } = useAuth();
   const [entries, setEntries] = useState<InterestEntry[]>([]);
@@ -84,8 +88,6 @@ export default function AdminInterestPage() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
-
-  if (!user) return null;
 
   const handleSendInvites = async () => {
     if (!accessToken || selectedIds.length === 0) return;

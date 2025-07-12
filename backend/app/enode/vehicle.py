@@ -20,8 +20,8 @@ async def get_all_vehicles(page_size: int = 50, after: str | None = None):
 
 async def set_vehicle_charging(vehicle_id: str, action: str) -> dict:
     """
-    Start or stop charging via Enode API.
-    Raises HTTPException med Enodes statuskod och svarstext om något går fel.
+    Starts or stops vehicle charging via the Enode API.
+    Raises HTTPException with Enode's status code and response text if an error occurs.
     """
     token = await get_access_token()
     headers = {
@@ -37,7 +37,7 @@ async def set_vehicle_charging(vehicle_id: str, action: str) -> dict:
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
-            # Logga Enodes felkropp och skicka tillbaka som HTTPException
+            # Log Enode's error body and re-raise as HTTPException
             text = e.response.text
             status = e.response.status_code
             logger.error(
@@ -46,7 +46,7 @@ async def set_vehicle_charging(vehicle_id: str, action: str) -> dict:
                 text,
                 exc_info=True
             )
-            # Släng en FastAPI HTTPException med exakt samma statuskod och Enodes feltext
+            # Raise a FastAPI HTTPException with the exact same status code and Enode's error text
             raise HTTPException(status_code=status, detail=text)
         except Exception as e:
             logger.error(

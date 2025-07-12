@@ -4,20 +4,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { authFetch } from '@/lib/authFetch';
 import type { User } from '@supabase/supabase-js';
+import type { UserDetails } from '@/types/userDetails'; // Import UserDetails
 
-interface MergedUser {
-  id: string;
-  email: string;
-  role: string;
+interface MergedUser extends UserDetails {
   approved: boolean;
-  accepted_terms: boolean;
-  name?: string;
-  online_status?: 'green' | 'yellow' | 'red' | 'grey';
-  notify_offline?: boolean;
-  is_subscribed?: boolean;
-  stripe_customer_id?: string;
-  sms_credits?: number;
-  tier?: 'free' | 'basic' | 'pro';
+  online_status?: 'green' | 'yellow' | 'red' | 'grey'; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
+  tier?: 'free' | 'basic' | 'pro'; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
+  is_on_trial?: boolean;
 }
 
 type UserContextType = {
@@ -37,7 +30,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  // Uppdaterad fetchUserAndMe som kan hantera om skeleton ska visas eller ej
+  // Updated fetchUserAndMe that can handle whether skeleton should be shown or not /* Hardcoded string */
   const fetchUserAndMe = async (showSkeleton = false) => {
     if (showSkeleton) setLoading(true);
     const { data: { session }, error } = await supabase.auth.getSession();
@@ -63,15 +56,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Första laddning: visa skeleton
+    // First load: show skeleton /* Hardcoded string */
     fetchUserAndMe(true);
 
-    // Lyssna på Supabase auth changes (refresh eller login/logout)
+    // Listen for Supabase auth changes (refresh or login/logout) /* Hardcoded string */
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.access_token) {
         setAccessToken(session.access_token);
         setUser(session.user);
-        // Bara uppdatera, visa ej skeleton
+        // Only update, do not show skeleton /* Hardcoded string */
         fetchUserAndMe(false);
       } else {
         setUser(null);
@@ -99,6 +92,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useUserContext = () => {
   const ctx = useContext(UserContext);
-  if (!ctx) throw new Error('useUserContext must be used within a UserProvider');
+  if (!ctx) throw new Error('useUserContext must be used within a UserProvider'); /* Hardcoded string */
   return ctx;
 };

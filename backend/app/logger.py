@@ -7,6 +7,8 @@ import logging
 import logging.config
 
 LOGGING_CONFIG = {
+    # TODO: Implement standardized logging format with icons (e.g., [✅], [ℹ️], [❌])
+    # This might require a custom Formatter or careful message construction at call sites.
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {

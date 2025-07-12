@@ -94,3 +94,4 @@ start-backend.sh
 run_onboarding_check.sh
 supabase/config.toml
 commits.txt
+tasks/

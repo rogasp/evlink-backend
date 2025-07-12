@@ -69,7 +69,7 @@ export default function OnboardingPage() {
       if (!data.accepted_terms) setShowTermsModal(true);
     } catch (err) {
       console.error('[OnboardingPage]', err);
-      toast.error('Failed to fetch onboarding status');
+      toast.error('Failed to fetch onboarding status'); /* Hardcoded string */
     }
   };
 
@@ -91,12 +91,12 @@ export default function OnboardingPage() {
     });
 
     if (!res.error) {
-      toast.success('Terms accepted');
+      toast.success('Terms accepted'); /* Hardcoded string */
       setShowTermsModal(false);
       fetchStatus();
     } else {
-      console.error('[❌ callback] Failed to accept terms:', res.error);
-      toast.error('Could not update terms acceptance');
+      console.error('[❌ callback] Failed to accept terms:', res.error); /* Hardcoded string */
+      toast.error('Could not update terms acceptance'); /* Hardcoded string */
     }
 
     setAccepting(false);
@@ -111,65 +111,65 @@ export default function OnboardingPage() {
   const steps = [
     {
       key: 'accepted_terms',
-      label: 'Terms accepted',
-      description: 'You must review and accept our Terms of Service and Privacy Policy before continuing.',
+      label: 'Terms accepted', /* Hardcoded string */
+      description: 'You must review and accept our Terms of Service and Privacy Policy before continuing.', /* Hardcoded string */
       action: (
         !status.accepted_terms && (
           <Button variant="outline" size="sm" onClick={() => setShowTermsModal(true)}>
-            Review terms
+            Review terms {/* Hardcoded string */}
           </Button>
         )
       ),
     },
     {
       key: 'api_key_created',
-      label: 'API key created',
-      description: 'Create an API key to authenticate your Home Assistant instance.',
+      label: 'API key created', /* Hardcoded string */
+      description: 'Create an API key to authenticate your Home Assistant instance.', /* Hardcoded string */
       action: (
         <Button asChild variant="outline" size="sm">
-          <Link href="/profile#api-key">Create API key</Link>
+          <Link href="/profile#api-key">Create API key</Link> {/* Hardcoded string */}
         </Button>
       ),
     },
     {
       key: 'vehicle_linked',
-      label: 'Vehicle linked',
-      description: 'Link your vehicle to EVLinkHA using the Enode flow.',
+      label: 'Vehicle linked', /* Hardcoded string */
+      description: 'Link your vehicle to EVLinkHA using the Enode flow.', /* Hardcoded string */
       action: (
         <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Link vehicle</Link>
+          <Link href="/dashboard">Link vehicle</Link> {/* Hardcoded string */}
         </Button>
       ),
     },
     {
       key: 'vehicle_created',
-      label: 'Vehicle created',
-      description: 'Your vehicle must exist in the EVLinkHA database.',
+      label: 'Vehicle created', /* Hardcoded string */
+      description: 'Your vehicle must exist in the EVLinkHA database.', /* Hardcoded string */
     },
     {
       key: 'webhook_received',
-      label: 'Webhook received',
-      description: 'We must receive a webhook from Enode to confirm communication.',
+      label: 'Webhook received', /* Hardcoded string */
+      description: 'We must receive a webhook from Enode to confirm communication.', /* Hardcoded string */
     },
     {
       key: 'webhook_confirmed',
-      label: 'Webhook confirmed',
-      description: 'A webhook must be successfully received from Enode and forwarded to your Home Assistant instance.',
+      label: 'Webhook confirmed', /* Hardcoded string */
+      description: 'A webhook must be successfully received from Enode and forwarded to your Home Assistant instance.', /* Hardcoded string */
     },
     {
       key: 'api_me_called',
-      label: 'HA /me tested',
-      description: 'Home Assistant must call /api/ha/me successfully.',
+      label: 'HA /me tested', /* Hardcoded string */
+      description: 'Home Assistant must call /api/ha/me successfully.', /* Hardcoded string */
     },
     {
       key: 'api_status_called',
-      label: 'HA /status tested',
-      description: 'Home Assistant must call /api/ha/status/{vehicle_id} successfully.',
+      label: 'HA /status tested', /* Hardcoded string */
+      description: 'Home Assistant must call /api/ha/status/{vehicle_id} successfully.', /* Hardcoded string */
     },
     {
       key: 'uses_old_status_endpoint',
-      label: 'Still using old /api/status',
-      description: 'Avoid using deprecated endpoints for future compatibility.',
+      label: 'Still using old /api/status', /* Hardcoded string */
+      description: 'Avoid using deprecated endpoints for future compatibility.', /* Hardcoded string */
       invert: true,
     },
   ];
@@ -189,12 +189,14 @@ export default function OnboardingPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
+      {/* Hardcoded string */}
       <h1 className="text-2xl font-semibold">Onboarding Status</h1>
 
       <div>
         <Progress value={percentage} className="h-2 overflow-hidden">
           <div className={`h-full transition-all duration-500 ${progressColor}`} style={{ width: `${percentage}%` }} />
         </Progress>
+        {/* Hardcoded string */}
         <p className="text-muted-foreground text-sm mt-1">
           {completed} of {steps.length} steps completed ({percentage}%)
         </p>
@@ -209,7 +211,7 @@ export default function OnboardingPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className={`text-lg ${isDone ? 'text-green-600' : 'text-red-500'}`}>
-                    {isDone ? '✅' : '❌'}
+                    {isDone ? '✅' : '❌'} {/* Hardcoded string */}
                   </span>
                   <span className="font-medium text-base">{step.label}</span>
                 </div>
@@ -224,6 +226,7 @@ export default function OnboardingPage() {
       </ul>
 
       {status.last_updated && (
+        // Hardcoded string
         <p className="text-xs text-right text-muted-foreground">
           Last updated: {new Date(status.last_updated).toLocaleString()}
         </p>
@@ -232,10 +235,13 @@ export default function OnboardingPage() {
       <Dialog open={showTermsModal} onOpenChange={setShowTermsModal}>
         <DialogContent>
           <DialogHeader>
+            {/* Hardcoded string */}
             <DialogTitle>Terms & Conditions</DialogTitle>
           </DialogHeader>
+          {/* Hardcoded string */}
           <div className="space-y-2 text-sm text-gray-600">
             <p>To continue using EVLinkHA, you must accept the terms and conditions.</p>
+            {/* Hardcoded string */}
             <p>
               Please read our{' '}
               <a
@@ -250,9 +256,11 @@ export default function OnboardingPage() {
           </div>
 
           <DialogFooter>
+            {/* Hardcoded string */}
             <Button variant="ghost" onClick={declineTerms}>
               Decline
             </Button>
+            {/* Hardcoded string */}
             <Button onClick={acceptTerms} disabled={accepting}>Accept</Button>
           </DialogFooter>
         </DialogContent>

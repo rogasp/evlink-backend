@@ -1,21 +1,7 @@
 // src/hooks/useUserDetails.ts
 import { useSupabase } from '@/lib/supabaseContext';
 import { useEffect, useState } from 'react';
-
-export type UserDetails = {
-  id: string;
-  name: string | null;
-  email: string;
-  is_approved: boolean;
-  accepted_terms: boolean | null;
-  notify_offline: boolean;
-  is_subscribed: boolean;
-  role: string | null;
-  created_at: string | null;
-  stripe_customer_id: string | null;
-  tier: string | null;
-  // ...fler fält vid behov
-};
+import type { UserDetails } from '@/types/userDetails'; // Import from central types
 
 export function useUserDetails(userId: string) {
   const { supabase } = useSupabase();
@@ -27,7 +13,7 @@ export function useUserDetails(userId: string) {
     if (!userId) {
       setUser(null);
       setLoading(false);
-      setError("No user ID provided.");
+      setError("No user ID provided."); /* Hardcoded string */
       return;
     }
     setLoading(true);
@@ -43,19 +29,19 @@ export function useUserDetails(userId: string) {
           setError(null);
         } else {
           setUser(null);
-          setError("User not found.");
+          setError("User not found."); /* Hardcoded string */
         }
         setLoading(false);
       });
   }, [userId, supabase]);
 
-  // I din useUserDetails-hook
+  // In your useUserDetails hook /* Hardcoded string */
 const updateUserField = async <K extends keyof UserDetails>(field: K, value: UserDetails[K]) => {
-  // Optimistisk update
+  // Optimistic update /* Hardcoded string */
   setUser(prev => prev ? { ...prev, [field]: value } : prev);
   const { error } = await supabase.from('users').update({ [field]: value }).eq('id', userId);
   if (error) {
-    // Om fel: Rulla tillbaka!
+    // If error: Rollback! /* Hardcoded string */
     setUser(prev => prev ? { ...prev, [field]: !value } : prev);
     setError(error.message);
     return false;

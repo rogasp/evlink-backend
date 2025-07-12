@@ -9,7 +9,7 @@ export function useHaWebhookSettings(userId: string) {
   const [externalUrl, setExternalUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Hämta vid mount
+  // Fetch on mount /* Hardcoded string */
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
@@ -28,7 +28,7 @@ export function useHaWebhookSettings(userId: string) {
       });
   }, [userId, supabase]);
 
-  // Spara
+  // Save /* Hardcoded string */
   const save = async (newWebhookId: string, newExternalUrl: string) => {
     setLoading(true);
     const { error } = await supabase

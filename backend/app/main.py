@@ -3,32 +3,24 @@ backend/app/main.py
 
 FastAPI application entrypoint with extensive telemetry middleware for EVLink backend.
 """
-import logging
-import time
 import asyncio
 import json
+import logging
+import time
 from typing import AsyncIterator
+
+import sentry_sdk
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPAuthorizationCredentials
-import sentry_sdk
 
-from app.logger import logger
-from app.api import admin, ha, me, private, public, webhook, newsletter, payments
+from app.api import ha, me, newsletter, payments, private, public, webhook
 from app.api.admin import routers as admin_routers
-from app.storage.telemetry import log_api_telemetry
-from app.auth.api_key_auth import get_api_key_user
-from app.config import (
-    IS_PROD,
-    SENTRY_DSN,
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
-    SUPABASE_SERVICE_ROLE_KEY,
-    SUPABASE_JWT_SECRET,
-    ENDPOINT_COST,  # token costs per endpoint
-)
+from app.config import ENDPOINT_COST, IS_PROD, SENTRY_DSN
 from app.dependencies.auth import get_current_user
+from app.logger import logger
+from app.storage.telemetry import log_api_telemetry
 
 # Initialize Sentry
 sentry_sdk.init(
@@ -54,6 +46,24 @@ app = FastAPI(
 # -------------------------
 @app.middleware("http")
 async def telemetry_middleware(request: Request, call_next):
+    """
+    Middleware to log API telemetry data for requests to /api/ and /webhook.
+
+    This middleware captures:
+    - Request and response bodies.
+    - User ID and Vehicle ID from the request.
+    - Request processing time.
+    - Status code, request/response sizes.
+    - Calculated token cost for the endpoint.
+
+    All telemetry data is logged asynchronously to the `api_telemetry` table.
+    It also handles replaying the response body so that it can be read
+    without being consumed.
+    """
+    # TODO: Add a server identifier to telemetry logs. This would involve:
+    # 1. Reading an environment variable (e.g., SERVER_IDENTIFIER).
+    # 2. Adding a `server_id` parameter to the `log_api_telemetry` function.
+    # 3. Adding a `server_id` column to the `api_telemetry` table in Supabase.
     path = request.url.path
     should_log = path.startswith("/api/") or path.startswith("/webhook")
     start_ts = None
@@ -63,23 +73,27 @@ async def telemetry_middleware(request: Request, call_next):
     if should_log:
         start_ts = time.time()
         raw_body = await request.body()
-        # parsar request_payload om möjligt, annars rådata
+        # Parse request_payload if possible, otherwise it remains None.
+        request_payload = None
         try:
-            request_payload = json.loads(raw_body)
-        except Exception:
-            request_payload = raw_body.decode("utf-8", errors="ignore")
+            if raw_body:
+                request_payload = json.loads(raw_body)
+        except json.JSONDecodeError:
+            # This ensures that if the body is not valid JSON, request_payload remains None,
+            # thus satisfying the type hint of the log_api_telemetry function.
+            pass
 
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):
             try:
-                # Vi skickar hela auth_header in i vår dependency
+                # Pass the entire auth_header to our dependency
                 user = await get_current_user(creds=HTTPAuthorizationCredentials(scheme="Bearer", credentials=auth_header.split(" ",1)[1]))
                 user_id = user.id
             except HTTPException:
-                # Ogiltig JWT eller API-key
+                # Invalid JWT or API key
                 pass
 
-    # Hämta response
+    # Get response
     response = await call_next(request)
 
     if should_log and start_ts is not None:
@@ -87,24 +101,24 @@ async def telemetry_middleware(request: Request, call_next):
         vehicle_id = request.path_params.get("vehicle_id")
         status = response.status_code
 
-        # Börja med att samla alla delar från response.body_iterator
+        # Start by collecting all parts from response.body_iterator
         body_chunks: list[bytes] = []
         try:
-            # OBS: body_iterator kan vara en async iterator
+            # NOTE: body_iterator can be an async iterator
             async for chunk in response.body_iterator:
                 body_chunks.append(chunk)
         except Exception:
-            # Om det inte går, strunta i response-payload
+            # If it fails, ignore the response payload
             body_chunks = []
 
-        # Sätt tillbaka iteratorn som en async generator
+        # Set the iterator back as an async generator
         async def _replay_body() -> AsyncIterator[bytes]:
             for chunk in body_chunks:
                 yield chunk
 
         response.body_iterator = _replay_body()
 
-        # Beräkna storlek + payload
+        # Calculate size + payload
         response_payload = None
         response_size = None
         if body_chunks:
@@ -115,7 +129,7 @@ async def telemetry_middleware(request: Request, call_next):
             except:
                 response_payload = None
 
-        # Kostnad
+        # Cost
         cost_tokens = 0
         if user_id:
             for prefix, cost in ENDPOINT_COST.items():

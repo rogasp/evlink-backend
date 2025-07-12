@@ -16,6 +16,7 @@ export default async function ReleaseNotesPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-12">
+      {/* Hardcoded string */}
       <h1 className="text-3xl font-extrabold text-indigo-700 mb-4">Release Notes</h1>
       <div className="h-px bg-gray-200 mb-8" />
       <article

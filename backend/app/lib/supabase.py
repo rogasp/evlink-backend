@@ -6,12 +6,12 @@ from app.config import SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KE
 if not SUPABASE_URL or not SUPABASE_ANON_KEY:
     raise RuntimeError("Missing Supabase URL or anon key.")
 
-# 👥 Used when authenticating users (respects RLS)
 def create_supabase_client_with_token(token: str):
+    """Creates a Supabase client with a user's JWT, respecting Row Level Security (RLS)."""
     return create_client(SUPABASE_URL, token)
 
-# 🔐 Used internally for webhooks or admin tasks (bypasses RLS)
 def get_supabase_admin_client():
+    """Creates a Supabase client with the service role key, bypassing Row Level Security (RLS)."""
     if not SUPABASE_SERVICE_ROLE_KEY:
         raise RuntimeError("Missing Supabase service role key.")
     return create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)

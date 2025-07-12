@@ -2,9 +2,11 @@
 
 from datetime import datetime
 from typing import Optional
+import logging
 from app.enode.webhook import fetch_enode_webhook_subscriptions
 from app.lib.supabase import get_supabase_admin_client
 
+logger = logging.getLogger(__name__)
 supabase = get_supabase_admin_client()
 
 async def sync_webhook_subscriptions_from_enode():
@@ -12,9 +14,9 @@ async def sync_webhook_subscriptions_from_enode():
     Fetch current webhook subscriptions from Enode and upsert them to Supabase.
     """
     
-    print("[🔄] Fetching subscriptions from Enode")
+    logger.info("[🔄] Fetching subscriptions from Enode")
     enode_subs = await fetch_enode_webhook_subscriptions()
-    print(f"[ℹ️] Found {len(enode_subs)} subscriptions from Enode")
+    logger.info(f"[ℹ️] Found {len(enode_subs)} subscriptions from Enode")
 
     for item in enode_subs:
         try:
@@ -29,15 +31,15 @@ async def sync_webhook_subscriptions_from_enode():
             }, on_conflict="enode_webhook_id").execute()
 
             if not response.data:
-                print(f"⚠️ No data returned on upsert for {item['id']}")
+                logger.warning(f"⚠️ No data returned on upsert for {item['id']}")
             else:
-                print(f"✅ Upserted subscription {item['id']}")
+                logger.info(f"✅ Upserted subscription {item['id']}")
 
         except Exception as e:
-            print(f"❌ Exception while upserting {item['id']}: {e}")
+            logger.error(f"❌ Exception while upserting {item['id']}: {e}")
 
 async def get_all_webhook_subscriptions():
-    
+    """Retrieves all webhook subscriptions from the database, ordered by creation date."""
     try:
         result = supabase.table("webhook_subscriptions") \
             .select("*") \
@@ -46,7 +48,7 @@ async def get_all_webhook_subscriptions():
             .execute()
         return result.data or []
     except Exception as e:
-        print(f"[❌ get_all_webhook_subscriptions] {e}")
+        logger.error(f"[❌ get_all_webhook_subscriptions] {e}")
         return []
 
 def get_webhook_logs(
@@ -67,26 +69,26 @@ def get_webhook_logs(
             .limit(limit)
 
         if event_filter:
-            print(f"[🔎 webhook_logs] Filtering by event: {event_filter}")
+            logger.info(f"[🔎 webhook_logs] Filtering by event: {event_filter}")
             query = query.eq("event", event_filter)
 
         if user_filter:
             cleaned = user_filter.strip()
             if cleaned:
-                print(f"[🔎 webhook_logs] Filtering by user_id_text like: {cleaned}")
+                logger.info(f"[🔎 webhook_logs] Filtering by user_id_text like: {cleaned}")
                 query = query.ilike("user_id_text", f"%{cleaned}%")
 
         if vehicle_filter:
             cleaned = vehicle_filter.strip()
             if cleaned:
-                print(f"[🔎 webhook_logs] Filtering by vehicle_id_text like: {cleaned}")
+                logger.info(f"[🔎 webhook_logs] Filtering by vehicle_id_text like: {cleaned}")
                 query = query.ilike("vehicle_id_text", f"%{cleaned}%")
 
         res = query.execute()
-        print(f"[✅ webhook_logs] Returned {len(res.data or [])} logs")
+        logger.info(f"[✅ webhook_logs] Returned {len(res.data or [])} logs")
         return res.data or []
     except Exception as e:
-        print(f"[❌ get_webhook_logs] {e}")
+        logger.error(f"[❌ get_webhook_logs] {e}")
         return []
 
    
@@ -103,7 +105,7 @@ async def save_webhook_subscription(enode_response: dict):
         "api_version": enode_response.get("apiVersion"),
         "is_active": enode_response.get("isActive", True),
         "last_success": enode_response.get("lastSuccess"),
-        "authentication": enode_response.get("authentication")
+        "created_at": enode_response.get("createdAt"),
     }
 
     res = supabase.table("webhook_subscriptions") \
@@ -111,9 +113,9 @@ async def save_webhook_subscription(enode_response: dict):
         .execute()
 
     if res.data:
-        print(f"[✅ save_webhook_subscription] Upserted {enode_response['id']}")
+        logger.info(f"[✅ save_webhook_subscription] Upserted {enode_response['id']}")
     else:
-        print(f"[⚠️ save_webhook_subscription] No data returned for {enode_response['id']}")
+        logger.warning(f"[⚠️ save_webhook_subscription] No data returned for {enode_response['id']}")
     return res
 
 async def mark_webhook_as_inactive(enode_webhook_id: str):
@@ -130,9 +132,9 @@ async def mark_webhook_as_inactive(enode_webhook_id: str):
         .execute()
 
     if res.data:
-        print(f"[✅ mark_webhook_as_inactive] Marked {enode_webhook_id} as inactive")
+        logger.info(f"[✅ mark_webhook_as_inactive] Marked {enode_webhook_id} as inactive")
     else:
-        print(f"[⚠️ mark_webhook_as_inactive] No data updated for {enode_webhook_id}")
+        logger.warning(f"[⚠️ mark_webhook_as_inactive] No data updated for {enode_webhook_id}")
     return res
 
 def save_webhook_event(payload: dict | list):
@@ -148,9 +150,9 @@ def save_webhook_event(payload: dict | list):
         vehicle_id = parsed.get("vehicle", {}).get("id")
         event = parsed.get("event")
         version = parsed.get("version")
-        print(f"[📝 Saving webhook event] Event: {event}, User: {user_id}, Vehicle: {vehicle_id}, Version: {version}")
+        logger.info(f"[📝 Saving webhook event] Event: {event}, User: {user_id}, Vehicle: {vehicle_id}, Version: {version}")
     except Exception as e:
-        print(f"[⚠️ Metadata parse error] Failed to extract metadata from webhook payload: {e}")
+        logger.warning(f"[⚠️ Metadata parse error] Failed to extract metadata from webhook payload: {e}")
         user_id = vehicle_id = event = version = None
 
     try:
@@ -163,7 +165,6 @@ def save_webhook_event(payload: dict | list):
             "event_type": event,  # keep both for now
             "version": version
         }).execute()
-        print(f"✅ Webhook event saved at {timestamp}")
+        logger.info(f"✅ Webhook event saved at {timestamp}")
     except Exception as db_error:
-        print(f"[❌ DB error] Failed to insert webhook event: {db_error}")
-
+        logger.error(f"[❌ DB error] Failed to insert webhook event: {db_error}")

@@ -25,7 +25,7 @@ export async function authFetch(
     try {
       return await apiFetchSafe(endpoint, { ...fetchOptions, headers });
     } catch (networkError) {
-      console.error("Network error during fetch:", networkError);
+      console.error("Network error during fetch:", networkError); /* Hardcoded string */
       return { data: null, error: { message: String(networkError), status: 0 } };
     }
   };
@@ -38,7 +38,7 @@ export async function authFetch(
     // Try refresh
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError || !refreshData.session?.access_token) {
-      console.error("Failed to refresh session:", refreshError);
+      console.error("Failed to refresh session:", refreshError); /* Hardcoded string */
     } else {
       response = await makeRequest(refreshData.session.access_token);
     }
