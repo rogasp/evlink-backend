@@ -11,6 +11,7 @@ interface MergedUser extends UserDetails {
   online_status?: 'green' | 'yellow' | 'red' | 'grey'; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
   tier?: 'free' | 'basic' | 'pro'; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
   is_on_trial?: boolean;
+  sms_credits?: number;
 }
 
 type UserContextType = {
