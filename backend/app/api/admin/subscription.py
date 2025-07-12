@@ -1,25 +1,31 @@
 # backend/app/api/admin/subscription.py
+"""Admin endpoints for managing subscription plans."""
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
 from app.services.stripe_utils import create_stripe_subscription_plan, sync_stripe_plans_to_db
 from app.storage.subscription import get_all_subscription_plans
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
+# TODO: Add docstrings to all functions in this file.
+
 def require_admin(user=Depends(get_supabase_user)):
-    print("🔍 Admin check - Full user object:")
-    # print(user)
+    logger.info("🔍 Admin check - Full user object:")
+    # logger.info(user)
 
     role = user.get("user_metadata", {}).get("role")
-    print(f"🔐 Extracted role: {role}")
+    logger.info(f"🔐 Extracted role: {role}")
 
     if role != "admin":
-        print(f"⛔ Access denied: user {user['id']} with role '{role}' tried to access admin route")
+        logger.warning(f"⛔ Access denied: user {user['id']} with role '{role}' tried to access admin route")
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    print(f"✅ Admin access granted to user {user['id']}")
+    logger.info(f"✅ Admin access granted to user {user['id']}")
     return user
 
 class CreateSubscriptionPlan(BaseModel):
@@ -60,9 +66,9 @@ async def create_subscription_plan(
 
 @router.get("/admin/subscription-plans", response_model=list[SubscriptionPlanOut])
 async def list_subscription_plans(user=Depends(require_admin)):
-    print(f"👮 Admin {user['id']} requested list of all subscription plans")
+    logger.info(f"👮 Admin {user['id']} requested list of all subscription plans")
     plans = await get_all_subscription_plans()
-    print(f"✅ Returning {len(plans)} subscription plans")
+    logger.info(f"✅ Returning {len(plans)} subscription plans")
     return plans
 
 @router.post("/admin/subscription-plans/sync")
@@ -70,7 +76,7 @@ async def sync_subscription_plans(user=Depends(require_admin)):
     """
     Sync all subscription plans from Stripe into the local database.
     """
-    print(f"[🔄] Admin {user['id']} started subscription plan sync from Stripe")
+    logger.info(f"[🔄] Admin {user['id']} started subscription plan sync from Stripe")
     result = await sync_stripe_plans_to_db()
-    print(f"[✅] Synced {result.get('inserted', 0)} new plans, {result.get('updated', 0)} updated")
+    logger.info(f"[✅] Synced {result.get('inserted', 0)} new plans, {result.get('updated', 0)} updated")
     return result

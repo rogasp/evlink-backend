@@ -3,7 +3,7 @@
 import { authFetch } from "@/lib/authFetch";
 import { supabase } from "@/lib/supabaseClient"; // Add import for supabase
 
-// 1) TypeScript-typ som speglar er Postgres-tabell
+// 1) TypeScript type that reflects your Postgres table /* Hardcoded string */
 export interface Customer {
   id: string;
   email: string;
@@ -21,29 +21,29 @@ export interface Customer {
   sms_credits: number;
 }
 
-// 2) Lista alla kunder
+// 2) List all customers /* Hardcoded string */
 export async function getCustomers(): Promise<Customer[]> {
   const token = await getAccessToken();
   const { data, error } = await authFetch("/api/admin/users", {
     method: "GET",
     accessToken: token,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(error.message || "Failed to fetch customers"); /* Hardcoded string */
   return data as Customer[];
 }
 
-// 3) Hämta en kund
+// 3) Get a customer /* Hardcoded string */
 export async function getCustomerById(id: string): Promise<Customer> {
   const token = await getAccessToken();
   const { data, error } = await authFetch(`/api/admin/users/${id}`, {
     method: "GET",
     accessToken: token,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(error.message || "Failed to fetch customer"); /* Hardcoded string */
   return data as Customer;
 }
 
-// 4) Uppdatera en kund
+// 4) Update a customer /* Hardcoded string */
 export interface UpdateCustomerPayload {
   email?: string;
   name?: string;
@@ -66,11 +66,11 @@ export async function updateCustomer(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(error.message || "Failed to update customer"); /* Hardcoded string */
   return data as Customer;
 }
 
-// 5) Skapa ny kund
+// 5) Create new customer /* Hardcoded string */
 export interface CreateCustomerPayload {
   email: string;
   name?: string;
@@ -92,14 +92,12 @@ export async function createCustomer(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(error.message || "Failed to create customer"); /* Hardcoded string */
   return data as Customer;
 }
 
-// Hjälpfunc för att plocka token från Supabase session
+// Helper function to get token from Supabase session /* Hardcoded string */
 async function getAccessToken(): Promise<string> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { session }, } = await supabase.auth.getSession();
   return session?.access_token || "";
 }

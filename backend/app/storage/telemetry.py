@@ -1,4 +1,3 @@
-""
 # backend/app/storage/telemetry.py
 
 from typing import Optional
@@ -16,7 +15,7 @@ async def log_api_telemetry(
     timestamp: str,
     request_size: Optional[int] = None,
     response_size: Optional[int] = None,
-    request_payload: Optional[dict] = None,
+    request_payload: Optional[dict | str] = None,
     response_payload: Optional[str] = None,
     cost_tokens: int = 0,
 ) -> None:
@@ -52,4 +51,3 @@ async def log_api_telemetry(
     }
     # Insert the payload into the api_telemetry table
     supabase.table("api_telemetry").insert(payload).execute()
-""

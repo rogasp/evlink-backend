@@ -1,11 +1,13 @@
 # backend/app/api/payments.py
-# New unified Stripe payment endpoint: subscriptions and SMS packages
+# This module handles all Stripe payment interactions, including subscriptions and one-time purchases.
 
 import logging
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 import stripe
 from stripe import StripeObject
+
 from app.config import STRIPE_SECRET_KEY, SUCCESS_URL, CANCEL_URL
 from app.auth.supabase_auth import get_supabase_user
 from app.storage.user import (
@@ -15,39 +17,50 @@ from app.storage.user import (
     update_user_subscription,
 )
 from app.storage.subscription import get_price_id_map
-
-# >>> NY IMPORT HÄR: Importera den nya funktionen från stripe_utils <<<
 from app.services.stripe_utils import handle_subscription_plan_change_request
 
 logger = logging.getLogger(__name__)
 
-# Se till att Stripe API-nyckeln sätts korrekt, som den redan gör
+# Initialize the Stripe API with the secret key
 stripe.api_key = STRIPE_SECRET_KEY
 
 router = APIRouter()
 
+
 class PaymentRequest(BaseModel):
-    action: str = Field(..., description="'subscribe', 'change_plan', 'cancel', 'purchase_sms'")
-    plan_id: str = Field(None, alias="planId")
-    # Eventuella fler fält här
+    """Defines the expected request body for the /checkout endpoint."""
+    action: str = Field(..., description="The payment action to perform: 'subscribe', 'change_plan', 'cancel', 'purchase_sms'")
+    plan_id: str = Field(None, alias="planId", description="The identifier for the subscription plan or SMS package.")
 
     class Config:
         allow_population_by_field_name = True
 
+
 class PaymentResponse(BaseModel):
+    """Defines the response body for the /checkout endpoint."""
     clientSecret: str | None = None
     status: str
+
 
 @router.post("/checkout", response_model=PaymentResponse)
 async def handle_checkout(
     req: PaymentRequest,
     user=Depends(get_supabase_user),
 ):
+    """
+    A unified endpoint to handle various Stripe payment actions.
+    - Subscribing to a new plan.
+    - Changing an existing subscription plan.
+    - Canceling a subscription.
+    - Purchasing one-time items like SMS credit packages.
+    """
     logger.info(f"[💳] Checkout called: action={req.action}, plan_id={req.plan_id}, user={user.get('id')}")
+
+    # --- 1. Initial Setup & Validation ---
     price_id_map = await get_price_id_map()
     price_id = price_id_map.get(req.plan_id or "")
 
-    # Check that plan exists where needed
+    # Ensure the requested plan_id is valid for actions that require it.
     if req.action in ("subscribe", "purchase_sms", "change_plan") and not price_id:
         logger.error(f"[❌] Invalid plan_id: '{req.plan_id}'. Available: {list(price_id_map.keys())}")
         raise HTTPException(
@@ -55,13 +68,13 @@ async def handle_checkout(
             f"Invalid plan_id '{req.plan_id}', must be one of {list(price_id_map.keys())}"
         )
 
-    # 1) Get user record
+    # --- 2. Retrieve User & Ensure Stripe Customer ---
     user_record = await get_user_by_id(user["id"])
     if not user_record:
         logger.error(f"[❌] User not found: {user['id']}")
         raise HTTPException(404, "User not found")
 
-    # 2) Ensure Stripe Customer
+    # Create a Stripe Customer if one doesn't already exist for the user.
     customer_id = user_record.stripe_customer_id
     if not customer_id:
         logger.info(f"[ℹ️] Creating Stripe customer for user: {user_record.email}")
@@ -73,58 +86,89 @@ async def handle_checkout(
         customer_id = customer.id
         logger.info(f"[✅] Created Stripe customer: {customer_id}")
 
-    # 3) Handle actions
+    # --- 3. Handle Specific Payment Actions ---
+
+    # A. SUBSCRIBE to a new plan
     if req.action == "subscribe":
         logger.info(f"[🟢] Starting subscription for plan_id: {req.plan_id}, price_id: {price_id}")
-        session = stripe.checkout.Session.create(
-            customer=customer_id,
-            payment_method_types=["card"],
-            mode="subscription",
-            line_items=[{"price": price_id, "quantity": 1}],
-            success_url=SUCCESS_URL,
-            cancel_url=CANCEL_URL,
-            metadata={"user_id": user_record.id, "plan_id": req.plan_id},
-        )
+        
+        # If the user is on a trial, pass the trial end date to Stripe.
+        trial_end_timestamp = None
+        if user_record.is_on_trial and user_record.trial_ends_at:
+            try:
+                trial_end_dt = datetime.fromisoformat(user_record.trial_ends_at)
+                trial_end_timestamp = int(trial_end_dt.timestamp())
+                logger.info(f"[ℹ️] User {user_record.id} is on trial, setting Stripe trial_end to {trial_end_timestamp}")
+            except (ValueError, TypeError) as e:
+                logger.error(f"[❌] Error parsing trial_ends_at for user {user_record.id}: {e}")
+
+        # Prepare parameters for the Stripe Checkout Session.
+        session_params = {
+            "customer": customer_id,
+            "payment_method_types": ["card"],
+            "mode": "subscription",
+            "line_items": [{"price": price_id, "quantity": 1}],
+            "success_url": SUCCESS_URL,
+            "cancel_url": CANCEL_URL,
+            "metadata": {"user_id": user_record.id, "plan_id": req.plan_id},
+        }
+        if trial_end_timestamp:
+            session_params["subscription_data"] = {"trial_end": trial_end_timestamp}
+
+        session = stripe.checkout.Session.create(**session_params)
         logger.info(f"[✅] Stripe Checkout Session created: {session.id}")
         return {"clientSecret": session.id, "status": "subscription_created"}
 
+    # B. CHANGE an existing subscription plan
     elif req.action == "change_plan":
         logger.info(f"[🔄] Change plan requested for customer {customer_id} to plan_id: {req.plan_id} (price_id: {price_id})")
         
+        trial_end_timestamp = None
+        if user_record.is_on_trial and user_record.trial_ends_at:
+            try:
+                trial_end_dt = datetime.fromisoformat(user_record.trial_ends_at)
+                trial_end_timestamp = int(trial_end_dt.timestamp())
+                logger.info(f"[ℹ️] User {user_record.id} is on trial, setting Stripe trial_end for plan change to {trial_end_timestamp}")
+            except (ValueError, TypeError) as e:
+                logger.error(f"[❌] Error parsing trial_ends_at for user {user_record.id} during plan change: {e}")
+
         try:
-            # >>> ANROPA DEN KONSOLIDERADE TJÄNSTEN HÄR ISTÄLLET <<<
-            # All logik för att hämta subs, avgöra upp/nedgradering och fakturera ligger nu i service-lagret
+            # Delegate the complex logic of changing a plan to a dedicated service function.
             await handle_subscription_plan_change_request(
                 customer_id=customer_id,
                 new_price_id=price_id,
-                user_id=user_record.id # Skicka med user_id
+                user_id=user_record.id,
+                trial_end=trial_end_timestamp
             )
             logger.info(f"[✅] Change plan processed by Stripe service successfully.")
-            # Uppdatera statusmeddelandet för att reflektera att servicen hanterade det
             return {"clientSecret": None, "status": "subscription_change_processed"}
-        except ValueError as e: # Fånga specifika fel från service-lagret (t.ex. "No active subscription")
+        except ValueError as e: 
             logger.error(f"[❌] Failed to change plan (ValueError): {e}")
             raise HTTPException(400, str(e))
-        except Exception as e: # Fånga andra oväntade fel
+        except Exception as e: 
             logger.error(f"[❌] Unexpected error changing plan: {e}", exc_info=True)
             raise HTTPException(500, "Internal server error during plan change.")
 
+    # C. CANCEL an active subscription
     elif req.action == "cancel":
         logger.info(f"[🛑] Cancel subscription requested for customer {customer_id}")
-        subs = stripe.Subscription.list(customer=customer_id, limit=1)
+        subs = stripe.Subscription.list(customer=customer_id, status='active', limit=1)
         if not subs.data:
-            logger.error("[❌] No subscription to cancel for this customer")
-            raise HTTPException(400, "No subscription to cancel")
+            logger.warning("[⚠️] No active subscription to cancel for this customer")
+            raise HTTPException(400, "No active subscription to cancel")
+        
+        # Use delete for immediate cancellation. For cancellation at period end, use `stripe.Subscription.modify`.
         stripe.Subscription.delete(subs.data[0].id)
-        logger.info(f"[✅] Subscription canceled")
+        logger.info(f"[✅] Subscription {subs.data[0].id} canceled successfully.")
         return {"clientSecret": None, "status": "subscription_canceled"}
 
+    # D. PURCHASE a one-time item (e.g., SMS pack)
     elif req.action == "purchase_sms":
         logger.info(f"[💬] Purchase SMS pack requested: {req.plan_id} (price_id: {price_id}) for customer {customer_id}")
         session = stripe.checkout.Session.create(
             customer=customer_id,
             payment_method_types=["card"],
-            mode="payment",
+            mode="payment", # 'payment' mode for one-time purchases
             line_items=[{"price": price_id, "quantity": 1}],
             success_url=SUCCESS_URL,
             cancel_url=CANCEL_URL,
@@ -133,6 +177,7 @@ async def handle_checkout(
         logger.info(f"[✅] Stripe Checkout Session created for SMS: {session.id}")
         return {"clientSecret": session.id, "status": "sms_purchase_initiated"}
 
+    # Fallback for an invalid action
     logger.error(f"[❌] Invalid action: {req.action}")
     raise HTTPException(400, f"Invalid action '{req.action}'")
 
@@ -142,8 +187,9 @@ async def process_successful_payment_intent(
     payment_intent: StripeObject
 ) -> None:
     """
-    Business logic for Stripe payment_intent.succeeded.
-    Expects payment_intent.metadata to include:
+    Business logic for the 'payment_intent.succeeded' webhook event.
+    This function is called when a one-time payment (like an SMS pack) succeeds.
+    It expects payment_intent.metadata to include:
       - user_id: the Supabase user ID
       - plan_id: one of 'pro_monthly', 'sms_50', 'sms_100'
     """
@@ -151,19 +197,20 @@ async def process_successful_payment_intent(
     plan_id = metadata.get("plan_id")
 
     if not plan_id:
-        logger.warning("No plan_id in payment_intent.metadata, skipping")
+        logger.warning("[⚠️] No plan_id in payment_intent.metadata, skipping webhook processing.")
         return
 
+    logger.info(f"Processing successful payment for user {user_id} with plan_id {plan_id}")
+
     if plan_id == "pro_monthly":
-        # Activate or renew subscription
+        # This case is handled by 'invoice.paid' for subscriptions.
+        # However, keeping it here can be a fallback.
         await update_user_subscription(user_id=user_id, tier="pro")
-        logger.info(f"Activated Pro subscription for user {user_id}")
+        logger.info(f"Activated Pro subscription for user {user_id} via payment intent.")
     elif plan_id == "sms_50":
-        # Add 50 SMS credits
         await add_user_sms_credits(user_id=user_id, credits=50)
         logger.info(f"Added 50 SMS credits to user {user_id}")
     elif plan_id == "sms_100":
-        # Add 100 SMS credits
         await add_user_sms_credits(user_id=user_id, credits=100)
         logger.info(f"Added 100 SMS credits to user {user_id}")
     else:

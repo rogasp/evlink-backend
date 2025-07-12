@@ -120,6 +120,7 @@ Thanks for joining – and thanks for your patience!
         )
 
 async def send_interest_email(email: str, name: str):
+    """Sends a confirmation email to users who have expressed early interest in EVLinkHA."""
     html = f"""
     <p>Hi {name},</p>
     <p>Thanks for signing up to EVLinkHA early access!</p>

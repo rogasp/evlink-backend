@@ -5,6 +5,7 @@ from app.models.user import User
 async def get_api_key_user(
     authorization: str = Header(..., alias="Authorization")
 ) -> User:
+    """Authenticates a user based on a provided API key in the Authorization header."""
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid authorization header")
 

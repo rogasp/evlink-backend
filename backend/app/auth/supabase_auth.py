@@ -5,6 +5,7 @@ from jose import jwt
 from app.config import SUPABASE_JWT_SECRET
 
 async def get_supabase_user(request: Request):
+    """Authenticates a user based on a Supabase JWT provided in the Authorization header."""
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
@@ -16,7 +17,7 @@ async def get_supabase_user(request: Request):
         user_id = payload.get("sub")
         role = payload.get("role", "user")
         email = payload.get("email")
-        user_metadata = payload.get("user_metadata", {})  # 🧠 Lägg till detta
+        user_metadata = payload.get("user_metadata", {})  # Add this
 
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
@@ -26,7 +27,7 @@ async def get_supabase_user(request: Request):
             "role": role,
             "email": email,
             "access_token": token,
-            "user_metadata": user_metadata  # ✅ Nyckeln till att require_admin fungerar
+            "user_metadata": user_metadata  # Key for require_admin to work
         }
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Token decode failed: {str(e)}")

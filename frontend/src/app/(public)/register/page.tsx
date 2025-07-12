@@ -17,7 +17,7 @@ export default function RegisterPage() {
         const json = await res.json();
         setAllowRegister(json.allowed === true);
       } catch (err) {
-        console.error('❌ Failed to check registration status:', err);
+        console.error('❌ Failed to check registration status:', err); /* Hardcoded string */
         setAllowRegister(false);
       }
     };
@@ -27,6 +27,7 @@ export default function RegisterPage() {
   if (allowRegister === null) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white">
+        {/* Hardcoded string */}
         <p className="text-gray-500 text-sm">Checking registration status...</p>
       </main>
     );
@@ -35,6 +36,7 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-white px-4">
       <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+        {/* Hardcoded string */}
         <h1 className="text-2xl font-extrabold text-indigo-700 mb-4 text-center">
           {allowRegister ? 'Create Account' : 'Stay Updated'}
         </h1>
@@ -47,6 +49,7 @@ export default function RegisterPage() {
           <RegisterInterestForm />
         )}
 
+        {/* Hardcoded string */}
         <p className="text-center text-xs text-gray-500 mt-4">
           {allowRegister ? (
             <>

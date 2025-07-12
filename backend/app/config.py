@@ -1,3 +1,6 @@
+"""
+Configuration settings for the EVLink backend, loaded from environment variables.
+"""
 import os
 from dotenv import load_dotenv
 

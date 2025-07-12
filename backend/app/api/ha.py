@@ -13,7 +13,7 @@ from app.auth.api_key_auth import get_api_key_user
 from app.models.user import User
 from app.storage.vehicle import get_all_cached_vehicles, get_vehicle_by_id
 from app.enode.vehicle import set_vehicle_charging
-from app.api.dependencies import api_key_rate_limit
+from app.api.dependencies import api_key_rate_limit, require_pro_tier, require_basic_or_pro_tier
 from app.dependencies.auth import get_current_user
 from app.storage.user import get_user_by_id 
 
@@ -328,27 +328,19 @@ class ChargingActionRequest(BaseModel):
         }
 
 
-@router.post("/charging/{vehicle_id}", summary="Start or stop vehicle charging")
+@router.post("/ha/charging/{vehicle_id}", 
+            summary="Start or stop vehicle charging",
+            dependencies=[Depends(api_key_rate_limit), Depends(require_basic_or_pro_tier)],
+            )
 async def post_vehicle_charging(
     vehicle_id: str,
     body: ChargingActionRequest = Body(...),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_api_key_user),
 ):
     """
     Endpoint to start or stop charging for a given vehicle. Expects JSON:
       { "action": "START" } or { "action": "STOP" }
     """
-    public_user = await get_user_by_id(user.id)
-    if public_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # 2) Kontrollera Pro–tier
-    if public_user.tier != "pro":
-        raise HTTPException(
-            status_code=403,
-            detail="You need a Pro subscription to start or stop charging"
-        )
-    
     action = body.action.upper()
     logger.info(
         "[post_vehicle_charging] Request to %s charging for vehicle_id=%s, user_id=%s",
@@ -425,99 +417,4 @@ async def post_vehicle_charging(
         "enode_response": enode_response,
     }
 
-@router.post("/ha/charging/{vehicle_id}", summary="Start or stop vehicle charging")
-async def post_vehicle_charging(
-    vehicle_id: str,
-    body: ChargingActionRequest = Body(...),
-    user: User = Depends(get_current_user),
-):
-    """
-    Endpoint to start or stop charging for a given vehicle. Expects JSON:
-      { "action": "START" } or { "action": "STOP" }
-    """
-    public_user = await get_user_by_id(user.id)
-    if public_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
 
-    # 2) Kontrollera Pro–tier
-    if public_user.tier != "pro":
-        raise HTTPException(
-            status_code=403,
-            detail="You need a Pro subscription to start or stop charging"
-        )
-    
-    action = body.action.upper()
-    logger.info(
-        "[post_vehicle_charging] Request to %s charging for vehicle_id=%s, user_id=%s",
-        action,
-        vehicle_id,
-        user.id,
-    )
-
-    # 1) Fetch vehicle to verify ownership
-    try:
-        vehicle = await get_vehicle_by_id(vehicle_id)
-    except APIError as e:
-        _handle_api_error(e, vehicle_id, "post_vehicle_charging")
-    except Exception as e:
-        logger.error(
-            "[post_vehicle_charging] Unexpected error fetching vehicle %s: %s",
-            vehicle_id,
-            e,
-            exc_info=True,
-        )
-        raise HTTPException(status_code=502, detail="Error fetching vehicle data")
-
-    if not vehicle:
-        logger.warning("[post_vehicle_charging] Vehicle not found: %s", vehicle_id)
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-
-    if vehicle.get("user_id") != user.id:
-        logger.warning(
-            "[post_vehicle_charging] Access denied for user_id=%s on vehicle_id=%s",
-            user.id,
-            vehicle_id,
-        )
-        raise HTTPException(status_code=403, detail="Access denied")
-
-    # 2) Extract Enode’s vehicle ID (stored as "vehicle_id" in the Supabase record)
-    enode_vehicle_id = vehicle.get("vehicle_id")
-    if not enode_vehicle_id:
-        logger.error(
-            "[post_vehicle_charging] Missing Enode vehicle_id for %s",
-            vehicle_id,
-            exc_info=True,
-        )
-        raise HTTPException(
-            status_code=500,
-            detail="Vehicle does not have an associated Enode ID"
-        )
-
-    # 3) Call Enode to start/stop charging
-    try:
-        enode_response = await set_vehicle_charging(enode_vehicle_id, action)
-        logger.info(
-            "[post_vehicle_charging] Enode response for enode_vehicle_id=%s: %s",
-            enode_vehicle_id,
-            enode_response,
-        )
-    except HTTPException as e:
-        # Om Enode returnerade 400/401/403/404 etc., skicka vidare samma
-        raise
-    except Exception as e:
-        logger.error(
-            "[post_vehicle_charging] Error calling Enode for enode_vehicle_id %s: %s",
-            enode_vehicle_id,
-            e,
-            exc_info=True,
-        )
-        raise HTTPException(status_code=502, detail="Failed to trigger charging action")
-
-    # 4) Return the Enode response (eller en enkel bekräftelse)
-    return {
-        "status": "success",
-        "vehicle_id": vehicle_id,
-        "enode_vehicle_id": enode_vehicle_id,
-        "action": action,
-        "enode_response": enode_response,
-    }

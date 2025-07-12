@@ -8,6 +8,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { authFetch } from "@/lib/authFetch";
 import { toast } from "sonner";
 
+/**
+ * NewPlanModal component provides a modal form for administrators to create new subscription plans.
+ * It integrates with the backend API to submit new plan details.
+ */
 export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
   const { accessToken } = useAuth();
   const [open, setOpen] = useState(false);
@@ -29,7 +33,7 @@ export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accessToken) {
-      toast.error("No access token");
+      toast.error("No access token"); // Hardcoded string
       return;
     }
     setLoading(true);
@@ -43,9 +47,9 @@ export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
       body: JSON.stringify(payload),
     });
     if (res.error) {
-      toast.error(res.error.message || "Failed to create plan");
+      toast.error(res.error.message || "Failed to create plan"); // Hardcoded string
     } else {
-      toast.success("Plan created!");
+      toast.success("Plan created!"); // Hardcoded string
       setOpen(false);
       setForm({
         code: "",
@@ -65,17 +69,17 @@ export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="default" onClick={() => setOpen(true)}>
-          New Plan
+          New Plan {/* Hardcoded string */}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Subscription Plan</DialogTitle>
+          <DialogTitle>Create New Subscription Plan</DialogTitle> {/* Hardcoded string */}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input
             name="code"
-            placeholder="Internal code (e.g. sms_50, pro_monthly)"
+            placeholder="Internal code (e.g. sms_50, pro_monthly)" // Hardcoded string
             required
             onChange={handleChange}
             value={form.code}
@@ -83,20 +87,20 @@ export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
           />
           <Input
             name="name"
-            placeholder="Name (for Stripe product)"
+            placeholder="Name (for Stripe product)" // Hardcoded string
             required
             onChange={handleChange}
             value={form.name}
           />
           <Input
             name="description"
-            placeholder="Description"
+            placeholder="Description" // Hardcoded string
             onChange={handleChange}
             value={form.description}
           />
           <Input
             name="amount"
-            placeholder="Amount in cents (e.g. 499 for €4.99)"
+            placeholder="Amount in cents (e.g. 499 for €4.99)" // Hardcoded string
             type="number"
             required
             onChange={handleChange}
@@ -105,7 +109,7 @@ export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
           />
           <Input
             name="currency"
-            placeholder="Currency (e.g. eur)"
+            placeholder="Currency (e.g. eur)" // Hardcoded string
             required
             onChange={handleChange}
             value={form.currency}
@@ -117,8 +121,8 @@ export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
             value={form.type}
             className="w-full border rounded px-2 py-1"
           >
-            <option value="recurring">Recurring</option>
-            <option value="one_time">One Time</option>
+            <option value="recurring">Recurring</option> {/* Hardcoded string */}
+            <option value="one_time">One Time</option> {/* Hardcoded string */}
           </select>
           {form.type === "recurring" && (
             <select
@@ -128,12 +132,12 @@ export function NewPlanModal({ onCreated }: { onCreated?: () => void }) {
               value={form.interval}
               className="w-full border rounded px-2 py-1"
             >
-              <option value="month">Monthly</option>
-              <option value="year">Yearly</option>
+              <option value="month">Monthly</option> {/* Hardcoded string */}
+              <option value="year">Yearly</option> {/* Hardcoded string */}
             </select>
           )}
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Creating..." : "Create"}
+            {loading ? "Creating..." : "Create"} {/* Hardcoded string */}
           </Button>
         </form>
       </DialogContent>

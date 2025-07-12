@@ -20,6 +20,10 @@ type WebhookLog = {
   payload: Record<string, unknown>;
 };
 
+/**
+ * WebhookLogPage component displays a table of webhook logs with filtering and search capabilities.
+ * It allows administrators to view recent webhook events and filter them by event type, user ID, and vehicle ID.
+ */
 export default function WebhookLogPage() {
   const { accessToken } = useAuth();
   const [logs, setLogs] = useState<WebhookLog[]>([]);
@@ -41,7 +45,7 @@ export default function WebhookLogPage() {
   const fetchLogs = useCallback(
     async (event: string | null, limitValue: number, userFilter: string, vehicleFilter: string) => {
       if (!accessToken) {
-        console.warn('No access token found. Skipping fetch.');
+        console.warn('No access token found. Skipping fetch.'); // Hardcoded string
         return;
       }
 
@@ -62,12 +66,12 @@ export default function WebhookLogPage() {
           setLogs(res.data);
           setLogCount(res.data.length);
         } else {
-          console.error('❌ Failed to load logs:', res.error);
+          console.error('❌ Failed to load logs:', res.error); // Hardcoded string
           setLogs([]);
           setLogCount(0);
         }
       } catch (err) {
-        console.error('❌ Exception during fetchLogs:', err);
+        console.error('❌ Exception during fetchLogs:', err); // Hardcoded string
         setLogs([]);
         setLogCount(0);
       } finally {
@@ -81,9 +85,9 @@ export default function WebhookLogPage() {
     const timer = setTimeout(() => {
       const event = selectedEvent === '__all__' ? null : selectedEvent;
       fetchLogs(event, limit, userId, vehicleId);
-    }, 400); // 400 ms delay efter senaste tangenttryckning
+    }, 400); // 400 ms delay efter senaste tangenttryckning // Hardcoded string
 
-    return () => clearTimeout(timer); // avbryt tidigare "pågående" delay
+    return () => clearTimeout(timer); // avbryt tidigare "pågående" delay // Hardcoded string
   }, [selectedEvent, limit, userId, vehicleId, fetchLogs]);
 
   const handleFilterChange = (value: string) => {
@@ -98,14 +102,14 @@ export default function WebhookLogPage() {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Webhook Logs</h1>
+      <h1 className="text-2xl font-bold mb-4">Webhook Logs</h1> {/* Hardcoded string */}
 
       <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
         <EventFilterSelect selected={selectedEvent} onChange={handleFilterChange} />
         <div className="flex items-center gap-2">
           <label htmlFor="limit" className="text-sm text-muted-foreground">
             Limit:
-          </label>
+          </label> {/* Hardcoded string */}
           <select
             id="limit"
             value={limit}
@@ -123,14 +127,14 @@ export default function WebhookLogPage() {
       <div className="flex flex-wrap gap-4 mb-4">
         <input
           type="text"
-          placeholder="Filter by user_id"
+          placeholder="Filter by user_id" // Hardcoded string
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           className="border border-gray-300 px-2 py-1 rounded text-sm w-[220px]"
         />
         <input
           type="text"
-          placeholder="Filter by vehicle_id"
+          placeholder="Filter by vehicle_id" // Hardcoded string
           value={vehicleId}
           onChange={(e) => setVehicleId(e.target.value)}
           className="border border-gray-300 px-2 py-1 rounded text-sm w-[220px]"
@@ -141,10 +145,10 @@ export default function WebhookLogPage() {
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            <span>Searching logs...</span>
+            <span>Searching logs...</span> {/* Hardcoded string */}
           </>
         ) : (
-          <>Showing {logCount} log{logCount === 1 ? '' : 's'}</>
+          <>Showing {logCount} log{logCount === 1 ? '' : 's'}</> // Hardcoded string
         )}
       </div>
 

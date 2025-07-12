@@ -102,22 +102,6 @@ async def remove_brevo_contact_from_list(email: str):
         else brevo_response
     )
 
-
-    """
-    Add an existing Brevo contact to a specific segment.
-    Requires that the contact already exists.
-    """
-    try:
-        response = _contacts_api.add_contact_to_list(
-            list_id=segment_id,
-            contact_emails=[email]
-        )
-        logger.info("✅ Added %s to segment %s", email, segment_id)
-        return response.to_dict() if hasattr(response, "to_dict") else response
-    except ApiException as e:
-        logger.error("❌ Failed to add %s to segment %s: %s", email, segment_id, e)
-        raise
-
 async def set_onboarding_step(email: str, step: str):
     """
     Update the ONBOARDING_STEP attribute for a Brevo contact.
@@ -134,21 +118,20 @@ async def set_onboarding_step(email: str, step: str):
 
 async def get_brevo_subscription_status(email: str) -> bool:
     """
-    Kolla om användaren är aktivt prenumererad på nyhetsbrev i Brevo.
-    Returnerar True om prenumererad, False om ej (eller kontakt saknas).
+    Checks if the user is actively subscribed to the newsletter in Brevo.
+    Returns True if subscribed, False if not (or contact is missing).
     """
     try:
         contact = _contacts_api.get_contact_info(email)
-        # Det här fältet finns i Brevo-kontakten:
-        # email_blacklisted: bool (True = avregistrerad från ALLT)
-        # unsubscribe: bool (True = klickat unsubscribe på nyhetsbrev)
-        # Vill du returnera mer data? Lägg till fler fält!
+        # These fields are available in the Brevo contact:
+        # email_blacklisted: bool (True = unsubscribed from EVERYTHING)
+        # unsubscribe: bool (True = clicked unsubscribe on newsletter)
+        # Do you want to return more data? Add more fields!
         subscribed = not getattr(contact, "email_blacklisted", False) and not getattr(contact, "unsubscribe", False)
         return subscribed
     except ApiException as e:
         if e.status == 404:
-            # Kontakt finns inte, så räknas ej som prenumererad
+            # Contact does not exist, so considered not subscribed
             return False
         logger.error(f"❌ Brevo API error checking subscription for {email}: {e}")
         raise
-

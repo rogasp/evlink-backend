@@ -10,6 +10,10 @@ import type { SubscriptionPlan } from '@/types/subscription';
 import { useAuth } from '@/hooks/useAuth';
 import { NewPlanModal } from './NewPlanModal';
 
+/**
+ * SubscriptionAdminPage component allows administrators to manage subscription plans.
+ * It fetches, displays, and synchronizes subscription plans with Stripe, and enables creation of new plans.
+ */
 export default function SubscriptionAdminPage() {
   const { accessToken } = useAuth();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -22,13 +26,13 @@ export default function SubscriptionAdminPage() {
     try {
       const res = await authFetch('/admin/subscription-plans', { method: 'GET', accessToken });
       if (res.error) {
-        toast.error('Failed to fetch subscription plans');
+        toast.error('Failed to fetch subscription plans'); // Hardcoded string
         setPlans([]);
         return;
       }
       setPlans(res.data || []);
     } catch {
-      toast.error('Could not load subscription plans');
+      toast.error('Could not load subscription plans'); // Hardcoded string
     } finally {
       setLoading(false);
     }
@@ -40,15 +44,15 @@ export default function SubscriptionAdminPage() {
     try {
       const res = await authFetch('/admin/subscription-plans/sync', { method: 'POST', accessToken });
       if (res.error) {
-        toast.error('Sync failed');
+        toast.error('Sync failed'); // Hardcoded string
       } else {
         toast.success(
           `Sync complete: ${res.data?.inserted ?? 0} new, ${res.data?.updated ?? 0} updated`
-        );
+        ); // Hardcoded string
         fetchPlans();
       }
     } catch {
-      toast.error('Sync failed');
+      toast.error('Sync failed'); // Hardcoded string
     } finally {
       setSyncing(false);
     }
@@ -61,16 +65,16 @@ export default function SubscriptionAdminPage() {
   return (
     <div className="max-w-3xl mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Subscription Plans</h1>
+        <h1 className="text-2xl font-bold">Subscription Plans</h1> {/* Hardcoded string */}
         <NewPlanModal onCreated={fetchPlans} />
         <Button onClick={syncPlans} disabled={syncing || !accessToken} variant="outline">
           {syncing ? (
             <>
-              <Loader2 className="mr-2 animate-spin" /> Syncing...
+              <Loader2 className="mr-2 animate-spin" /> Syncing... {/* Hardcoded string */}
             </>
           ) : (
             <>
-              <RefreshCw className="mr-2" /> Sync with Stripe
+              <RefreshCw className="mr-2" /> Sync with Stripe {/* Hardcoded string */}
             </>
           )}
         </Button>
@@ -80,22 +84,22 @@ export default function SubscriptionAdminPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center items-center p-6">
-              <Loader2 className="animate-spin mr-2" /> Loading...
+              <Loader2 className="animate-spin mr-2" /> Loading... {/* Hardcoded string */}
             </div>
           ) : plans.length === 0 ? (
             <div className="p-6 text-center text-gray-500">
-              No subscription plans found.
+              No subscription plans found. {/* Hardcoded string */}
             </div>
           ) : (
             <table className="min-w-full table-auto border-t">
               <thead>
                 <tr className="bg-muted">
-                  <th className="p-2 text-left text-sm font-medium">Name</th>
-                  <th className="p-2 text-left text-sm font-medium">Type</th>
-                  <th className="p-2 text-left text-sm font-medium">Price</th>
-                  <th className="p-2 text-left text-sm font-medium">Interval</th>
-                  <th className="p-2 text-left text-sm font-medium">Active</th>
-                  <th className="p-2 text-left text-sm font-medium">Stripe Price ID</th>
+                  <th className="p-2 text-left text-sm font-medium">Name</th> {/* Hardcoded string */}
+                  <th className="p-2 text-left text-sm font-medium">Type</th> {/* Hardcoded string */}
+                  <th className="p-2 text-left text-sm font-medium">Price</th> {/* Hardcoded string */}
+                  <th className="p-2 text-left text-sm font-medium">Interval</th> {/* Hardcoded string */}
+                  <th className="p-2 text-left text-sm font-medium">Active</th> {/* Hardcoded string */}
+                  <th className="p-2 text-left text-sm font-medium">Stripe Price ID</th> {/* Hardcoded string */}
                 </tr>
               </thead>
               <tbody>
@@ -114,9 +118,9 @@ export default function SubscriptionAdminPage() {
                     <td className="p-2">{plan.interval ?? '-'}</td>
                     <td className="p-2">
                       {plan.is_active ? (
-                        <span className="text-green-700 font-bold">Yes</span>
+                        <span className="text-green-700 font-bold">Yes</span> // Hardcoded string
                       ) : (
-                        <span className="text-gray-400">No</span>
+                        <span className="text-gray-400">No</span> // Hardcoded string
                       )}
                     </td>
                     <td className="p-2 text-xs font-mono break-all">{plan.stripe_price_id}</td>

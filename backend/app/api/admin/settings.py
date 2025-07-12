@@ -1,23 +1,29 @@
 # backend/app/api/admin/settings.py
+"""Admin endpoints for managing application settings."""
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from app.auth.supabase_auth import get_supabase_user
 from app.storage import settings
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
+# TODO: Add docstrings to all functions in this file.
+
 def require_admin(user=Depends(get_supabase_user)):
-    print("🔍 Admin check - Full user object:")
-    # print(user)
+    logger.info("🔍 Admin check - Full user object:")
+    # logger.info(user)
 
     role = user.get("user_metadata", {}).get("role")
-    print(f"🔐 Extracted role: {role}")
+    logger.info(f"🔐 Extracted role: {role}")
 
     if role != "admin":
-        print(f"⛔ Access denied: user {user['id']} with role '{role}' tried to access admin route")
+        logger.warning(f"⛔ Access denied: user {user['id']} with role '{role}' tried to access admin route")
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    print(f"✅ Admin access granted to user {user['id']}")
+    logger.info(f"✅ Admin access granted to user {user['id']}")
     return user
 
 @router.get("/admin/settings")

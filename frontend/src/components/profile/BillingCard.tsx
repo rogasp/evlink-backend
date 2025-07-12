@@ -2,6 +2,7 @@
 // src/components/profile/BillingCard.tsx
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { TrialButton } from '@/components/TrialButton'
 
 interface Invoice {
   invoice_id: string
@@ -36,6 +37,7 @@ export default function BillingCard({
   return (
     <Card className="mb-6">
       <CardContent className="flex flex-col gap-6 py-6">
+        <TrialButton />
         <div>
           <div className="flex items-center justify-between">
             <span className="font-semibold">Current Plan</span>

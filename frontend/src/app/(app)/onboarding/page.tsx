@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/authFetch';
 import Link from 'next/link';
@@ -51,7 +51,7 @@ export default function OnboardingPage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [accepting, setAccepting] = useState(false);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     if (!user || !accessToken) return;
 
     try {
@@ -71,11 +71,11 @@ export default function OnboardingPage() {
       console.error('[OnboardingPage]', err);
       toast.error('Failed to fetch onboarding status');
     }
-  };
+  }, [user, accessToken]);
 
   useEffect(() => {
     fetchStatus();
-  }, [user, accessToken]);
+  }, [fetchStatus]);
 
   const acceptTerms = async () => {
     if (!user?.id || !accessToken) return;

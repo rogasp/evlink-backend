@@ -12,6 +12,7 @@ export default async function RoadmapPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-6 py-12 prose">
+      {/* Hardcoded string */}
       <h1 className="text-3xl font-bold mb-6 text-indigo-700">Roadmap</h1>
       <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
     </main>

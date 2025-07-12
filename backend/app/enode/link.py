@@ -1,10 +1,14 @@
 import httpx
+import logging
 from app.config import ENODE_BASE_URL, REDIRECT_URI, USE_MOCK
 from app.enode.auth import get_access_token
 
+logger = logging.getLogger(__name__)
+
 async def get_link_result(link_token: str) -> dict:
+    """Retrieves the result of an Enode linking session using the provided link token."""
     if USE_MOCK:
-        print("[MOCK] get_link_result active")
+        logger.debug("[MOCK] get_link_result active")
         return {
             "userId": "testuser",
             "vendor": "XPENG"
@@ -23,6 +27,7 @@ async def get_link_result(link_token: str) -> dict:
         return response.json()
 
 async def create_link_session(user_id: str, vendor: str = ""):
+    """Creates a new Enode linking session for a given user and optional vendor."""
     token = await get_access_token()
     headers = {
         "Authorization": f"Bearer {token}",

@@ -20,7 +20,7 @@ export default function LoginPage() {
         const json = await res.json();
         setAllowRegister(json.allowed === true);
       } catch (err) {
-        console.error('❌ Failed to check registration status:', err);
+        console.error('❌ Failed to check registration status:', err); /* Hardcoded string */
         setAllowRegister(false);
       }
     };
@@ -36,7 +36,7 @@ export default function LoginPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Magic link sent! Check your email.');
+      toast.success('Magic link sent! Check your email.'); /* Hardcoded string */
     }
 
     setLoading(false);
@@ -71,6 +71,7 @@ export default function LoginPage() {
   if (allowRegister === null) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white">
+        {/* Hardcoded string */}
         <p className="text-gray-500 text-sm">Checking login status...</p>
       </main>
     );
@@ -79,22 +80,24 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white shadow-md rounded p-6 w-full max-w-md">
+        {/* Hardcoded string */}
         <h1 className="text-xl font-bold mb-4 text-center">Login to EVLinkHA</h1>
 
         <form onSubmit={handleMagicLinkLogin} className="space-y-4">
           <Input
             type="email"
-            placeholder="you@example.com"
+            placeholder="you@example.com" /* Hardcoded string */
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
             required
           />
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Sending...' : 'Send magic link'}
+            {loading ? 'Sending...' /* Hardcoded string */ : 'Send magic link' /* Hardcoded string */}
           </Button>
         </form>
 
+        {/* Hardcoded string */}
         <div className="my-4 text-center text-sm text-gray-500">or</div>
 
         <Button
@@ -104,11 +107,12 @@ export default function LoginPage() {
         >
           <Image
             src="/github-icon.png"
-            alt="GitHub"
+            alt="GitHub" /* Hardcoded string */
             width={20}
             height={20}
             className="h-5 w-5"
           />
+          {/* Hardcoded string */}
           <span>Continue with GitHub</span>
         </Button>
         <Button
@@ -118,19 +122,21 @@ export default function LoginPage() {
         >
           <Image
             src="/google-icon.png"
-            alt="Google"
+            alt="Google" /* Hardcoded string */
             width={20}
             height={20}
             className="h-5 w-5"
           />
+          {/* Hardcoded string */}
           <span>Continue with Google</span>
         </Button>
 
 
+        {/* Hardcoded string */}
         <p className="text-center text-xs text-gray-500 mt-6">
           Don&apos;t have an account?{' '}
           <Link href="/register" className="text-indigo-600 hover:underline">
-            Click here to register
+            Click here to register {/* Hardcoded string */}
           </Link>
         </p>
       </div>
