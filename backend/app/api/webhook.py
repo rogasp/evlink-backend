@@ -11,7 +11,7 @@ import httpx
 from app.api.payments import process_successful_payment_intent
 from app.config import ENODE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET
 from app.lib.webhook_logic import process_event
-from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, get_user_by_id, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription, update_user
+from app.storage.user import add_user_sms_credits, add_purchased_api_tokens, get_ha_webhook_settings, get_user_by_id, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription, update_user
 from app.storage.subscription import get_price_id_map, update_subscription_status, upsert_subscription_from_stripe, get_user_record
 from app.enode.verify import verify_signature
 from app.storage.webhook import save_webhook_event
@@ -129,13 +129,28 @@ async def stripe_webhook(
             logger.warning(f"[⚠️] Missing user_id or plan_id in session metadata, event_id={event_id}")
         else:
             if session.get("mode") == "payment":
-                credits = 50 if plan_id == "sms_50" else 100
-                logger.info(f"[➡️] Adding SMS credits: {credits} to user {user_id}")
-                try:
-                    await add_user_sms_credits(user_id=user_id, credits=credits)
-                    logger.info(f"[✅] Added {credits} SMS credits for user {user_id}")
-                except Exception as e:
-                    logger.error(f"[❌] Failed to add SMS credits for user {user_id}: {e}")
+                if plan_id.startswith("sms_"):
+                    try:
+                        credits = int(plan_id.split("_")[1])
+                        logger.info(f"[➡️] Adding SMS credits: {credits} to user {user_id}")
+                        await add_user_sms_credits(user_id=user_id, credits=credits)
+                        logger.info(f"[✅] Added {credits} SMS credits for user {user_id}")
+                    except (IndexError, ValueError) as e:
+                        logger.error(f"[❌] Invalid SMS plan_id format '{plan_id}' for user {user_id}: {e}")
+                    except Exception as e:
+                        logger.error(f"[❌] Failed to add SMS credits for user {user_id}: {e}")
+                elif plan_id.startswith("token_"):
+                    try:
+                        tokens = int(plan_id.split("_")[1])
+                        logger.info(f"[➡️] Adding API tokens: {tokens} to user {user_id}")
+                        await add_purchased_api_tokens(user_id=user_id, quantity=tokens)
+                        logger.info(f"[✅] Added {tokens} API tokens for user {user_id}")
+                    except (IndexError, ValueError) as e:
+                        logger.error(f"[❌] Invalid token plan_id format '{plan_id}' for user {user_id}: {e}")
+                    except Exception as e:
+                        logger.error(f"[❌] Failed to add API tokens for user {user_id}: {e}")
+                else:
+                    logger.warning(f"[⚠️] Unhandled payment plan_id '{plan_id}' for user {user_id}")
 
             elif session.get("mode") == "subscription":
                 # When a subscription is created via checkout.session.completed,

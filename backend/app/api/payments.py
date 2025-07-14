@@ -29,7 +29,7 @@ router = APIRouter()
 
 class PaymentRequest(BaseModel):
     """Defines the expected request body for the /checkout endpoint."""
-    action: str = Field(..., description="The payment action to perform: 'subscribe', 'change_plan', 'cancel', 'purchase_sms'")
+    action: str = Field(..., description="The payment action to perform: 'subscribe', 'change_plan', 'cancel', 'purchase_sms', 'purchase_add_on'")
     plan_id: str = Field(None, alias="planId", description="The identifier for the subscription plan or SMS package.")
 
     class Config:
@@ -162,9 +162,9 @@ async def handle_checkout(
         logger.info(f"[✅] Subscription {subs.data[0].id} canceled successfully.")
         return {"clientSecret": None, "status": "subscription_canceled"}
 
-    # D. PURCHASE a one-time item (e.g., SMS pack)
-    elif req.action == "purchase_sms":
-        logger.info(f"[💬] Purchase SMS pack requested: {req.plan_id} (price_id: {price_id}) for customer {customer_id}")
+    # D. PURCHASE a one-time item (e.g., SMS pack or API tokens)
+    elif req.action == "purchase_add_on":
+        logger.info(f"[📦] Purchase add-on requested: {req.plan_id} (price_id: {price_id}) for customer {customer_id}")
         session = stripe.checkout.Session.create(
             customer=customer_id,
             payment_method_types=["card"],
@@ -174,8 +174,8 @@ async def handle_checkout(
             cancel_url=CANCEL_URL,
             metadata={"user_id": user_record.id, "plan_id": req.plan_id},
         )
-        logger.info(f"[✅] Stripe Checkout Session created for SMS: {session.id}")
-        return {"clientSecret": session.id, "status": "sms_purchase_initiated"}
+        logger.info(f"[✅] Stripe Checkout Session created for add-on: {session.id}")
+        return {"clientSecret": session.id, "status": "add_on_purchase_initiated"}
 
     # Fallback for an invalid action
     logger.error(f"[❌] Invalid action: {req.action}")
@@ -188,10 +188,10 @@ async def process_successful_payment_intent(
 ) -> None:
     """
     Business logic for the 'payment_intent.succeeded' webhook event.
-    This function is called when a one-time payment (like an SMS pack) succeeds.
+    This function is called when a one-time payment (like an SMS pack or API tokens) succeeds.
     It expects payment_intent.metadata to include:
       - user_id: the Supabase user ID
-      - plan_id: one of 'pro_monthly', 'sms_50', 'sms_100'
+      - plan_id: one of 'sms_50', 'sms_100', 'token_2500', etc.
     """
     metadata = getattr(payment_intent, "metadata", {}) or {}
     plan_id = metadata.get("plan_id")
@@ -202,17 +202,20 @@ async def process_successful_payment_intent(
 
     logger.info(f"Processing successful payment for user {user_id} with plan_id {plan_id}")
 
-    if plan_id == "pro_monthly":
-        # This case is handled by 'invoice.paid' for subscriptions.
-        # However, keeping it here can be a fallback.
-        await update_user_subscription(user_id=user_id, tier="pro")
-        logger.info(f"Activated Pro subscription for user {user_id} via payment intent.")
-    elif plan_id == "sms_50":
-        await add_user_sms_credits(user_id=user_id, credits=50)
-        logger.info(f"Added 50 SMS credits to user {user_id}")
-    elif plan_id == "sms_100":
-        await add_user_sms_credits(user_id=user_id, credits=100)
-        logger.info(f"Added 100 SMS credits to user {user_id}")
+    if plan_id.startswith("sms_"):
+        try:
+            credits = int(plan_id.split("_")[1])
+            await add_user_sms_credits(user_id=user_id, credits=credits)
+            logger.info(f"Added {credits} SMS credits to user {user_id}")
+        except (IndexError, ValueError) as e:
+            logger.error(f"[❌] Invalid SMS plan_id format '{plan_id}' in payment_intent for user {user_id}: {e}")
+    elif plan_id.startswith("token_"):
+        try:
+            tokens = int(plan_id.split("_")[1])
+            await add_purchased_api_tokens(user_id=user_id, quantity=tokens)
+            logger.info(f"Added {tokens} API tokens to user {user_id}")
+        except (IndexError, ValueError) as e:
+            logger.error(f"[❌] Invalid token plan_id format '{plan_id}' in payment_intent for user {user_id}: {e}")
     else:
         logger.warning(f"Unknown plan_id '{plan_id}' in payment_intent.metadata")
         
