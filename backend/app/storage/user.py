@@ -591,3 +591,4 @@ async def add_purchased_api_tokens(user_id: str, quantity: int) -> None:
     except Exception as e:
         logger.error(f"[❌ add_purchased_api_tokens] Failed to add {quantity} tokens for user {user_id}: {e}")
         raise
+

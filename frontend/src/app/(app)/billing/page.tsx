@@ -177,7 +177,7 @@ export default function BillingPage() {
 
     // SMS-köp/planbyte/nyteckning: olika flöden
     // Hardcoded string: "SMS-köp/planbyte/nyteckning: olika flöden"
-    if (action === "subscribe" || action === "purchase_sms" || action === "purchase_add_on") {
+    if (action === "subscribe" || action === "purchase_add_on") {
       if (!data?.clientSecret) {
         setError("Failed to start Stripe Checkout"); /* Hardcoded string */
         setLoading(false);
