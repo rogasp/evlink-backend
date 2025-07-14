@@ -101,7 +101,7 @@ async def get_user_by_id(user_id: str) -> User | None:
     """
     try:
         response = supabase.table("users") \
-            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits, is_on_trial, trial_ends_at") \
+            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits, purchased_api_tokens, is_on_trial, trial_ends_at") \
             .eq("id", user_id) \
             .maybe_single() \
             .execute()
@@ -534,8 +534,10 @@ async def decrement_purchased_api_tokens(user_id: str) -> None:
     Atomically decrements the user's purchased_api_tokens by 1.
     This uses an RPC call to a database function to prevent race conditions.
     """
+    from app.lib.supabase import get_supabase_admin_async_client
+    supabase_async = await get_supabase_admin_async_client()
     try:
-        await supabase.rpc('decrement_user_tokens', {'p_user_id': user_id})
+        await supabase_async.rpc('decrement_user_tokens', {'p_user_id': user_id}).execute()
     except Exception as e:
         logger.error(f"[❌ decrement_purchased_api_tokens] Failed to decrement tokens for user {user_id}: {e}")
         # We might want to raise an exception here to fail the request if the decrement fails
@@ -548,8 +550,10 @@ async def add_purchased_api_tokens(user_id: str, quantity: int) -> None:
     """
     if quantity <= 0:
         return
+    from app.lib.supabase import get_supabase_admin_async_client
+    supabase_async = await get_supabase_admin_async_client()
     try:
-        await supabase.rpc('add_user_tokens', {'p_user_id': user_id, 'p_quantity': quantity})
+        await supabase_async.rpc('add_user_tokens', {'p_user_id': user_id, 'p_quantity': quantity}).execute()
         logger.info(f"[✅] Added {quantity} tokens to user {user_id}")
     except Exception as e:
         logger.error(f"[❌ add_purchased_api_tokens] Failed to add {quantity} tokens for user {user_id}: {e}")

@@ -146,6 +146,7 @@ export default function ProfilePage() {
             email={user.email ?? ''}
             tier={mergedUser?.tier?.toUpperCase() ?? 'FREE'} /* Hardcoded string */
             smsCredits={mergedUser?.sms_credits ?? 0}
+            purchasedApiTokens={mergedUser?.purchased_api_tokens ?? 0}
             notifyOffline={notifyOffline}
             notifyLoading={notifyLoading}
             isSubscribed={isSubscribed}

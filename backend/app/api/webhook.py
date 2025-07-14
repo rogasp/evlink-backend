@@ -11,7 +11,7 @@ import httpx
 from app.api.payments import process_successful_payment_intent
 from app.config import ENODE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET
 from app.lib.webhook_logic import process_event
-from app.storage.user import add_user_sms_credits, get_ha_webhook_settings, get_user_by_id, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription, update_user
+from app.storage.user import add_user_sms_credits, add_purchased_api_tokens, get_ha_webhook_settings, get_user_by_id, get_user_id_by_stripe_customer_id, remove_stripe_customer_id, update_user_subscription, update_user
 from app.storage.subscription import get_price_id_map, update_subscription_status, upsert_subscription_from_stripe, get_user_record
 from app.enode.verify import verify_signature
 from app.storage.webhook import save_webhook_event
