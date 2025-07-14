@@ -22,6 +22,7 @@ type Props = {
   name: string;
   tier: string;
   smsCredits: number;
+  purchasedApiTokens: number; // NEW: User's balance of purchased API tokens
   notifyOffline: boolean;
   notifyLoading: boolean;
   isSubscribed: boolean;
@@ -37,6 +38,7 @@ export default function UserInfoCard({
   name,
   tier,
   smsCredits,
+  purchasedApiTokens,
   notifyOffline,
   notifyLoading,
   isSubscribed,
@@ -88,9 +90,12 @@ export default function UserInfoCard({
           <div className="text-muted-foreground text-xs">
             SMS credits: <span className="font-medium">{smsCredits}</span>
           </div>
+          <div className="text-muted-foreground text-xs">
+            API Tokens: <span className="font-medium">{purchasedApiTokens}</span>
+          </div>
           {apiUsage && (
             <div className="text-muted-foreground text-xs">
-              API Calls: <span className="font-medium">{apiUsage.current_calls}</span> / <span className="font-medium">{apiUsage.max_calls}</span> (Daily)
+              API Calls: <span className="font-medium">{apiUsage.current_calls}</span> / <span className="font-medium">{apiUsage.max_calls}</span> (Used/Included Monthly)
             </div>
           )}
           {apiUsage && apiUsage.tier !== "free" && (

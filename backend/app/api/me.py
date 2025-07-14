@@ -43,6 +43,7 @@ class MeResponse(BaseModel):
     notify_offline: bool
     tier: str
     sms_credits: int = 0
+    purchased_api_tokens: int = 0 # NEW: User's balance of purchased API tokens
     stripe_customer_id: Optional[str] = None
     is_subscribed: bool  # NEW: whether the user is subscribed to the newsletter
     is_on_trial: bool  # NEW: if the user is on a trial
@@ -196,6 +197,7 @@ async def get_me(user=Depends(get_supabase_user)):
             notify_offline=notify_offline,
             tier=local_user.tier if local_user else "free",
             sms_credits=local_user.sms_credits if local_user else 0,
+            purchased_api_tokens=local_user.purchased_api_tokens if local_user else 0, # NEW field
             stripe_customer_id=local_user.stripe_customer_id,
             is_subscribed=is_subscribed,  # NEW field
             is_on_trial=local_user.is_on_trial if local_user else False,  # NEW field

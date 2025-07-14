@@ -6,6 +6,7 @@ from app.lib.supabase import get_supabase_admin_client
 from app.enode.user import get_all_users as get_enode_users
 from app.models.user import User
 from app.logger import logger
+from datetime import datetime, timezone # NEW: Import datetime and timezone
 
 # -------------------------------------------------------------------
 # Initialize Supabase admin client (service role key) from `app/lib/supabase.py`
@@ -101,7 +102,7 @@ async def get_user_by_id(user_id: str) -> User | None:
     """
     try:
         response = supabase.table("users") \
-            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits, is_on_trial, trial_ends_at") \
+            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits, purchased_api_tokens, is_on_trial, trial_ends_at") \
             .eq("id", user_id) \
             .maybe_single() \
             .execute()
@@ -495,3 +496,99 @@ async def get_all_customers() -> list[dict]:
     except Exception as e:
         logger.error(f"[❌ get_all_customers] {e}")
         return []
+
+# NEW FUNCTIONS FOR TIERED RATE LIMITING
+from app.storage.subscription import get_user_subscription
+
+async def get_user_rate_limit_data(user_id: str) -> dict | None:
+    """
+    Fetches all data required for rate limiting checks in a single query.
+    This now joins data from the user's active subscription.
+    """
+    try:
+        # 1. Get basic user data, including trial info
+        user_response = supabase.table("users")             .select("tier, linked_vehicle_count, purchased_api_tokens, is_on_trial, trial_ends_at")             .eq("id", user_id)             .maybe_single()             .execute()
+        
+        if not user_response.data:
+            logger.warning(f"[⚠️] get_user_rate_limit_data: No user record found for rate limit check: {user_id}")
+            return None
+        
+        user_data = user_response.data
+        logger.debug(f"[DEBUG] get_user_rate_limit_data: user_data for {user_id}: {user_data}")
+
+        # Determine tier_reset_date based on trial status or subscription
+        tier_reset_date = None
+        is_on_trial = user_data.get("is_on_trial")
+        trial_ends_at_str = user_data.get("trial_ends_at")
+
+        logger.debug(f"[DEBUG] get_user_rate_limit_data: is_on_trial={is_on_trial}, trial_ends_at_str={trial_ends_at_str}")
+
+        if is_on_trial and trial_ends_at_str:
+            try:
+                # Ensure trial_ends_at is a datetime object
+                if isinstance(trial_ends_at_str, str):
+                    tier_reset_date = datetime.fromisoformat(trial_ends_at_str)
+                    if tier_reset_date.tzinfo is None:
+                        tier_reset_date = tier_reset_date.replace(tzinfo=timezone.utc)
+                else:
+                    tier_reset_date = trial_ends_at_str # Should already be datetime if not str
+                logger.debug(f"[DEBUG] get_user_rate_limit_data: Using trial_ends_at as tier_reset_date: {tier_reset_date}")
+            except ValueError as ve:
+                logger.error(f"[❌] get_user_rate_limit_data: Invalid trial_ends_at format for user {user_id}: {trial_ends_at_str} - {ve}")
+                tier_reset_date = None # Fallback if parsing fails
+            except Exception as e:
+                logger.error(f"[❌] get_user_rate_limit_data: Unexpected error parsing trial_ends_at for user {user_id}: {e}", exc_info=True)
+                tier_reset_date = None
+        
+        if not tier_reset_date: # If not on trial or trial_ends_at is invalid, check subscription
+            # 2. Get active subscription data to find the reset date
+            subscription_data = await get_user_subscription(user_id)
+            logger.debug(f"[DEBUG] get_user_rate_limit_data: subscription_data for {user_id}: {subscription_data}")
+            tier_reset_date = subscription_data.get('current_period_end') if subscription_data else None
+            if tier_reset_date:
+                logger.debug(f"[DEBUG] get_user_rate_limit_data: Using subscription current_period_end as tier_reset_date: {tier_reset_date}")
+            else:
+                logger.debug(f"[DEBUG] get_user_rate_limit_data: No subscription data found for tier_reset_date for user {user_id}")
+
+        # 3. Combine the data
+        # Ensure tier_reset_date is always an ISO string when returned
+        if isinstance(tier_reset_date, datetime):
+            user_data['tier_reset_date'] = tier_reset_date.isoformat()
+        else:
+            user_data['tier_reset_date'] = tier_reset_date # Should be None or already a string
+        
+        return user_data
+    except Exception as e:
+        logger.error(f"[❌ get_user_rate_limit_data] {e}")
+        return None
+
+async def decrement_purchased_api_tokens(user_id: str) -> None:
+    """
+    Atomically decrements the user's purchased_api_tokens by 1.
+    This uses an RPC call to a database function to prevent race conditions.
+    """
+    from app.lib.supabase import get_supabase_admin_async_client
+    supabase_async = await get_supabase_admin_async_client()
+    try:
+        await supabase_async.rpc('decrement_user_tokens', {'p_user_id': user_id}).execute()
+    except Exception as e:
+        logger.error(f"[❌ decrement_purchased_api_tokens] Failed to decrement tokens for user {user_id}: {e}")
+        # We might want to raise an exception here to fail the request if the decrement fails
+        raise
+
+async def add_purchased_api_tokens(user_id: str, quantity: int) -> None:
+    """
+    Atomically adds a specified quantity of tokens to the user's purchased_api_tokens balance.
+    This uses an RPC call to a database function to prevent race conditions.
+    """
+    if quantity <= 0:
+        return
+    from app.lib.supabase import get_supabase_admin_async_client
+    supabase_async = await get_supabase_admin_async_client()
+    try:
+        await supabase_async.rpc('add_user_tokens', {'p_user_id': user_id, 'p_quantity': quantity}).execute()
+        logger.info(f"[✅] Added {quantity} tokens to user {user_id}")
+    except Exception as e:
+        logger.error(f"[❌ add_purchased_api_tokens] Failed to add {quantity} tokens for user {user_id}: {e}")
+        raise
+

@@ -163,8 +163,7 @@ async def get_vehicle_status(vehicle_id: str, user: User = Depends(get_api_key_u
         "smartChargingPolicy": smart_charging_policy,
     }
 
-@router.get("/ha/vehicles",
-            dependencies=[Depends(api_key_rate_limit)],)
+@router.get("/ha/vehicles",)
 async def get_vehicles(user: User = Depends(get_api_key_user)):
     """
     Endpoint to get all vehicles for the current user.

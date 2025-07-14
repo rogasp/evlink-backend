@@ -12,6 +12,7 @@ interface MergedUser extends UserDetails {
   tier?: 'free' | 'basic' | 'pro'; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
   is_on_trial?: boolean;
   sms_credits?: number;
+  purchased_api_tokens?: number; // NEW: User's balance of purchased API tokens
 }
 
 type UserContextType = {

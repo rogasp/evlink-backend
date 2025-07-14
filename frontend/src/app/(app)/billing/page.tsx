@@ -59,6 +59,30 @@ const smsAddOns: Plan[] = [
   },
 ];
 
+const apiTokenAddOns: Plan[] = [
+  {
+    id: 'token_2500',
+    name: '2,500 API Tokens', /* Hardcoded string */
+    price: '€4.99', /* Hardcoded string */
+    description: '2,500 API calls, used after monthly allowance is exhausted.', /* Hardcoded string */
+    selectable: true,
+  },
+  {
+    id: 'token_10000',
+    name: '10,000 API Tokens', /* Hardcoded string */
+    price: '€14.99', /* Hardcoded string */
+    description: '10,000 API calls, used after monthly allowance is exhausted.', /* Hardcoded string */
+    selectable: true,
+  },
+  {
+    id: 'token_50000',
+    name: '50,000 API Tokens', /* Hardcoded string */
+    price: '€49.99', /* Hardcoded string */
+    description: '50,000 API calls, used after monthly allowance is exhausted.', /* Hardcoded string */
+    selectable: true,
+  },
+];
+
 import { authFetch } from '@/lib/authFetch';
 
 export default function BillingPage() {
@@ -104,7 +128,7 @@ export default function BillingPage() {
   const selectedIsPaid = selected === 'pro_monthly' || selected === 'basic_monthly';
 
   const canSubscribeOrChange =
-    selected.startsWith('sms_') ||
+    selected.startsWith('sms_') || selected.startsWith('token_') ||
     (selectedIsPaid && !isCurrentPlan(selected)) ||
     (!currentIsPaid && selectedIsPaid);
 
@@ -125,7 +149,7 @@ export default function BillingPage() {
     setLoading(true);
 
     const action =
-      selected.startsWith('sms_') ? 'purchase_sms'
+      selected.startsWith('sms_') || selected.startsWith('token_') ? 'purchase_add_on'
       : (currentIsPaid && selectedIsPaid && !isCurrentPlan(selected)) ? 'change_plan'
       : (!currentIsPaid && selectedIsPaid) ? 'subscribe'
       : null;
@@ -153,7 +177,7 @@ export default function BillingPage() {
 
     // SMS-köp/planbyte/nyteckning: olika flöden
     // Hardcoded string: "SMS-köp/planbyte/nyteckning: olika flöden"
-    if (action === "subscribe" || action === "purchase_sms") {
+    if (action === "subscribe" || action === "purchase_add_on") {
       if (!data?.clientSecret) {
         setError("Failed to start Stripe Checkout"); /* Hardcoded string */
         setLoading(false);
@@ -208,6 +232,23 @@ export default function BillingPage() {
         ))}
       </div>
 
+      {/* API Token add-ons */}
+      <h2 className="text-lg font-bold mb-2 mt-8">Add-on: API Tokens</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {apiTokenAddOns.map((plan) => (
+          <button
+            key={plan.id}
+            onClick={() => setSelected(plan.id)}
+            className={`p-4 border rounded-lg text-left transition 
+              ${selected === plan.id ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}`}
+          >
+            <h2 className="text-lg font-semibold">{plan.name}</h2>
+            <p className="text-gray-700">{plan.price}</p>
+            <p className="text-sm text-gray-500">{plan.description}</p>
+          </button>
+        ))}
+      </div>
+
       {/* SMS add-ons */}
       {/* Hardcoded string */}
       <h2 className="text-lg font-bold mb-2 mt-8">Add-on: SMS Notifications</h2>
@@ -236,8 +277,8 @@ export default function BillingPage() {
         >
           {loading
             ? 'Processing...' /* Hardcoded string */
-            : selected.startsWith('sms_')
-            ? 'Buy SMS Pack' /* Hardcoded string */
+            : selected.startsWith('sms_') || selected.startsWith('token_')
+            ? 'Buy Add-on' /* Hardcoded string */
             : (!currentIsPaid && selectedIsPaid)
             ? 'Subscribe' /* Hardcoded string */
             : 'Change Plan' /* Hardcoded string */}
