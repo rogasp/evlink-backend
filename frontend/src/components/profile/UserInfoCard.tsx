@@ -95,7 +95,7 @@ export default function UserInfoCard({
           </div>
           {apiUsage && (
             <div className="text-muted-foreground text-xs">
-              API Calls: <span className="font-medium">{apiUsage.current_calls}</span> / <span className="font-medium">{apiUsage.max_calls}</span> (Daily)
+              API Calls: <span className="font-medium">{apiUsage.current_calls}</span> / <span className="font-medium">{apiUsage.max_calls}</span> (Used/Included Monthly)
             </div>
           )}
           {apiUsage && apiUsage.tier !== "free" && (

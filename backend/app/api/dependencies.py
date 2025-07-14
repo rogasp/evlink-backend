@@ -11,6 +11,7 @@ from app.storage.user import get_user_rate_limit_data, decrement_purchased_api_t
 from app.storage.poll_logs import log_poll, count_polls_since, count_polls_since_for_vehicle
 from app.storage.vehicles import get_vehicle_by_id_and_user_id
 from app.storage.settings import get_setting_by_name
+from app.logger import logger # NEW: Import logger
 
 # TODO: This function can be removed once pydantic-settings is fully implemented.
 async def _get_setting_value(setting_name: str, default_value: int) -> int:
@@ -62,6 +63,15 @@ async def api_key_rate_limit(
     else:
         window_start = now - timedelta(days=30)
 
+    # Determine the effective tier for rate limiting based on trial/subscription status
+    effective_tier = tier
+    if tier in ["basic", "pro"]:
+        # If trial has ended or no active subscription, treat as free for rate limiting
+        # tier_reset_date being None or in the past implies no active subscription or trial
+        if not tier_reset_date or tier_reset_date <= now:
+            effective_tier = "free"
+            logger.info(f"[INFO] User {user_id} (original tier: {tier}) is falling back to FREE tier for rate limiting due to expired trial or no active subscription.")
+
 
     max_calls = 0
     max_linked_vehicles = 0
@@ -77,10 +87,10 @@ async def api_key_rate_limit(
 
     path_vehicle_id = request.path_params.get("vehicle_id")
 
-    if tier == "free":
+    if effective_tier == "free":
         max_calls = free_max_calls
         current_count = await count_polls_since(user_id, window_start)
-    elif tier in ["basic", "pro"]:
+    elif effective_tier in ["basic", "pro"]:
         if tier == "basic":
             max_calls = basic_max_calls
             max_linked_vehicles = basic_max_linked_vehicles
@@ -88,18 +98,26 @@ async def api_key_rate_limit(
             max_calls = pro_max_calls
             max_linked_vehicles = pro_max_linked_vehicles
 
-        if not path_vehicle_id:
-            raise HTTPException(status_code=400, detail=f"Vehicle ID is required in the URL path for {tier} tier.")
+        # Check if the current path is a vehicle-specific endpoint
+        is_vehicle_specific_endpoint = request.url.path.startswith("/api/ha/status/") or request.url.path.startswith("/api/ha/charging/")
 
-        vehicle = await get_vehicle_by_id_and_user_id(path_vehicle_id, user_id)
-        if not vehicle:
-            raise HTTPException(status_code=404, detail="Vehicle not found or does not belong to user.")
+        if is_vehicle_specific_endpoint:
+            if not path_vehicle_id:
+                raise HTTPException(status_code=400, detail=f"Vehicle ID is required in the URL path for {tier} tier for this endpoint.")
 
-        if linked_vehicle_count > max_linked_vehicles:
-            raise HTTPException(status_code=403, detail=f"{tier.capitalize()} tier allows max {max_linked_vehicles} linked vehicles. You have {linked_vehicle_count}.")
-        
-        current_count = await count_polls_since_for_vehicle(path_vehicle_id, window_start)
-        log_vehicle_id = path_vehicle_id
+            vehicle = await get_vehicle_by_id_and_user_id(path_vehicle_id, user_id)
+            if not vehicle:
+                raise HTTPException(status_code=404, detail="Vehicle not found or does not belong to user.")
+
+            if linked_vehicle_count > max_linked_vehicles:
+                raise HTTPException(status_code=403, detail=f"{tier.capitalize()} tier allows max {max_linked_vehicles} linked vehicles. You have {linked_vehicle_count}.")
+
+            current_count = await count_polls_since_for_vehicle(path_vehicle_id, window_start)
+            log_vehicle_id = path_vehicle_id
+        else: # Not a vehicle-specific endpoint, like /api/ha/vehicles
+            # For non-vehicle specific endpoints, count calls for the user, not a specific vehicle
+            current_count = await count_polls_since(user_id, window_start)
+            log_vehicle_id = None # No specific vehicle for logging this type of call
     else: # Default to free tier
         max_calls = free_max_calls
         current_count = await count_polls_since(user_id, window_start)
@@ -118,8 +136,16 @@ async def api_key_rate_limit(
                 detail=f"Rate limit exceeded for {tier} tier. Monthly allowance ({current_count}/{max_calls}) and purchased tokens (0) are exhausted."
             )
     
-    # Schedule logging as a background task
-    background_tasks.add_task(log_poll, user_id=user_id, endpoint=request.url.path, timestamp=now, vehicle_id=log_vehicle_id)
+    # Define endpoints that should be rate-limited and logged
+    rate_limited_endpoints = [
+        "/api/status/",
+        "/api/ha/status/",
+        "/api/ha/charging/",
+    ]
+
+    # Schedule logging as a background task only for specified endpoints
+    if any(request.url.path.startswith(ep) for ep in rate_limited_endpoints):
+        background_tasks.add_task(log_poll, user_id=user_id, endpoint=request.url.path, timestamp=now, vehicle_id=log_vehicle_id)
 
 
 async def require_pro_tier(user=Depends(get_api_key_user)) -> None:
