@@ -23,11 +23,23 @@ The entire subscription lifecycle is managed by Stripe and communicated to our b
         - This function creates or updates the corresponding record in the `public.subscriptions` table with the latest data from Stripe, including `status`, `plan_name`, and `current_period_end`.
         - The user's `tier` and `subscription_status` in the `public.users` table are also updated via `update_user_subscription()`.
 
-2.  **`customer.subscription.deleted`**:
+2.  **`customer.subscription.deleted`**: 
     - **Trigger**: A user cancels their subscription.
     - **Action**:
         - The webhook handler updates the subscription status to `canceled` in the `public.subscriptions` table.
         - The user's `tier` in `public.users` is typically set back to `free`, and `subscription_status` is updated.
+
+### API Token Packages (One-Time Purchase)
+
+These packages are available for **Basic** and **Pro** users.
+
+| Package Name | Token Count | Price  | Plan ID Convention (from `subscription_plans.code`) |
+| :----------- | :---------- | :----- | :----------------------------------- |
+| Top-up       | 2,500       | 4.99 € | `token_2500`                         |
+| Standard     | 10,000      | 14.99 €| `token_10000`                        |
+| Power User   | 50,000      | 49.99 €| `token_50000`                        |
+
+**Note on Plan ID Convention:** For both SMS and API token packages, the `code` column in the `subscription_plans` table (which corresponds to Stripe product IDs) follows the format `type_quantity` (e.g., `sms_50`, `token_2500`). This allows the backend to dynamically extract the quantity of credits/tokens to add.
 
 ## 3. API Rate Limiting Logic
 
