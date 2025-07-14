@@ -42,7 +42,18 @@ async def api_key_rate_limit(
     # NEW: Get purchased token balance
     purchased_api_tokens = record.get("purchased_api_tokens", 0)
     # NEW: Get the date when the monthly allowance resets
-    tier_reset_date = record.get("tier_reset_date")
+    tier_reset_date_str = record.get("tier_reset_date")
+    tier_reset_date = None
+    if tier_reset_date_str:
+        try:
+            # Assuming tier_reset_date is in ISO format (e.g., 'YYYY-MM-DDTHH:MM:SS.ffffff+HH:MM')
+            tier_reset_date = datetime.fromisoformat(tier_reset_date_str)
+            # Ensure it's timezone-aware if 'now' is timezone-aware
+            if tier_reset_date.tzinfo is None:
+                tier_reset_date = tier_reset_date.replace(tzinfo=timezone.utc)
+        except ValueError:
+            # Handle cases where the string is not a valid ISO format
+            tier_reset_date = None # Fallback to default if parsing fails
 
     now = datetime.now(timezone.utc)
     # MODIFIED: Use a monthly window based on the reset date
