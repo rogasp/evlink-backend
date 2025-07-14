@@ -495,3 +495,62 @@ async def get_all_customers() -> list[dict]:
     except Exception as e:
         logger.error(f"[❌ get_all_customers] {e}")
         return []
+
+# NEW FUNCTIONS FOR TIERED RATE LIMITING
+from app.storage.subscription import get_user_subscription
+
+async def get_user_rate_limit_data(user_id: str) -> dict | None:
+    """
+    Fetches all data required for rate limiting checks in a single query.
+    This now joins data from the user's active subscription.
+    """
+    try:
+        # 1. Get basic user data
+        user_response = supabase.table("users") \
+            .select("tier, linked_vehicle_count, purchased_api_tokens") \
+            .eq("id", user_id) \
+            .maybe_single() \
+            .execute()
+        
+        if not user_response.data:
+            logger.warning(f"[⚠️] No user record found for rate limit check: {user_id}")
+            return None
+        
+        user_data = user_response.data
+
+        # 2. Get active subscription data to find the reset date
+        subscription_data = await get_user_subscription(user_id)
+        
+        # 3. Combine the data
+        user_data['tier_reset_date'] = subscription_data.get('current_period_end') if subscription_data else None
+        
+        return user_data
+    except Exception as e:
+        logger.error(f"[❌ get_user_rate_limit_data] {e}")
+        return None
+
+async def decrement_purchased_api_tokens(user_id: str) -> None:
+    """
+    Atomically decrements the user's purchased_api_tokens by 1.
+    This uses an RPC call to a database function to prevent race conditions.
+    """
+    try:
+        await supabase.rpc('decrement_user_tokens', {'p_user_id': user_id})
+    except Exception as e:
+        logger.error(f"[❌ decrement_purchased_api_tokens] Failed to decrement tokens for user {user_id}: {e}")
+        # We might want to raise an exception here to fail the request if the decrement fails
+        raise
+
+async def add_purchased_api_tokens(user_id: str, quantity: int) -> None:
+    """
+    Atomically adds a specified quantity of tokens to the user's purchased_api_tokens balance.
+    This uses an RPC call to a database function to prevent race conditions.
+    """
+    if quantity <= 0:
+        return
+    try:
+        await supabase.rpc('add_user_tokens', {'p_user_id': user_id, 'p_quantity': quantity})
+        logger.info(f"[✅] Added {quantity} tokens to user {user_id}")
+    except Exception as e:
+        logger.error(f"[❌ add_purchased_api_tokens] Failed to add {quantity} tokens for user {user_id}: {e}")
+        raise
