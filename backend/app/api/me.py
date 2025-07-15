@@ -36,7 +36,7 @@ class MeResponse(BaseModel):
     id: str
     email: str
     role: str
-    approved: bool
+    is_approved: bool
     name: str
     accepted_terms: bool
     online_status: str  # "red", "yellow", "green", "grey"
@@ -190,7 +190,7 @@ async def get_me(user=Depends(get_supabase_user)):
             id=user_id,
             email=email,
             role=role,
-            approved=approved,
+            is_approved=approved,
             name=name,
             accepted_terms=terms,
             online_status=online_status,
