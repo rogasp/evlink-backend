@@ -3,6 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TrialButton } from '@/components/TrialButton'
+import TooltipInfo from '../TooltipInfo';
 
 interface Invoice {
   invoice_id: string
@@ -41,20 +42,62 @@ export default function BillingCard({
         <div>
           <div className="flex items-center justify-between">
             <span className="font-semibold">Current Plan</span>
-            <Button size="sm" variant="secondary" onClick={onManageClick}>
+            <TooltipInfo
+              content={
+                <>
+                  <strong>Current Subscription Plan</strong>
+                  <br />
+                  Your active plan, determining features and limits.
+                </>
+              }
+              className="ml-[-8px]"
+            />
+            <Button size="sm" variant="secondary" onClick={onManageClick} className="cursor-pointer">
               Manage
             </Button>
           </div>
           <div className="mt-1 text-lg">{subscriptionPlan}</div>
-          <div className="text-muted-foreground text-sm">{price}</div>
+          <div className="text-muted-foreground text-sm flex items-center">
+            {price}
+            <TooltipInfo
+              content={
+                <>
+                  <strong>Monthly Price</strong>
+                  <br />
+                  The recurring cost of your current plan. May not be applicable for free plans.
+                </>
+              }
+              className="ml-1"
+            />
+          </div>
             {current_period_start && current_period_end && (
-                <div className="text-xs mt-2 text-muted-foreground">
+                <div className="text-xs mt-2 text-muted-foreground flex items-center">
                 Current period: {new Date(current_period_start).toLocaleDateString()} - {new Date(current_period_end).toLocaleDateString()}
+                <TooltipInfo
+                  content={
+                    <>
+                      <strong>Current Billing Period</strong>
+                      <br />
+                      The active period for your subscription.
+                    </>
+                  }
+                  className="ml-1"
+                />
                 </div>
             )}
           {nextBillingDate && (
-            <div className="text-xs mt-2 text-muted-foreground">
+            <div className="text-xs mt-2 text-muted-foreground flex items-center">
               Next billing: {nextBillingDate}
+              <TooltipInfo
+                content={
+                  <>
+                    <strong>Next Billing Date</strong>
+                    <br />
+                    The date your next subscription payment is due.
+                  </>
+                }
+                className="ml-1"
+              />
             </div>
           )}
         </div>

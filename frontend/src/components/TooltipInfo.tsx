@@ -11,7 +11,7 @@ interface TooltipInfoProps {
 export default function TooltipInfo({
   content,
   className = "",
-  size = 14,
+  size = 10,
 }: TooltipInfoProps) {
   return (
     <Tooltip>
@@ -19,15 +19,15 @@ export default function TooltipInfo({
         <span
           className={`
             inline-flex items-center justify-center 
-            h-[22px] w-[22px] rounded-full bg-[#0A2245] cursor-pointer
-            border border-[#1fa2ff] shadow 
-            ml-2
+            h-[16px] w-[16px] rounded-full bg-transparent cursor-pointer
+            border border-blue-300/50 
+            ml-1
             ${className}
           `}
-          style={{ position: "relative", top: "-8px" }}
+          style={{ position: "relative", top: "-2px" }}
           tabIndex={0}
         >
-          <HelpCircle size={size} className="text-white" />
+          <HelpCircle size={size} className="text-gray-300" />
         </span>
       </TooltipTrigger>
       <TooltipContent

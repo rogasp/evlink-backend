@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Copy, RotateCcw } from 'lucide-react';
 import { authFetch } from '@/lib/authFetch';
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import TooltipInfo from '../TooltipInfo';
 
 interface ApiKeySectionProps {
   userId: string;
@@ -78,6 +79,18 @@ export default function ApiKeySection({ userId, accessToken }: ApiKeySectionProp
         <CardContent className="flex flex-col gap-4 py-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="font-semibold">API Key</span>
+            <TooltipInfo
+              content={
+                <>
+                  <strong>Your API Key</strong>
+                  <br />
+                  Used to authenticate your Home Assistant integration with EVLink.
+                  <br />
+                  Keep it secret!
+                </>
+              }
+              className="ml-[-8px]"
+            />
           </div>
           <p className="text-xs text-muted-foreground">
             {(!apiCreated)
@@ -92,7 +105,7 @@ export default function ApiKeySection({ userId, accessToken }: ApiKeySectionProp
               className={`w-full font-mono ${isNew ? 'text-foreground' : 'text-muted-foreground'}`}
             />
             {isNew ? (
-              <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy API key">
+              <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy API key" className="cursor-pointer">
                 <Copy className="w-5 h-5" />
               </Button>
             ) : null}
@@ -102,6 +115,7 @@ export default function ApiKeySection({ userId, accessToken }: ApiKeySectionProp
               onClick={() => setShowConfirm(true)}
               disabled={generating}
               aria-label="Generate new API key"
+              className="cursor-pointer"
             >
               <RotateCcw className="w-5 h-5" />
             </Button>

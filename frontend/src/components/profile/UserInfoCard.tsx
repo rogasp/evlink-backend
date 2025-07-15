@@ -1,12 +1,11 @@
 // src/components/profile/UserInfoCard.tsx
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import TooltipInfo from "../TooltipInfo";
 import { useEffect, useState } from "react";
 import { authFetch } from "@/lib/authFetch";
 import { useUserContext } from "@/contexts/UserContext";
+import ProfileSettingToggle from './ProfileSettingToggle';
 
 type ApiUsageStats = {
   current_calls: number;
@@ -34,6 +33,7 @@ type Props = {
 };
 
 export default function UserInfoCard({
+  userId,
   email,
   name,
   tier,
@@ -83,86 +83,121 @@ export default function UserInfoCard({
         {/* Main info + settings */}
         <div className="flex-1 space-y-3">
           <div className="font-semibold text-lg">{name}</div>
-          <div className="text-muted-foreground text-sm">{email}</div>
-          <div className="text-muted-foreground text-xs">
+          <div className="text-xs text-gray-500 -mt-2">ID: {userId}</div>
+          <div className="text-muted-foreground text-sm">
+            <a href={`mailto:${email}`} className="hover:underline">
+              {email}
+            </a>
+          </div>
+          <div className="text-muted-foreground text-xs flex items-center">
             {tier && tier[0].toUpperCase() + tier.slice(1)} User
+            <TooltipInfo
+              content={
+                <>
+                  <strong>User Tier</strong>
+                  <br />
+                  Your current subscription tier, determining available features and API limits.
+                </>
+              }
+              className="ml-1"
+            />
           </div>
-          <div className="text-muted-foreground text-xs">
+          <div className="text-muted-foreground text-xs flex items-center">
             SMS credits: <span className="font-medium">{smsCredits}</span>
+            <TooltipInfo
+              content={
+                <>
+                  <strong>SMS Credits</strong>
+                  <br />
+                  Remaining SMS credits for notifications.
+                </>
+              }
+              className="ml-1"
+            />
           </div>
-          <div className="text-muted-foreground text-xs">
+          <div className="text-muted-foreground text-xs flex items-center">
             API Tokens: <span className="font-medium">{purchasedApiTokens}</span>
+            <TooltipInfo
+              content={
+                <>
+                  <strong>API Tokens</strong>
+                  <br />
+                  Additional API calls purchased beyond your monthly allowance.
+                </>
+              }
+              className="ml-1"
+            />
           </div>
           {apiUsage && (
-            <div className="text-muted-foreground text-xs">
+            <div className="text-muted-foreground text-xs flex items-center">
               API Calls: <span className="font-medium">{apiUsage.current_calls}</span> / <span className="font-medium">{apiUsage.max_calls}</span> (Used/Included Monthly)
+              <TooltipInfo
+                content={
+                  <>
+                    <strong>API Call Usage</strong>
+                    <br />
+                    Your current API calls this month versus your plan's included limit.
+                  </>
+                }
+                className="ml-1"
+              />
             </div>
           )}
           {apiUsage && apiUsage.tier !== "free" && (
-            <div className="text-muted-foreground text-xs">
-              Linked Vehicles: <span className="font-medium">{apiUsage.linked_vehicle_count}</span> / <span className="font-medium">{apiUsage.max_linked_vehicles}</span>
+            <div className="text-muted-foreground text-xs flex items-center">
+              Linked Vehicles: <span className="font-medium">{apiUsage.linked_vehicle_count}</span> / <span className="font-medium">{apiUsage.max_linked_vehicles}</span> (Used/Included)
+              <TooltipInfo
+                content={
+                  <>
+                    <strong>Linked Vehicles</strong>
+                    <br />
+                    The number of vehicles currently linked to your account versus the maximum allowed by your plan.
+                  </>
+                }
+                className="ml-1"
+              />
             </div>
           )}
 
           <div className="flex flex-col gap-2 pt-2">
-            {/* Notify offline */}
-            <div className="flex items-center gap-3">
-              <Switch
-                checked={notifyOffline}
-                onCheckedChange={onToggleNotify}
-                disabled={tier?.toLowerCase() === "free"}
-                id="notify-offline"
-              />
-              {notifyLoading && (
-                <span className="ml-2">
-                  <svg className="animate-spin h-4 w-4 text-muted-foreground" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                </span>
-              )}
-              <Label htmlFor="notify-offline">Email when vehicle goes offline</Label>
-              <TooltipInfo
-                content={
-                  <>
-                    <strong>Offline notification</strong>
-                    <br />
-                    Only available for paying users.<br />
-                    Enable this to get an email if your vehicle goes offline.
-                  </>
-                }
-                className="ml-[-8px]"
-              />
-            </div>
-            {/* Newsletter */}
-            <div className="flex items-center gap-3">
-              <Switch
-                checked={isSubscribed}
-                onCheckedChange={onToggleSubscribe}
-                disabled={subscribeLoading}
-              />
-              {subscribeLoading && (
-                <span className="ml-2">
-                  <svg className="animate-spin h-4 w-4 text-muted-foreground" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                </span>
-              )}
-              <Label htmlFor="newsletter">Subscribed to newsletter</Label>
-              <TooltipInfo
-                content={
-                  <>
-                    <strong>Newsletter subscription</strong>
-                    <br />
-                    Get occasional news and feature updates by email.<br />
-                    Unsubscribe at any time.<br />
-                    <span className="text-xs text-muted-foreground">No spam. You control your preferences.</span>
-                  </>
-                }
-                className="ml-[-8px]"
-              />
-            </div>
+            <ProfileSettingToggle
+              id="notify-offline"
+              label="Email when vehicle goes offline"
+              tooltipContent={
+                <>
+                  <strong>Offline notification</strong>
+                  <br />
+                  Only available for paying users.
+                  <br />
+                  Enable this to get an email if your vehicle goes offline.
+                </>
+              }
+              checked={notifyOffline}
+              disabled={tier?.toLowerCase() === 'free'}
+              loading={notifyLoading}
+              onToggle={onToggleNotify}
+            />
+            <ProfileSettingToggle
+              id="newsletter"
+              label="Subscribed to newsletter"
+              tooltipContent={
+                <>
+                  <strong>Newsletter subscription</strong>
+                  <br />
+                  Get occasional news and feature updates by email.
+                  <br />
+                  Unsubscribe at any time.
+                  <br />
+                  <span className="text-xs text-muted-foreground">
+                    No spam. You control your preferences.
+                  </span>
+                </>
+              }
+              checked={isSubscribed}
+              disabled={false}
+              loading={subscribeLoading}
+              onToggle={onToggleSubscribe}
+            />
           </div>
         </div>
       </CardContent>
