@@ -9,7 +9,7 @@ interface ProfileSettingToggleProps {
   checked: boolean;
   disabled: boolean;
   loading: boolean;
-  onToggle: (checked: boolean) => void;
+  onToggle?: (checked: boolean) => void;
 }
 
 const ProfileSettingToggle = ({
@@ -26,7 +26,7 @@ const ProfileSettingToggle = ({
       <Switch
         id={id}
         checked={checked}
-        onCheckedChange={onToggle}
+        onCheckedChange={onToggle || (() => {})}
         disabled={disabled || loading}
         className="cursor-pointer"
       />

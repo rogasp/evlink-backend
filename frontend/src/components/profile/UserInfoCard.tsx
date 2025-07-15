@@ -136,7 +136,7 @@ export default function UserInfoCard({
                   <>
                     <strong>API Call Usage</strong>
                     <br />
-                    Your current API calls this month versus your plan's included limit.
+                    Your current API calls this month versus your plan&apos;s included limit.
                   </>
                 }
                 className="ml-1"
