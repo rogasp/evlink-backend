@@ -61,7 +61,7 @@ async def handle_checkout(
     price_id = price_id_map.get(req.plan_id or "")
 
     # Ensure the requested plan_id is valid for actions that require it.
-    if req.action in ("subscribe", "purchase_sms", "change_plan") and not price_id:
+    if req.action in ("subscribe", "purchase_sms", "change_plan", "purchase_add_on") and not price_id:
         logger.error(f"[❌] Invalid plan_id: '{req.plan_id}'. Available: {list(price_id_map.keys())}")
         raise HTTPException(
             400,
@@ -165,6 +165,7 @@ async def handle_checkout(
     # D. PURCHASE a one-time item (e.g., SMS pack or API tokens)
     elif req.action == "purchase_add_on":
         logger.info(f"[📦] Purchase add-on requested: {req.plan_id} (price_id: {price_id}) for customer {customer_id}")
+        logger.info(f"DEBUG: Sending price_id to Stripe: {price_id}")
         session = stripe.checkout.Session.create(
             customer=customer_id,
             payment_method_types=["card"],
