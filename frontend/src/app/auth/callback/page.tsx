@@ -66,11 +66,6 @@ export default function AuthCallback() {
 
       const me = await meRes.json();
 
-      if (!me.approved) {
-        setShowNotApproved(true);
-        return;
-      }
-
       if (!me.accepted_terms) {
         setShowTermsModal(true);
         return;
