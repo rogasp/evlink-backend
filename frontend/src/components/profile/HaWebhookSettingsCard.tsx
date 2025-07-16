@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/authFetch';
+import WebhookInput from './WebhookInput';
+import TooltipInfo from '../TooltipInfo';
 
 interface HaWebhookSettingsCardProps {
   userId: string;
@@ -66,28 +67,30 @@ export default function HaWebhookSettingsCard({ userId, accessToken }: HaWebhook
     <Card className="mb-6">
       <CardContent className="flex flex-col gap-4 py-6">
         <span className="font-semibold">Home Assistant Webhook</span>
-        <div>
-          <label className="block text-xs text-muted-foreground mb-1" htmlFor="webhook-url">Webhook URL</label>
-          <Input
-            id="webhook-url"
-            value={webhookUrl}
-            onChange={e => setWebhookUrl(e.target.value)}
-            onBlur={e => handleSave('webhook_url', e.target.value)}
-            className="w-full"
-            autoComplete="off"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-muted-foreground mb-1" htmlFor="webhook-id">Webhook ID</label>
-          <Input
-            id="webhook-id"
-            value={webhookId}
-            onChange={e => setWebhookId(e.target.value)}
-            onBlur={e => handleSave('webhook_id', e.target.value)}
-            className="w-full"
-            autoComplete="off"
-          />
-        </div>
+        <TooltipInfo
+          content={
+            <>
+              <strong>Home Assistant Webhook Settings</strong>
+              <br />
+              Configure the URL and ID for your Home Assistant webhook to receive real-time updates.
+            </>
+          }
+          className="ml-[-8px]"
+        />
+        <WebhookInput
+          id="webhook-url"
+          label="Webhook URL"
+          value={webhookUrl}
+          onChange={(e) => setWebhookUrl(e.target.value)}
+          onSave={(value) => handleSave('webhook_url', value)}
+        />
+        <WebhookInput
+          id="webhook-id"
+          label="Webhook ID"
+          value={webhookId}
+          onChange={(e) => setWebhookId(e.target.value)}
+          onSave={(value) => handleSave('webhook_id', value)}
+        />
       </CardContent>
     </Card>
   );

@@ -24,9 +24,9 @@ This document provides a high-level view of the EVLinkHA system architecture, in
 
    * Tables:
 
-     * `users` (id, email, name, notify\_offline, accepted\_terms, approved)
-     * `vehicles` (vehicle\_id, user\_id, vendor, online, vehicle\_cache, updated\_at)
-     * `webhook_events` (id, user\_id, vehicle\_id, event\_type, payload, created\_at)
+     * `users` (id, email, name, notify_offline, accepted_terms, approved)
+     * `vehicles` (vehicle_id, user_id, vendor, online, vehicle_cache, updated_at)
+     * `webhook_events` (id, user_id, vehicle_id, event_type, payload, created_at)
 
 4. **Authentication (Supabase Auth)**
 
@@ -37,6 +37,27 @@ This document provides a high-level view of the EVLinkHA system architecture, in
 
    * Sends offline notifications
    * Can be extended for SMS in future
+
+## Frontend Component Architecture
+
+To ensure a maintainable and scalable frontend, we adhere to the following component structure and design principles.
+
+### Naming Convention
+- **`PascalCase`**: All component files and named exports must use PascalCase (e.g., `UserInfoCard.tsx`).
+
+### Folder Structure
+Components are organized by their purpose and scope within `frontend/src/components/`:
+
+- **`ui/`**: Generic, reusable UI building blocks, primarily from libraries like ShadCN (e.g., `Button`, `Card`).
+- **`shared/`**: Application-specific components that are reused across multiple features (e.g., `PageTitle`, `LoadingSpinner`).
+- **`layout/`**: Components that define the overall page structure (e.g., `Sidebar`, `Navbar`, `Footer`).
+- **`[feature-name]/`**: Components that are specific to a particular feature or domain (e.g., `profile/`, `dashboard/`). If a feature becomes complex, it can have its own subdirectories.
+- **Page-specific components**: For components used by a single `page.tsx`, they can reside in a `components/` subdirectory within the page's route segment (e.g., `app/(app)/profile/components/`).
+
+### Design Principles
+- **Small & Focused**: Components should be small and have a single responsibility.
+- **Props-Driven**: Components should primarily be controlled via props to promote reusability and predictable state.
+- **Client vs. Server**: Be mindful of the `'use client'` and `'use server'` directives to optimize rendering and data fetching.
 
 ## Data Flow
 
