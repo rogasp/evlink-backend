@@ -1,0 +1,9 @@
+feat: Implement subscription and linked vehicle count improvements
+
+This commit addresses two key issues:
+- **Issue #225: Subscription Price Missing for PRO Users:**
+  - Backend: Enhanced `/user/{user_id}/subscription` to include `amount` and `currency` from subscription plans.
+  - Frontend: Refactored profile page to correctly display billing information, trial status, and subscription prompts based on user's subscription state. Introduced `SubscribeCard` and `TrialCard` components.
+- **Issue #226: Linked Vehicles Count Incorrect on Profile Page:**
+  - Backend: Ensured `linked_vehicle_count` in `public.users` is updated when vehicles are linked via `save_vehicle_data_with_client`.
+  - Provided a SQL script (`update_linked_vehicle_count.sql`) for manual synchronization of `linked_vehicle_count` in the database.

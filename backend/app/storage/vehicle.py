@@ -5,6 +5,7 @@ import json
 import logging
 from app.lib.supabase import get_supabase_admin_client
 from app.logic.vehicle import handle_offline_notification_if_needed
+from app.storage.subscription import update_linked_vehicle_count # NEW IMPORT
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,11 @@ async def save_vehicle_data_with_client(vehicle: dict):
             logger.warning(f"⚠️ save_vehicle_data_with_client: No data returned, possible failure")
         else:
             logger.info(f"✅ Vehicle {vehicle_id} saved for user {user_id}")
+            # Update linked_vehicle_count for the user
+            user_vehicles_res = supabase.table("vehicles").select("id").eq("user_id", user_id).execute()
+            new_linked_count = len(user_vehicles_res.data) if user_vehicles_res.data else 0
+            logger.info(f"[DEBUG] Calculated new_linked_count for user {user_id}: {new_linked_count}")
+            await update_linked_vehicle_count(user_id, new_linked_count)
 
     except Exception as e:
         logger.error(f"[❌ save_vehicle_data_with_client] Exception: {e}")

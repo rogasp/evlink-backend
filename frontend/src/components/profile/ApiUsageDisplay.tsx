@@ -120,7 +120,7 @@ export default function ApiUsageDisplay({ initialPurchasedApiTokens, userId }: P
           />
         </div>
       )}
-      {apiUsage && apiUsage.tier !== 'free' && (
+      {apiUsage && (
         <div className="text-muted-foreground text-xs flex items-center">
           Linked Vehicles: <span className="font-medium">{apiUsage.linked_vehicle_count}</span> / <span className="font-medium">{apiUsage.max_linked_vehicles}</span> (Used/Included)
           <TooltipInfo

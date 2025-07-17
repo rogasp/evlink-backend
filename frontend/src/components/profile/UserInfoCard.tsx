@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TooltipInfo from "../TooltipInfo";
 import ProfileSettingToggle from './ProfileSettingToggle';
+import { format } from 'date-fns';
 
 import ApiUsageDisplay from "./ApiUsageDisplay"; // IMPORT a new component
 
@@ -11,6 +12,8 @@ type Props = {
   email: string;
   name: string;
   tier: string;
+  isOnTrial?: boolean;
+  trialEndsAt?: string | null;
   smsCredits: number;
   purchasedApiTokens: number;
   notifyOffline: boolean;
@@ -28,6 +31,8 @@ export default function UserInfoCard({
   email,
   name,
   tier,
+  isOnTrial,
+  trialEndsAt,
   smsCredits,
   purchasedApiTokens,
   notifyOffline,
@@ -63,6 +68,9 @@ export default function UserInfoCard({
           </div>
           <div className="text-muted-foreground text-xs flex items-center">
             {tier && tier[0].toUpperCase() + tier.slice(1)} User
+            {isOnTrial && trialEndsAt && (
+              <span className="ml-2 font-semibold">(Trial until {format(new Date(trialEndsAt), 'yyyy-MM-dd')})</span>
+            )}
             <TooltipInfo
               content={
                 <>
