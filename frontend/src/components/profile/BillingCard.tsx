@@ -32,7 +32,6 @@ export default function BillingCard({
   nextBillingDate,
   current_period_start,
   current_period_end,
-  invoices,
   onManageClick,
 }: BillingCardProps) {
   return (
@@ -101,28 +100,7 @@ export default function BillingCard({
             </div>
           )}
         </div>
-        <div>
-          <span className="font-semibold">Invoices</span>
-          <ul className="mt-2 space-y-2">
-            {invoices.length === 0 && (
-              <li className="text-sm text-muted-foreground">No invoices found.</li>
-            )}
-            {invoices.map((inv) => (
-              <li key={inv.receipt_number} className="flex items-center justify-between">
-                <span>
-                  <span className="font-mono text-xs">{inv.receipt_number}</span>
-                  {' — '}
-                  {new Date(inv.created_at).toLocaleDateString()} | {inv.amount_due / 100} {inv.currency.toUpperCase()} | {inv.status}
-                </span>
-                {inv.hosted_invoice_url && (
-                  <a href={inv.hosted_invoice_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline text-xs ml-4">
-                    PDF
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+        
       </CardContent>
     </Card>
   )

@@ -14,6 +14,9 @@ import { toast } from 'sonner';
 import ApiKeySection from '@/components/profile/ApiKeySection';
 import HaWebhookSettingsCard from '@/components/profile/HaWebhookSettingsCard';
 import BillingCard from '@/components/profile/BillingCard';
+import SubscribeCard from '@/components/profile/SubscribeCard';
+import TrialCard from '@/components/profile/TrialCard';
+import InvoicesList from '@/components/profile/InvoicesList';
 import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
@@ -145,6 +148,8 @@ export default function ProfilePage() {
             name={mergedUser?.name ?? ''}
             email={user.email ?? ''}
             tier={mergedUser?.tier?.toUpperCase() ?? 'FREE'} /* Hardcoded string */
+            isOnTrial={mergedUser?.is_on_trial}
+            trialEndsAt={mergedUser?.trial_ends_at}
             smsCredits={mergedUser?.sms_credits ?? 0}
             purchasedApiTokens={mergedUser?.purchased_api_tokens ?? 0}
             notifyOffline={notifyOffline}
@@ -160,24 +165,33 @@ export default function ProfilePage() {
           <HaWebhookSettingsCard userId={user.id} accessToken={accessToken} />
         </div>
         <div className="flex flex-col gap-4">
-          {loadingBilling || !subscription || !invoices ? (
+          {loadingBilling ? (
             <BillingCardSkeleton />
-          ) : (
+          ) : mergedUser?.is_on_trial ? (
+            <TrialCard trialEndsAt={mergedUser.trial_ends_at} />
+          ) : subscription ? (
             <BillingCard
-              subscriptionPlan={subscription?.plan_name ?? 'Free'} /* Hardcoded string */
+              subscriptionPlan={subscription.plan_name ?? 'Free'} /* Hardcoded string */
               price={
-                subscription && subscription.amount && subscription.currency
+                subscription.amount && subscription.currency
                   ? `${(subscription.amount / 100).toFixed(2)} ${subscription.currency.toUpperCase()}`
                   : '—' /* Hardcoded string */
               }
-              nextBillingDate={subscription?.current_period_end ?? undefined}
-              current_period_start={subscription?.current_period_start ?? undefined}
-              current_period_end={subscription?.current_period_end ?? undefined}
+              nextBillingDate={subscription.current_period_end ?? undefined}
+              current_period_start={subscription.current_period_start ?? undefined}
+              current_period_end={subscription.current_period_end ?? undefined}
               invoices={invoices}
               onManageClick={() => router.push('/billing')} /* Hardcoded string */
             />
+          ) : (
+            <SubscribeCard />
           )}
         </div>
+        {!loadingBilling && invoices.length > 0 && (
+          <div className="flex flex-col gap-4">
+            <InvoicesList invoices={invoices} />
+          </div>
+        )}
       </div>
     </div>
   );
