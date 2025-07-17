@@ -32,7 +32,6 @@ export default function BillingCard({
   nextBillingDate,
   current_period_start,
   current_period_end,
-  invoices,
   onManageClick,
 }: BillingCardProps) {
   return (

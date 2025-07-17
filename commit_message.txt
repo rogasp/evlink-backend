@@ -1,8 +1,0 @@
-fix: Correct API Usage Calculation Logic
-
-This commit addresses the API Usage Calculation Bug by implementing a dynamic calculation of API calls based on the user's subscription status:
-- For PRO/BASIC users with an active subscription, API usage is calculated based on their subscription period.
-- For PRO users on a trial, usage is calculated based on their 30-day trial period.
-- For FREE users, a rolling 30-day window is used.
-- Introduced `count_polls_in_period` function in `poll_logs.py` to support period-based counting.
-- Ensured all datetime comparisons are timezone-aware to prevent `TypeError`.
