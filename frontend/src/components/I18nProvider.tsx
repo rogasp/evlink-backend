@@ -22,6 +22,12 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    // Check if i18n is already initialized to avoid re-initialization
+    if (i18n.isInitialized) {
+      setIsInitialized(true);
+      return;
+    }
+
     // Initialize i18n when component mounts (client-side only)
     i18n
       .use(LanguageDetector)
