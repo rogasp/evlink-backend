@@ -8,7 +8,9 @@ This document provides a high-level view of the EVLinkHA system architecture, in
 
    * Serves UI: Dashboard, Login, /me, Profile pages
    * Uses React hooks for authentication (`useAuth`)
-   * Real-time updates via Supabase realtime or polling
+   * Real-time updates via Supabase Realtime, using `supabase.channel().on('postgres_changes', ...)` for database changes.
+     * For `INSERT` events (e.g., `poll_logs`), a refetching strategy is used to update aggregated data.
+     * For `UPDATE` events (e.g., `users.purchased_api_tokens`), direct state updates from the payload are used.
 
 2. **Backend (FastAPI)**
 

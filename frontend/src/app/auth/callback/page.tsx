@@ -66,8 +66,6 @@ export default function AuthCallback() {
 
       const me = await meRes.json();
 
-      
-
       if (!me.accepted_terms) {
         setShowTermsModal(true);
         return;

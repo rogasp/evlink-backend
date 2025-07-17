@@ -197,10 +197,32 @@ async def upsert_subscription_from_stripe(sub, user_id=None):
     return True
 
 async def get_user_subscription(user_id: str) -> dict | None:
-    """Retrieves a single subscription record for a given user ID."""
+    """
+    Retrieves a single subscription record for a given user ID,
+    and enriches it with plan details like amount and currency.
+    """
     supabase = get_supabase_admin_client()
+    
+    # Fetch the user's subscription
     res = supabase.table("subscriptions").select("*").eq("user_id", user_id).maybe_single().execute()
-    return res.data if hasattr(res, "data") else None
+    
+    # The result from maybe_single() might not contain data if no record is found.
+    if not res or not res.data:
+        return None
+        
+    subscription_data = res.data
+    
+    # If the subscription has a plan_name, fetch the plan details
+    if plan_name := subscription_data.get("plan_name"):
+        try:
+            plan_res = supabase.table("subscription_plans").select("amount, currency").eq("name", plan_name).single().execute()
+            if plan_res and plan_res.data:
+                subscription_data["amount"] = plan_res.data.get("amount")
+                subscription_data["currency"] = plan_res.data.get("currency")
+        except Exception as e:
+            logger.error(f"Could not enrich subscription with plan details for plan {plan_name}: {e}")
+
+    return subscription_data
 
 async def get_subscription_by_stripe_id(stripe_subscription_id: str) -> Optional[DBSubscription]:
     """
