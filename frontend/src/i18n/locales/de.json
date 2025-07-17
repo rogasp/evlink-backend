@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "close": "Schließen",
+    "submit": "Absenden",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "refresh": "Aktualisieren"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profil",
+    "settings": "Einstellungen",
+    "billing": "Abrechnung",
+    "vehicles": "Fahrzeuge",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "home": "Startseite",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Verbinde dein Elektrofahrzeug mit Home Assistant",
+    "description": "EVLinkHA ist eine Open-Source-Brücke zwischen Home Assistant und Enode, die nahtlose Integration von Elektrofahrzeugen und intelligentes Energiemanagement in deinem Zuhause ermöglicht.",
+    "getStarted": "Loslegen",
+    "learnMore": "Mehr erfahren",
+    "features": "Funktionen",
+    "pricing": "Preise",
+    "contact": "Kontakt",
+    "hero": {
+      "badge": "Kostenlos loslegen",
+      "title": "Verbinde dein Elektrofahrzeug.",
+      "subtitle": "EVLinkHA verbindet dein Elektrofahrzeug mit Home Assistant über Enode. Es ist privat, skalierbar und bereit für fortgeschrittene Benutzer."
+    },
+    "pricing": {
+      "title": "Wähle deinen Plan",
+      "plans": {
+        "free": {
+          "title": "Kostenlos",
+          "price": "0 EUR",
+          "features": [
+            "1 verbundenes Gerät",
+            "300 API-Aufrufe pro Monat",
+            "1 Tag Log-Speicherung",
+            "Keine Webhooks",
+            "Kein Priority-Support",
+            "30 Tage: Vollzugriff-Testphase"
+          ]
+        },
+        "basic": {
+          "title": "Basic",
+          "price": "1.99 EUR",
+          "features": [
+            "2 verbundene Geräte",
+            "2 500 API-Aufrufe pro Monat",
+            "7 Tage Log-Speicherung",
+            "Keine Webhooks",
+            "Kein Priority-Support"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 verbundene Geräte",
+            "10 000 API-Aufrufe pro Monat",
+            "365 Tage Log-Speicherung",
+            "Webhooks (HA + generisch)",
+            "Priority-Support (48h/SLA)"
+          ]
+        },
+        "custom": {
+          "title": "Individuell",
+          "price": "Individuelle Preise",
+          "features": [
+            "Unbegrenzte Geräte",
+            "Individueller API-Verbrauch",
+            "Individuelle Log-Speicherung",
+            "Erweiterte Webhooks",
+            "Priority-Support (48h/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Laden...",
+        "register": "Registrieren",
+        "currentPlan": "Aktueller Plan",
+        "downgradeToFree": "Auf kostenlos downgraden",
+        "upgradeToBasic": "Auf Basic upgraden",
+        "upgradeToPro": "Auf Pro upgraden",
+        "manageSubscription": "Abonnement verwalten",
+        "contactUs": "Kontakt aufnehmen"
+      },
+      "badges": {
+        "currentPlan": "Aktueller Plan",
+        "comingSoon": "Demnächst"
+      }
+    },
+    "features": {
+      "title": "Warum EVLink wählen?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Jedes Elektrofahrzeug verbinden",
+          "description": "Unterstützt die meisten EV-Marken über Enode. Verbinde dein Fahrzeug sofort und beginne mit der Datensynchronisation zu Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Echtzeit-Einblicke",
+          "description": "Überwache Ladestatus, Batterieniveau und Reichweite in Echtzeit – direkt von deinem Dashboard."
+        },
+        "smartAutomation": {
+          "title": "⚡ Intelligente Automatisierung",
+          "description": "Automatisiere intelligentes Laden und Zeitpläne mit Home Assistant-Routinen und Szenen."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA ist Open Source & für die Community gebaut",
+      "description": "Dieses Projekt ist ein persönliches Hobby, das an Abenden und Wochenenden entwickelt wird. Wenn du es nützlich findest, kannst du seine Zukunft unterstützen.",
+      "bronzeSupporter": "Als Bronze Supporter hilfst du dabei, EVLink am Laufen zu halten und für alle zugänglich zu machen. Auch kleine Beiträge machen einen großen Unterschied—dein Name wird stolz in unserer README.md und auf der Supporters-Seite auf evlinkha.se gezeigt.",
+      "buttons": {
+        "starOnGithub": "⭐ Stern auf GitHub",
+        "buyMeACoffee": "☕ Kauf mir einen Kaffee"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück",
+    "noVehicles": "Keine Fahrzeuge verbunden",
+    "addVehicle": "Fahrzeug hinzufügen",
+    "vehicleStatus": "Fahrzeugstatus",
+    "batteryLevel": "Batterieniveau",
+    "range": "Reichweite",
+    "charging": "Laden",
+    "connected": "Verbunden",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profil",
+    "personalInfo": "Persönliche Informationen",
+    "accountSettings": "Kontoeinstellungen",
+    "preferences": "Einstellungen",
+    "apiKeys": "API-Schlüssel",
+    "subscriptions": "Abonnements",
+    "language": "Sprache",
+    "theme": "Theme"
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signUp": "Registrieren",
+    "signOut": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "forgotPassword": "Passwort vergessen?",
+    "rememberMe": "Angemeldet bleiben",
+    "createAccount": "Konto erstellen",
+    "alreadyHaveAccount": "Hast du bereits ein Konto?",
+    "dontHaveAccount": "Hast du kein Konto?"
+  },
+  "errors": {
+    "generic": "Etwas ist schiefgelaufen",
+    "notFound": "Seite nicht gefunden",
+    "unauthorized": "Nicht autorisiert",
+    "forbidden": "Verboten",
+    "serverError": "Serverfehler",
+    "networkError": "Netzwerkfehler",
+    "validationError": "Validierungsfehler",
+    "tryAgain": "Erneut versuchen"
+  }
+}

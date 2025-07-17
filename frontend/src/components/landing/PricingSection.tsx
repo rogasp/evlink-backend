@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/hooks/useUser';
+import { useTranslation } from 'react-i18next';
 
 export default function PricingSection() {
   const { isLoggedIn, tier, loading } = useUser();
+  const { t } = useTranslation();
 
   type PlanKey = 'free' | 'basic' | 'pro' | 'custom';
   const plans: PlanKey[] = ['free', 'basic', 'pro', 'custom'];
@@ -21,100 +23,75 @@ export default function PricingSection() {
     getButton: () => { label: string; href: string; disabled: boolean; badge: string | null };
   }> = {
     free: {
-      title: 'Free',
-      price: '0 EUR',
-      features: [
-        '1 connected device',
-        '2 API calls per day',
-        '1 day log retention',
-        'No webhooks',
-        'No priority support',
-        '30 days: full access trial'
-      ],
+      title: t('landing.pricing.plans.free.title'),
+      price: t('landing.pricing.plans.free.price'),
+      features: t('landing.pricing.plans.free.features', { returnObjects: true }) as string[],
       getButton: () => {
         if (loading) {
-          return { label: 'Loading...', href: '#', disabled: true, badge: null };
+          return { label: t('landing.pricing.buttons.loading'), href: '#', disabled: true, badge: null };
         }
         if (!isLoggedIn) {
-          return { label: 'Register', href: '/register?plan=free', disabled: false, badge: null };
+          return { label: t('landing.pricing.buttons.register'), href: '/register?plan=free', disabled: false, badge: null };
         }
         if (tier === 'free') {
-          return { label: 'Current Plan', href: '#', disabled: true, badge: 'Current plan' };
+          return { label: t('landing.pricing.buttons.currentPlan'), href: '#', disabled: true, badge: t('landing.pricing.badges.currentPlan') };
         }
-        return { label: 'Downgrade to Free', href: '/billing', disabled: false, badge: null };
+        return { label: t('landing.pricing.buttons.downgradeToFree'), href: '/billing', disabled: false, badge: null };
       },
     },
     basic: {
-      title: 'Basic',
-      price: '1.99 EUR / device',
-      features: [
-        '2 connected devices',
-        '10 API calls per device/day',
-        '7 days log retention',
-        'No webhooks',
-        'No priority support'
-      ],
+      title: t('landing.pricing.plans.basic.title'),
+      price: t('landing.pricing.plans.basic.price'),
+      features: t('landing.pricing.plans.basic.features', { returnObjects: true }) as string[],
       getButton: () => {
         if (loading) {
-          return { label: 'Loading...', href: '#', disabled: true, badge: null };
+          return { label: t('landing.pricing.buttons.loading'), href: '#', disabled: true, badge: null };
         }
         if (!isLoggedIn) {
-          return { label: 'Register', href: '/register?plan=basic', disabled: false, badge: null };
+          return { label: t('landing.pricing.buttons.register'), href: '/register?plan=basic', disabled: false, badge: null };
         }
         if (tier === 'basic') {
-          return { label: 'Current Plan', href: '#', disabled: true, badge: 'Current plan' };
+          return { label: t('landing.pricing.buttons.currentPlan'), href: '#', disabled: true, badge: t('landing.pricing.badges.currentPlan') };
         }
         if (tier === 'free') {
-          return { label: 'Upgrade to Basic', href: '/billing', disabled: false, badge: null };
+          return { label: t('landing.pricing.buttons.upgradeToBasic'), href: '/billing', disabled: false, badge: null };
         }
         // logged in & Pro/Custom
-        return { label: 'Manage Subscription', href: '/billing', disabled: false, badge: null };
+        return { label: t('landing.pricing.buttons.manageSubscription'), href: '/billing', disabled: false, badge: null };
       },
     },
     pro: {
-      title: 'Pro',
-      price: '4.99 EUR / device',
-      features: [
-        '5 connected devices',
-        '100 API calls per device/day',
-        '180 days log retention',
-        'Webhooks (HA + generic)',
-        'Priority support (48h)'
-      ],
+      title: t('landing.pricing.plans.pro.title'),
+      price: t('landing.pricing.plans.pro.price'),
+      features: t('landing.pricing.plans.pro.features', { returnObjects: true }) as string[],
       getButton: () => {
         if (loading) {
-          return { label: 'Loading...', href: '#', disabled: true, badge: null };
+          return { label: t('landing.pricing.buttons.loading'), href: '#', disabled: true, badge: null };
         }
         if (!isLoggedIn) {
-          return { label: 'Register', href: '/register?plan=pro', disabled: false, badge: null };
+          return { label: t('landing.pricing.buttons.register'), href: '/register?plan=pro', disabled: false, badge: null };
         }
         if (tier === 'pro') {
-          return { label: 'Current Plan', href: '#', disabled: true, badge: 'Current plan' };
+          return { label: t('landing.pricing.buttons.currentPlan'), href: '#', disabled: true, badge: t('landing.pricing.badges.currentPlan') };
         }
         if (tier === 'free' || tier === 'basic') {
-          return { label: 'Upgrade to Pro', href: '/billing', disabled: false, badge: null };
+          return { label: t('landing.pricing.buttons.upgradeToPro'), href: '/billing', disabled: false, badge: null };
         }
         // logged in & Custom
-        return { label: 'Manage Subscription', href: '/billing', disabled: false, badge: null };
+        return { label: t('landing.pricing.buttons.manageSubscription'), href: '/billing', disabled: false, badge: null };
       },
     },
     custom: {
-      title: 'Custom',
-      price: 'Custom pricing',
-      features: [
-        'Unlimited devices',
-        'Custom API usage',
-        'Custom log retention',
-        'Advanced webhooks',
-        'Priority support (24h/SLA)'
-      ],
-      getButton: () => ({ label: 'Contact us', href: '/contact', disabled: false, badge: 'Coming soon' }),
+      title: t('landing.pricing.plans.custom.title'),
+      price: t('landing.pricing.plans.custom.price'),
+      features: t('landing.pricing.plans.custom.features', { returnObjects: true }) as string[],
+      getButton: () => ({ label: t('landing.pricing.buttons.contactUs'), href: '/contact', disabled: false, badge: t('landing.pricing.badges.comingSoon') }),
     },
   };
 
   return (
     <section className="relative z-20 -mt-100 max-w-6xl mx-auto px-6 py-10 text-center">
-      <h2 className="text-2xl font-bold mb-6 text-white">Choose your plan</h2>
+      <h2 className="text-2xl font-bold mb-6 text-white">{t('landing.pricing.title')}</h2>
       <div className="grid gap-4 md:grid-cols-4">
         {plans.map((key) => {
           const cfg = planConfig[key];

@@ -2,9 +2,11 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function HeroSection() {
   const [clientReady, setClientReady] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setClientReady(true);
@@ -15,13 +17,13 @@ export default function HeroSection() {
       <Image src="/ev_car.png" alt="" fill className="object-cover opacity-10 z-0" />
       <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
         <span className="inline-block text-xs font-semibold uppercase bg-yellow-400 text-black px-3 py-1 rounded-full mb-4">
-          Free to get started
+          {t('landing.hero.badge')}
         </span>
         <h1 className="text-4xl sm:text-5xl font-bold leading-snug mb-3">
-          Connect your EV.
+          {t('landing.hero.title')}
         </h1>
         <p className="text-lg sm:text-xl font-light mb-6 leading-snug">
-          EVLinkHA links your electric vehicle with Home Assistant using Enode. It&apos;s private, scalable, and ready for power users.
+          {t('landing.hero.subtitle')}
         </p>
       </div>
     </section>

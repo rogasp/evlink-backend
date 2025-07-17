@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer';
 import Script from 'next/script';
 import NewsletterModal from '@/components/NewsletterModal';
 import NavbarPublic from '@/components/layout/NavbarPubic';
+import I18nProvider from '@/components/I18nProvider';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,14 +19,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         strategy="afterInteractive"
       />
       <Toaster position="top-center" richColors closeButton={false} />
-      <RegistrationProvider>
-        <SupabaseProvider>
-          <NavbarPublic />
-          {children}
-          <Footer />
-          <NewsletterModal />
-        </SupabaseProvider>
-      </RegistrationProvider>
+      <I18nProvider>
+        <RegistrationProvider>
+          <SupabaseProvider>
+            <NavbarPublic />
+            {children}
+            <Footer />
+            <NewsletterModal />
+          </SupabaseProvider>
+        </RegistrationProvider>
+      </I18nProvider>
     </>
   );
 }
