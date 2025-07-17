@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "submit": "Submit",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "update": "Update",
+    "refresh": "Refresh"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "billing": "Billing",
+    "vehicles": "Vehicles",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "home": "Home",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Connect your electric vehicle to Home Assistant",
+    "description": "EVLinkHA is an open-source bridge between Home Assistant and Enode, enabling seamless electric vehicle integration and smart energy management in your home.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "features": "Features",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "hero": {
+      "badge": "Free to get started",
+      "title": "Connect your EV.",
+      "subtitle": "EVLinkHA links your electric vehicle with Home Assistant using Enode. It's private, scalable, and ready for power users."
+    },
+    "pricing": {
+      "title": "Choose your plan",
+      "plans": {
+        "free": {
+          "title": "Free",
+          "price": "0 EUR",
+          "features": [
+            "1 connected device",
+            "300 API calls per month",
+            "1 day log retention",
+            "No webhooks",
+            "No priority support",
+            "30 days: full access trial"
+          ]
+        },
+        "basic": {
+          "title": "Basic",
+          "price": "1.99 EUR",
+          "features": [
+            "2 connected devices",
+            "2 500 API calls per month",
+            "7 days log retention",
+            "No webhooks",
+            "No priority support"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 connected devices",
+            "10 000 API calls per month",
+            "365 days log retention",
+            "Webhooks (HA + generic)",
+            "Priority support (4h)"
+          ]
+        },
+        "custom": {
+          "title": "Custom",
+          "price": "Custom pricing",
+          "features": [
+            "Unlimited devices",
+            "Custom API usage",
+            "Custom log retention",
+            "Advanced webhooks",
+            "Priority support (48h/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Loading...",
+        "register": "Register",
+        "currentPlan": "Current Plan",
+        "downgradeToFree": "Downgrade to Free",
+        "upgradeToBasic": "Upgrade to Basic",
+        "upgradeToPro": "Upgrade to Pro",
+        "manageSubscription": "Manage Subscription",
+        "contactUs": "Contact us"
+      },
+      "badges": {
+        "currentPlan": "Current plan",
+        "comingSoon": "Coming soon"
+      }
+    },
+    "features": {
+      "title": "Why choose EVLink?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Connect Any EV",
+          "description": "Supports most EV brands through Enode. Instantly link your vehicle and start syncing data to Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Real-Time Insights",
+          "description": "Monitor charging status, battery level and range in real time – right from your dashboard."
+        },
+        "smartAutomation": {
+          "title": "⚡ Smart Automation",
+          "description": "Automate smart charging and schedules using Home Assistant routines and scenes."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA is open source & built for the community",
+      "description": "This project is a personal hobby, built on evenings and weekends. If you find it useful, you can support its future.",
+      "bronzeSupporter": "As a Bronze Supporter, you help keep EVLink running and accessible to everyone. Even small contributions make a big difference—your name will be proudly featured in our README.md and on the Supporters page at evlinkha.se.",
+      "buttons": {
+        "starOnGithub": "⭐ Star on GitHub",
+        "buyMeACoffee": "☕ Buy me a coffee"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "noVehicles": "No vehicles connected",
+    "addVehicle": "Add Vehicle",
+    "vehicleStatus": "Vehicle Status",
+    "batteryLevel": "Battery Level",
+    "range": "Range",
+    "charging": "Charging",
+    "connected": "Connected",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal Information",
+    "accountSettings": "Account Settings",
+    "preferences": "Preferences",
+    "apiKeys": "API Keys",
+    "subscriptions": "Subscriptions",
+    "language": "Language",
+    "theme": "Theme"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "notFound": "Page not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "serverError": "Server error",
+    "networkError": "Network error",
+    "validationError": "Validation error",
+    "tryAgain": "Try again"
+  }
+}

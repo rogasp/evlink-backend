@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Laddar...",
+    "error": "Fel",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "confirm": "Bekräfta",
+    "close": "Stäng",
+    "submit": "Skicka",
+    "edit": "Redigera",
+    "delete": "Ta bort",
+    "create": "Skapa",
+    "update": "Uppdatera",
+    "refresh": "Uppdatera"
+  },
+  "navigation": {
+    "dashboard": "Instrumentpanel",
+    "profile": "Profil",
+    "settings": "Inställningar",
+    "billing": "Fakturering",
+    "vehicles": "Fordon",
+    "logout": "Logga ut",
+    "login": "Logga in",
+    "register": "Registrera",
+    "home": "Hem",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Koppla ditt elfordon till Home Assistant",
+    "description": "EVLinkHA är en öppen källkodslösning som förbinder Home Assistant och Enode för smidig integration av elfordon och smart energihantering i ditt hem.",
+    "getStarted": "Kom igång",
+    "learnMore": "Lär dig mer",
+    "features": "Funktioner",
+    "pricing": "Priser",
+    "contact": "Kontakt",
+    "hero": {
+      "badge": "Gratis att komma igång",
+      "title": "Koppla ditt elfordon.",
+      "subtitle": "EVLinkHA kopplar ditt elfordon till Home Assistant med Enode. Det är privat, skalbart och redo för avancerade användare."
+    },
+    "pricing": {
+      "title": "Välj ditt abonnemang",
+      "plans": {
+        "free": {
+          "title": "Free",
+          "price": "0 EUR",
+          "features": [
+            "1 ansluten enhet",
+            "300 API-anrop per månad",
+            "1 dags logglagring",
+            "Inga webhooks",
+            "Ingen prioriterad support",
+            "30 dagar: full åtkomstprovperiod"
+          ]
+        },
+        "basic": {
+          "title": "Basic",
+          "price": "1.99 EUR",
+          "features": [
+            "2 anslutna enheter",
+            "2 500 API-anrop per månad",
+            "7 dagars logglagring",
+            "Inga webhooks",
+            "Ingen prioriterad support"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 anslutna enheter",
+            "10 000 API-anrop per månad",
+            "365 dagars logglagring",
+            "Webhooks (HA + generisk)",
+            "Prioriterad support (48h/SLA)"
+          ]
+        },
+        "custom": {
+          "title": "Anpassad",
+          "price": "Anpassad prissättning",
+          "features": [
+            "Obegränsade enheter",
+            "Anpassad API-användning",
+            "Anpassad logglagring",
+            "Avancerade webhooks",
+            "Prioriterad support (24h/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Laddar...",
+        "register": "Registrera",
+        "currentPlan": "Nuvarande abonnemang",
+        "downgradeToFree": "Nedgradera till Gratis",
+        "upgradeToBasic": "Uppgradera till Grundläggande",
+        "upgradeToPro": "Uppgradera till Pro",
+        "manageSubscription": "Hantera prenumeration",
+        "contactUs": "Kontakta oss"
+      },
+      "badges": {
+        "currentPlan": "Nuvarande abonnemang",
+        "comingSoon": "Kommer snart"
+      }
+    },
+    "features": {
+      "title": "Varför välja EVLink?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Anslut vilken elbil som helst",
+          "description": "Stödjer de flesta elbilsmärken via Enode. Anslut ditt fordon direkt och börja synkronisera data till Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Realtidsinsikter",
+          "description": "Övervaka laddningsstatus, batterinivå och räckvidd i realtid – direkt från din instrumentpanel."
+        },
+        "smartAutomation": {
+          "title": "⚡ Smart automatisering",
+          "description": "Automatisera smart laddning och scheman med Home Assistant-rutiner och scener."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA är öppen källkod & byggt för gemenskapen",
+      "description": "Detta projekt är en personlig hobby, byggd på kvällar och helger. Om du tycker det är användbart kan du stödja dess framtid.",
+      "bronzeSupporter": "Som en Bronssupporter hjälper du till att hålla EVLink igång och tillgängligt för alla. Även små bidrag gör stor skillnad—ditt namn kommer stolt att visas i vår README.md och på Supportersidan på evlinkha.se.",
+      "buttons": {
+        "starOnGithub": "⭐ Stjärnmärk på GitHub",
+        "buyMeACoffee": "☕ Köp mig en kaffe"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Instrumentpanel",
+    "welcome": "Välkommen tillbaka",
+    "noVehicles": "Inga fordon anslutna",
+    "addVehicle": "Lägg till fordon",
+    "vehicleStatus": "Fordonsstatus",
+    "batteryLevel": "Batterinivå",
+    "range": "Räckvidd",
+    "charging": "Laddar",
+    "connected": "Ansluten",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profil",
+    "personalInfo": "Personlig information",
+    "accountSettings": "Kontoinställningar",
+    "preferences": "Inställningar",
+    "apiKeys": "API-nycklar",
+    "subscriptions": "Prenumerationer",
+    "language": "Språk",
+    "theme": "Tema"
+  },
+  "auth": {
+    "signIn": "Logga in",
+    "signUp": "Registrera",
+    "signOut": "Logga ut",
+    "email": "E-post",
+    "password": "Lösenord",
+    "forgotPassword": "Glömt lösenord?",
+    "rememberMe": "Kom ihåg mig",
+    "createAccount": "Skapa konto",
+    "alreadyHaveAccount": "Har du redan ett konto?",
+    "dontHaveAccount": "Har du inget konto?"
+  },
+  "errors": {
+    "generic": "Något gick fel",
+    "notFound": "Sidan hittades inte",
+    "unauthorized": "Obehörig",
+    "forbidden": "Förbjuden",
+    "serverError": "Serverfel",
+    "networkError": "Nätverksfel",
+    "validationError": "Valideringsfel",
+    "tryAgain": "Försök igen"
+  }
+}
