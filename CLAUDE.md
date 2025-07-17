@@ -125,7 +125,7 @@ Key tables:
 - Enode webhooks handled in `backend/app/enode/webhook.py`
 - Stripe webhooks handled in `backend/app/api/webhook.py`
 - All webhook events logged to database for monitoring
-=======
+
 ### Frontend (Next.js)
 ```bash
 cd frontend
@@ -246,3 +246,4 @@ Required environment variables:
 - `docs/` - Comprehensive project documentation
 - `scripts/` - Utility scripts for development and deployment
 - `supabase/` - Database schema and local development setup
+
