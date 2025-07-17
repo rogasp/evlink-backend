@@ -1,0 +1,82 @@
+{
+  "common": {
+    "loading": "Laddar...",
+    "error": "Fel",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "confirm": "Bekräfta",
+    "close": "Stäng",
+    "submit": "Skicka",
+    "edit": "Redigera",
+    "delete": "Ta bort",
+    "create": "Skapa",
+    "update": "Uppdatera",
+    "refresh": "Uppdatera"
+  },
+  "navigation": {
+    "dashboard": "Instrumentpanel",
+    "profile": "Profil",
+    "settings": "Inställningar",
+    "billing": "Fakturering",
+    "vehicles": "Fordon",
+    "logout": "Logga ut",
+    "login": "Logga in",
+    "register": "Registrera",
+    "home": "Hem",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Koppla ditt elfordon till Home Assistant",
+    "description": "EVLinkHA är en öppen källkodslösning som förbinder Home Assistant och Enode för smidig integration av elfordon och smart energihantering i ditt hem.",
+    "getStarted": "Kom igång",
+    "learnMore": "Lär dig mer",
+    "features": "Funktioner",
+    "pricing": "Priser",
+    "contact": "Kontakt"
+  },
+  "dashboard": {
+    "title": "Instrumentpanel",
+    "welcome": "Välkommen tillbaka",
+    "noVehicles": "Inga fordon anslutna",
+    "addVehicle": "Lägg till fordon",
+    "vehicleStatus": "Fordonsstatus",
+    "batteryLevel": "Batterinivå",
+    "range": "Räckvidd",
+    "charging": "Laddar",
+    "connected": "Ansluten",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profil",
+    "personalInfo": "Personlig information",
+    "accountSettings": "Kontoinställningar",
+    "preferences": "Inställningar",
+    "apiKeys": "API-nycklar",
+    "subscriptions": "Prenumerationer",
+    "language": "Språk",
+    "theme": "Tema"
+  },
+  "auth": {
+    "signIn": "Logga in",
+    "signUp": "Registrera",
+    "signOut": "Logga ut",
+    "email": "E-post",
+    "password": "Lösenord",
+    "forgotPassword": "Glömt lösenord?",
+    "rememberMe": "Kom ihåg mig",
+    "createAccount": "Skapa konto",
+    "alreadyHaveAccount": "Har du redan ett konto?",
+    "dontHaveAccount": "Har du inget konto?"
+  },
+  "errors": {
+    "generic": "Något gick fel",
+    "notFound": "Sidan hittades inte",
+    "unauthorized": "Obehörig",
+    "forbidden": "Förbjuden",
+    "serverError": "Serverfel",
+    "networkError": "Nätverksfel",
+    "validationError": "Valideringsfel",
+    "tryAgain": "Försök igen"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "submit": "Submit",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "update": "Update",
+    "refresh": "Refresh"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "billing": "Billing",
+    "vehicles": "Vehicles",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "home": "Home",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Connect your electric vehicle to Home Assistant",
+    "description": "EVLinkHA is an open-source bridge between Home Assistant and Enode, enabling seamless electric vehicle integration and smart energy management in your home.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "features": "Features",
+    "pricing": "Pricing",
+    "contact": "Contact"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "noVehicles": "No vehicles connected",
+    "addVehicle": "Add Vehicle",
+    "vehicleStatus": "Vehicle Status",
+    "batteryLevel": "Battery Level",
+    "range": "Range",
+    "charging": "Charging",
+    "connected": "Connected",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal Information",
+    "accountSettings": "Account Settings",
+    "preferences": "Preferences",
+    "apiKeys": "API Keys",
+    "subscriptions": "Subscriptions",
+    "language": "Language",
+    "theme": "Theme"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "notFound": "Page not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "serverError": "Server error",
+    "networkError": "Network error",
+    "validationError": "Validation error",
+    "tryAgain": "Try again"
+  }
+}
