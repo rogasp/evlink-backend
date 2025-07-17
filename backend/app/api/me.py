@@ -186,7 +186,7 @@ async def get_api_usage_stats(user=Depends(get_supabase_user)):
     return ApiUsageStatsResponse(
         current_calls=current_calls,
         max_calls=max_calls,
-        max_linked_vehicles=linked_vehicle_count,
+        max_linked_vehicles=max_linked_vehicles,
         linked_vehicle_count=linked_vehicle_count,
         tier=user_tier, # Use the determined user_tier
     )
