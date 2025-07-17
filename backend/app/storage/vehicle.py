@@ -90,7 +90,7 @@ async def save_vehicle_data_with_client(vehicle: dict):
             # Update linked_vehicle_count for the user
             user_vehicles_res = supabase.table("vehicles").select("id").eq("user_id", user_id).execute()
             new_linked_count = len(user_vehicles_res.data) if user_vehicles_res.data else 0
-            logger.info(f"[DEBUG] Calculated new_linked_count for user {user_id}: {new_linked_count}")
+            logger.debug(f"[DEBUG] Calculated new_linked_count for user {user_id}: {new_linked_count}")
             await update_linked_vehicle_count(user_id, new_linked_count)
 
     except Exception as e:
