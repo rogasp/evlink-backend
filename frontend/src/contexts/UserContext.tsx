@@ -11,6 +11,7 @@ interface MergedUser extends UserDetails {
   online_status?: 'green' | 'yellow' | 'red' | 'grey'; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
   tier?: 'free' | 'basic' | 'pro'; /* Hardcoded string */ /* Hardcoded string */ /* Hardcoded string */
   is_on_trial?: boolean;
+  trial_ends_at?: string | null; // NEW: When the trial ends
   sms_credits?: number;
   purchased_api_tokens?: number; // NEW: User's balance of purchased API tokens
 }

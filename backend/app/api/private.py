@@ -285,7 +285,7 @@ async def api_get_user_subscription(
         raise HTTPException(status_code=403, detail="Forbidden")
     sub = await get_user_subscription(user_id)
     if not sub:
-        return {}
+        return None
     return sub
 
 @router.get("/user/{user_id}/invoices")

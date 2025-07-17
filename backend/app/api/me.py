@@ -1,6 +1,6 @@
 # backend/app/api/me.py
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,9 +9,9 @@ from pydantic import BaseModel
 from app.auth.supabase_auth import get_supabase_user
 from app.logger import logger
 from app.services.brevo import add_or_update_brevo_contact
-from app.storage.poll_logs import count_polls_since
+from app.storage.poll_logs import count_polls_since, count_polls_in_period # NEW: Import count_polls_in_period
 from app.storage.settings import get_setting_by_name
-from app.storage.subscription import get_user_record
+from app.storage.subscription import get_user_record, get_user_subscription # NEW: Import get_user_subscription
 from app.storage.user import (
     create_onboarding_row,
     get_onboarding_status,
@@ -114,19 +114,81 @@ async def get_api_usage_stats(user=Depends(get_supabase_user)):
         else config["max_linked_vehicles_default"]
     )
 
-    # Calculate current calls
-    # TODO(#151): This is a simplification for basic/pro. It should sum calls across all linked vehicles.
-    # This will be addressed in a separate task.
-    now = datetime.utcnow()
-    window = timedelta(days=1)  # All tiers have daily limits
-    current_calls = await count_polls_since(user_id, now - window)
+    # Determine the period for API call calculation based on user's tier/subscription
+    #
+    # PRO/BASIC User with active subscription:
+    #   Use subscription's current_period_start and current_period_end.
+    #   If subscription is ended (e.g., status is 'canceled' and period has passed),
+    #   treat as FREE user.
+    #
+    # PRO User on trial:
+    #   Use trial_ends_at as end date, and trial_ends_at - 30 days as start date.
+    #   If trial_ends_at has passed, treat as FREE user.
+    #
+    # FREE User:
+    #   Use a rolling 30-day window (now - 30 days to now).
+
+    start_time: datetime
+    end_time: datetime = datetime.now(timezone.utc) # Default end time is now
+
+    # Fetch user's full record to get trial details
+    local_user = await get_user_by_id(user_id)
+    user_tier = local_user.tier if local_user else "free"
+
+    # 1. Check for active subscription (PRO/BASIC)
+    subscription = await get_user_subscription(user_id)
+    if subscription and subscription.get("status") == "active":
+        # Ensure current_period_start and end are datetime objects
+        sub_start_str = subscription.get("current_period_start")
+        sub_end_str = subscription.get("current_period_end")
+
+        if sub_start_str and sub_end_str:
+            try:
+                sub_start = datetime.fromisoformat(sub_start_str.replace('Z', '+00:00'))
+                sub_end = datetime.fromisoformat(sub_end_str.replace('Z', '+00:00'))
+
+                if datetime.now(timezone.utc) <= sub_end: # Subscription is active and not yet ended
+                    start_time = sub_start
+                    end_time = sub_end
+                    logger.info(f"[API Usage] User {user_id} (Tier: {user_tier}) using subscription period: {start_time} to {end_time}")
+                else: # Subscription ended, treat as free
+                    start_time = datetime.now(timezone.utc) - timedelta(days=30)
+                    logger.info(f"[API Usage] User {user_id} (Tier: {user_tier}) subscription ended, falling back to FREE 30-day window: {start_time} to {end_time}")
+            except ValueError as e:
+                logger.error(f"[API Usage] Error parsing subscription dates for user {user_id}: {e}. Falling back to FREE 30-day window.")
+                start_time = datetime.now(timezone.utc) - timedelta(days=30)
+        else: # Missing subscription dates, treat as free
+            logger.warning(f"[API Usage] User {user_id} (Tier: {user_tier}) has subscription but missing period dates. Falling back to FREE 30-day window.")
+            start_time = datetime.now(timezone.utc) - timedelta(days=30)
+
+    # 2. Check for PRO trial
+    elif local_user and local_user.is_on_trial and local_user.trial_ends_at:
+        try:
+            trial_end = datetime.fromisoformat(local_user.trial_ends_at.replace('Z', '+00:00'))
+            if datetime.now(timezone.utc) <= trial_end: # Trial is active
+                start_time = trial_end - timedelta(days=30) # Assuming 30-day trial
+                end_time = trial_end
+                logger.info(f"[API Usage] User {user_id} (Tier: {user_tier}) on trial, using trial period: {start_time} to {end_time}")
+            else: # Trial ended, treat as free
+                start_time = datetime.now(timezone.utc) - timedelta(days=30)
+                logger.info(f"[API Usage] User {user_id} (Tier: {user_tier}) trial ended, falling back to FREE 30-day window: {start_time} to {end_time}")
+        except ValueError as e:
+            logger.error(f"[API Usage] Error parsing trial_ends_at for user {user_id}: {e}. Falling back to FREE 30-day window.")
+            start_time = datetime.now(timezone.utc) - timedelta(days=30)
+
+    # 3. Default to FREE user (rolling 30 days)
+    else:
+        start_time = datetime.now(timezone.utc) - timedelta(days=30)
+        logger.info(f"[API Usage] User {user_id} (Tier: {user_tier}) is FREE, using rolling 30-day window: {start_time} to {end_time}")
+
+    current_calls = await count_polls_in_period(user_id, start_time, end_time)
 
     return ApiUsageStatsResponse(
         current_calls=current_calls,
         max_calls=max_calls,
         max_linked_vehicles=max_linked_vehicles,
         linked_vehicle_count=linked_vehicle_count,
-        tier=tier,
+        tier=user_tier, # Use the determined user_tier
     )
 
 

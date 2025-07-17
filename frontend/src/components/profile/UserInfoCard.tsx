@@ -2,26 +2,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TooltipInfo from "../TooltipInfo";
-import { useEffect, useState } from "react";
-import { authFetch } from "@/lib/authFetch";
-import { useUserContext } from "@/contexts/UserContext";
 import ProfileSettingToggle from './ProfileSettingToggle';
+import { format } from 'date-fns';
 
-type ApiUsageStats = {
-  current_calls: number;
-  max_calls: number;
-  max_linked_vehicles: number;
-  linked_vehicle_count: number;
-  tier: string;
-};
+import ApiUsageDisplay from "./ApiUsageDisplay"; // IMPORT a new component
 
 type Props = {
   userId: string;
   email: string;
   name: string;
   tier: string;
+  isOnTrial?: boolean;
+  trialEndsAt?: string | null;
   smsCredits: number;
-  purchasedApiTokens: number; // NEW: User's balance of purchased API tokens
+  purchasedApiTokens: number;
   notifyOffline: boolean;
   notifyLoading: boolean;
   isSubscribed: boolean;
@@ -37,6 +31,8 @@ export default function UserInfoCard({
   email,
   name,
   tier,
+  isOnTrial,
+  trialEndsAt,
   smsCredits,
   purchasedApiTokens,
   notifyOffline,
@@ -47,25 +43,6 @@ export default function UserInfoCard({
   onToggleSubscribe,
   avatarUrl,
 }: Props) {
-  const { accessToken } = useUserContext();
-  const [apiUsage, setApiUsage] = useState<ApiUsageStats | null>(null);
-
-  useEffect(() => {
-    const fetchApiUsage = async () => {
-      if (!accessToken) return; // Don't fetch if no access token
-      try {
-        const response = await authFetch("/me/api-usage", { accessToken });
-        if (response.data) {
-          setApiUsage(response.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch API usage stats:", error);
-      }
-    };
-
-    fetchApiUsage();
-  }, [accessToken]);
-
   return (
     <Card className="mb-6">
       <CardContent className="flex items-center gap-4 py-6">
@@ -91,6 +68,9 @@ export default function UserInfoCard({
           </div>
           <div className="text-muted-foreground text-xs flex items-center">
             {tier && tier[0].toUpperCase() + tier.slice(1)} User
+            {isOnTrial && trialEndsAt && (
+              <span className="ml-2 font-semibold">(Trial until {format(new Date(trialEndsAt), 'yyyy-MM-dd')})</span>
+            )}
             <TooltipInfo
               content={
                 <>
@@ -115,49 +95,14 @@ export default function UserInfoCard({
               className="ml-1"
             />
           </div>
-          <div className="text-muted-foreground text-xs flex items-center">
-            API Tokens: <span className="font-medium">{purchasedApiTokens}</span>
-            <TooltipInfo
-              content={
-                <>
-                  <strong>API Tokens</strong>
-                  <br />
-                  Additional API calls purchased beyond your monthly allowance.
-                </>
-              }
-              className="ml-1"
-            />
-          </div>
-          {apiUsage && (
-            <div className="text-muted-foreground text-xs flex items-center">
-              API Calls: <span className="font-medium">{apiUsage.current_calls}</span> / <span className="font-medium">{apiUsage.max_calls}</span> (Used/Included Monthly)
-              <TooltipInfo
-                content={
-                  <>
-                    <strong>API Call Usage</strong>
-                    <br />
-                    Your current API calls this month versus your plan&apos;s included limit.
-                  </>
-                }
-                className="ml-1"
-              />
-            </div>
-          )}
-          {apiUsage && apiUsage.tier !== "free" && (
-            <div className="text-muted-foreground text-xs flex items-center">
-              Linked Vehicles: <span className="font-medium">{apiUsage.linked_vehicle_count}</span> / <span className="font-medium">{apiUsage.max_linked_vehicles}</span> (Used/Included)
-              <TooltipInfo
-                content={
-                  <>
-                    <strong>Linked Vehicles</strong>
-                    <br />
-                    The number of vehicles currently linked to your account versus the maximum allowed by your plan.
-                  </>
-                }
-                className="ml-1"
-              />
-            </div>
-          )}
+
+          
+
+          {/* Real-time API Usage Display */}
+          <ApiUsageDisplay
+            initialPurchasedApiTokens={purchasedApiTokens}
+            userId={userId}
+          />
 
           <div className="flex flex-col gap-2 pt-2">
             <ProfileSettingToggle
