@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { supportedLanguages, defaultLanguage } from '@/i18n/languages';
 
 // Import translation files
 import en from '@/i18n/locales/en.json';
@@ -23,7 +24,7 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
           en: { translation: en },
           sv: { translation: sv },
         },
-        fallbackLng: 'en',
+        fallbackLng: defaultLanguage,
         debug: process.env.NODE_ENV === 'development',
         interpolation: {
           escapeValue: false,
