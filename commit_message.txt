@@ -1,9 +1,8 @@
-feat: Implement subscription and linked vehicle count improvements
+fix: Correct API Usage Calculation Logic
 
-This commit addresses two key issues:
-- **Issue #225: Subscription Price Missing for PRO Users:**
-  - Backend: Enhanced `/user/{user_id}/subscription` to include `amount` and `currency` from subscription plans.
-  - Frontend: Refactored profile page to correctly display billing information, trial status, and subscription prompts based on user's subscription state. Introduced `SubscribeCard` and `TrialCard` components.
-- **Issue #226: Linked Vehicles Count Incorrect on Profile Page:**
-  - Backend: Ensured `linked_vehicle_count` in `public.users` is updated when vehicles are linked via `save_vehicle_data_with_client`.
-  - Provided a SQL script (`update_linked_vehicle_count.sql`) for manual synchronization of `linked_vehicle_count` in the database.
+This commit addresses the API Usage Calculation Bug by implementing a dynamic calculation of API calls based on the user's subscription status:
+- For PRO/BASIC users with an active subscription, API usage is calculated based on their subscription period.
+- For PRO users on a trial, usage is calculated based on their 30-day trial period.
+- For FREE users, a rolling 30-day window is used.
+- Introduced `count_polls_in_period` function in `poll_logs.py` to support period-based counting.
+- Ensured all datetime comparisons are timezone-aware to prevent `TypeError`.
