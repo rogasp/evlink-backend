@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "submit": "Soumettre",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "refresh": "Actualiser"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "billing": "Facturation",
+    "vehicles": "Véhicules",
+    "logout": "Se déconnecter",
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "home": "Accueil",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Connectez votre véhicule électrique à Home Assistant",
+    "description": "EVLinkHA est un pont open source entre Home Assistant et Enode qui permet une intégration transparente des véhicules électriques et une gestion intelligente de l'énergie dans votre maison.",
+    "getStarted": "Commencer",
+    "learnMore": "En savoir plus",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "contact": "Contact",
+    "hero": {
+      "badge": "Gratuit pour commencer",
+      "title": "Connectez votre véhicule électrique.",
+      "subtitle": "EVLinkHA connecte votre véhicule électrique à Home Assistant via Enode. C'est privé, évolutif et prêt pour les utilisateurs avancés."
+    },
+    "pricing": {
+      "title": "Choisissez votre plan",
+      "plans": {
+        "free": {
+          "title": "Gratuit",
+          "price": "0 EUR",
+          "features": [
+            "1 appareil connecté",
+            "300 appels API par mois",
+            "1 jour de conservation des logs",
+            "Aucun webhook",
+            "Aucun support prioritaire",
+            "30 jours : période d'essai accès complet"
+          ]
+        },
+        "basic": {
+          "title": "Basique",
+          "price": "1.99 EUR",
+          "features": [
+            "2 appareils connectés",
+            "2 500 appels API par mois",
+            "7 jours de conservation des logs",
+            "Aucun webhook",
+            "Aucun support prioritaire"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 appareils connectés",
+            "10 000 appels API par mois",
+            "365 jours de conservation des logs",
+            "Webhooks (HA + générique)",
+            "Support prioritaire (48h/SLA)"
+          ]
+        },
+        "custom": {
+          "title": "Personnalisé",
+          "price": "Tarif personnalisé",
+          "features": [
+            "Appareils illimités",
+            "Utilisation API personnalisée",
+            "Conservation des logs personnalisée",
+            "Webhooks avancés",
+            "Support prioritaire (48h/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Chargement...",
+        "register": "S'inscrire",
+        "currentPlan": "Plan actuel",
+        "downgradeToFree": "Rétrograder vers gratuit",
+        "upgradeToBasic": "Passer à basique",
+        "upgradeToPro": "Passer à Pro",
+        "manageSubscription": "Gérer l'abonnement",
+        "contactUs": "Nous contacter"
+      },
+      "badges": {
+        "currentPlan": "Plan actuel",
+        "comingSoon": "Bientôt disponible"
+      }
+    },
+    "features": {
+      "title": "Pourquoi choisir EVLink ?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Connecter n'importe quel véhicule électrique",
+          "description": "Supporte la plupart des marques de véhicules électriques via Enode. Connectez votre véhicule instantanément et commencez à synchroniser les données avec Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Informations en temps réel",
+          "description": "Surveillez l'état de charge, le niveau de batterie et l'autonomie en temps réel – directement depuis votre tableau de bord."
+        },
+        "smartAutomation": {
+          "title": "⚡ Automatisation intelligente",
+          "description": "Automatisez la charge intelligente et les horaires en utilisant les routines et scènes Home Assistant."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA est open source & construit pour la communauté",
+      "description": "Ce projet est un hobby personnel, construit le soir et les week-ends. Si vous le trouvez utile, vous pouvez soutenir son avenir.",
+      "bronzeSupporter": "En tant que Bronze Supporter, vous aidez à maintenir EVLink en marche et accessible à tous. Même les petites contributions font une grande différence—votre nom sera fièrement affiché dans notre README.md et sur la page Supporters sur evlinkha.se.",
+      "buttons": {
+        "starOnGithub": "⭐ Étoile sur GitHub",
+        "buyMeACoffee": "☕ Offrez-moi un café"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bon retour",
+    "noVehicles": "Aucun véhicule connecté",
+    "addVehicle": "Ajouter un véhicule",
+    "vehicleStatus": "État du véhicule",
+    "batteryLevel": "Niveau de batterie",
+    "range": "Autonomie",
+    "charging": "En charge",
+    "connected": "Connecté",
+    "offline": "Hors ligne"
+  },
+  "profile": {
+    "title": "Profil",
+    "personalInfo": "Informations personnelles",
+    "accountSettings": "Paramètres du compte",
+    "preferences": "Préférences",
+    "apiKeys": "Clés API",
+    "subscriptions": "Abonnements",
+    "language": "Langue",
+    "theme": "Thème"
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire",
+    "signOut": "Se déconnecter",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "createAccount": "Créer un compte",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Vous n'avez pas de compte ?"
+  },
+  "errors": {
+    "generic": "Quelque chose s'est mal passé",
+    "notFound": "Page non trouvée",
+    "unauthorized": "Non autorisé",
+    "forbidden": "Interdit",
+    "serverError": "Erreur du serveur",
+    "networkError": "Erreur réseau",
+    "validationError": "Erreur de validation",
+    "tryAgain": "Réessayer"
+  }
+}

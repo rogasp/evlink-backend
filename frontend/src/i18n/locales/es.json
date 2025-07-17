@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "submit": "Enviar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "refresh": "Actualizar"
+  },
+  "navigation": {
+    "dashboard": "Panel de control",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "billing": "Facturación",
+    "vehicles": "Vehículos",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "home": "Inicio",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Conecta tu vehículo eléctrico a Home Assistant",
+    "description": "EVLinkHA es un puente de código abierto entre Home Assistant y Enode que permite la integración perfecta de vehículos eléctricos y gestión inteligente de energía en tu hogar.",
+    "getStarted": "Comenzar",
+    "learnMore": "Saber más",
+    "features": "Características",
+    "pricing": "Precios",
+    "contact": "Contacto",
+    "hero": {
+      "badge": "Gratis para comenzar",
+      "title": "Conecta tu vehículo eléctrico.",
+      "subtitle": "EVLinkHA conecta tu vehículo eléctrico a Home Assistant a través de Enode. Es privado, escalable y listo para usuarios avanzados."
+    },
+    "pricing": {
+      "title": "Elige tu plan",
+      "plans": {
+        "free": {
+          "title": "Gratuito",
+          "price": "0 EUR",
+          "features": [
+            "1 dispositivo conectado",
+            "300 llamadas API por mes",
+            "1 día de retención de logs",
+            "Sin webhooks",
+            "Sin soporte prioritario",
+            "30 días: período de prueba acceso completo"
+          ]
+        },
+        "basic": {
+          "title": "Básico",
+          "price": "1.99 EUR",
+          "features": [
+            "2 dispositivos conectados",
+            "2 500 llamadas API por mes",
+            "7 días de retención de logs",
+            "Sin webhooks",
+            "Sin soporte prioritario"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 dispositivos conectados",
+            "10 000 llamadas API por mes",
+            "365 días de retención de logs",
+            "Webhooks (HA + genérico)",
+            "Soporte prioritario (48h/SLA)"
+          ]
+        },
+        "custom": {
+          "title": "Personalizado",
+          "price": "Precio personalizado",
+          "features": [
+            "Dispositivos ilimitados",
+            "Uso de API personalizado",
+            "Retención de logs personalizada",
+            "Webhooks avanzados",
+            "Soporte prioritario (48h/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Cargando...",
+        "register": "Registrarse",
+        "currentPlan": "Plan actual",
+        "downgradeToFree": "Bajar a gratuito",
+        "upgradeToBasic": "Actualizar a básico",
+        "upgradeToPro": "Actualizar a Pro",
+        "manageSubscription": "Gestionar suscripción",
+        "contactUs": "Contáctanos"
+      },
+      "badges": {
+        "currentPlan": "Plan actual",
+        "comingSoon": "Próximamente"
+      }
+    },
+    "features": {
+      "title": "¿Por qué elegir EVLink?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Conecta cualquier vehículo eléctrico",
+          "description": "Soporta la mayoría de marcas de vehículos eléctricos a través de Enode. Conecta tu vehículo al instante y comienza a sincronizar datos con Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Información en tiempo real",
+          "description": "Monitorea el estado de carga, nivel de batería y autonomía en tiempo real – directamente desde tu panel de control."
+        },
+        "smartAutomation": {
+          "title": "⚡ Automatización inteligente",
+          "description": "Automatiza la carga inteligente y horarios usando rutinas y escenas de Home Assistant."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA es código abierto y construido para la comunidad",
+      "description": "Este proyecto es un pasatiempo personal, construido en las noches y fines de semana. Si lo encuentras útil, puedes apoyar su futuro.",
+      "bronzeSupporter": "Como Bronze Supporter ayudas a mantener EVLink funcionando y accesible para todos. Incluso pequeñas contribuciones hacen una gran diferencia—tu nombre se mostrará con orgullo en nuestro README.md y en la página de Supporters en evlinkha.se.",
+      "buttons": {
+        "starOnGithub": "⭐ Estrella en GitHub",
+        "buyMeACoffee": "☕ Cómprame un café"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Panel de control",
+    "welcome": "Bienvenido de vuelta",
+    "noVehicles": "Sin vehículos conectados",
+    "addVehicle": "Agregar vehículo",
+    "vehicleStatus": "Estado del vehículo",
+    "batteryLevel": "Nivel de batería",
+    "range": "Autonomía",
+    "charging": "Cargando",
+    "connected": "Conectado",
+    "offline": "Desconectado"
+  },
+  "profile": {
+    "title": "Perfil",
+    "personalInfo": "Información personal",
+    "accountSettings": "Configuración de cuenta",
+    "preferences": "Preferencias",
+    "apiKeys": "Claves API",
+    "subscriptions": "Suscripciones",
+    "language": "Idioma",
+    "theme": "Tema"
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "signOut": "Cerrar sesión",
+    "email": "Email",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "rememberMe": "Recordarme",
+    "createAccount": "Crear cuenta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "dontHaveAccount": "¿No tienes una cuenta?"
+  },
+  "errors": {
+    "generic": "Algo salió mal",
+    "notFound": "Página no encontrada",
+    "unauthorized": "No autorizado",
+    "forbidden": "Prohibido",
+    "serverError": "Error del servidor",
+    "networkError": "Error de red",
+    "validationError": "Error de validación",
+    "tryAgain": "Intentar de nuevo"
+  }
+}

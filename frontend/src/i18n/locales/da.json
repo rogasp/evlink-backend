@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Indlæser...",
+    "error": "Fejl",
+    "save": "Gem",
+    "cancel": "Annuller",
+    "confirm": "Bekræft",
+    "close": "Luk",
+    "submit": "Indsend",
+    "edit": "Rediger",
+    "delete": "Slet",
+    "create": "Opret",
+    "update": "Opdater",
+    "refresh": "Opdater"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profil",
+    "settings": "Indstillinger",
+    "billing": "Fakturering",
+    "vehicles": "Køretøjer",
+    "logout": "Log ud",
+    "login": "Log ind",
+    "register": "Registrer",
+    "home": "Hjem",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Forbind dit elektriske køretøj til Home Assistant",
+    "description": "EVLinkHA er en open source-bro mellem Home Assistant og Enode, der muliggør sømløs integration af elektriske køretøjer og intelligent energistyring i dit hjem.",
+    "getStarted": "Kom i gang",
+    "learnMore": "Lær mere",
+    "features": "Funktioner",
+    "pricing": "Priser",
+    "contact": "Kontakt",
+    "hero": {
+      "badge": "Gratis at komme i gang",
+      "title": "Forbind dit elbil.",
+      "subtitle": "EVLinkHA forbinder dit elektriske køretøj til Home Assistant med Enode. Det er privat, skalerbart og klar til avancerede brugere."
+    },
+    "pricing": {
+      "title": "Vælg din plan",
+      "plans": {
+        "free": {
+          "title": "Gratis",
+          "price": "0 EUR",
+          "features": [
+            "1 forbundet enhed",
+            "300 API-kald per måned",
+            "1 dags log-opbevaring",
+            "Ingen webhooks",
+            "Ingen prioriteret support",
+            "30 dage: fuld adgang prøveperiode"
+          ]
+        },
+        "basic": {
+          "title": "Grundlæggende",
+          "price": "1.99 EUR",
+          "features": [
+            "2 forbundne enheder",
+            "2 500 API-kald per måned",
+            "7 dages log-opbevaring",
+            "Ingen webhooks",
+            "Ingen prioriteret support"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 forbundne enheder",
+            "10 000 API-kald per måned",
+            "365 dages log-opbevaring",
+            "Webhooks (HA + generisk)",
+            "Prioriteret support (48t/SLA)"
+          ]
+        },
+        "custom": {
+          "title": "Tilpasset",
+          "price": "Tilpasset pris",
+          "features": [
+            "Ubegrænsede enheder",
+            "Tilpasset API-forbrug",
+            "Tilpasset log-opbevaring",
+            "Avancerede webhooks",
+            "Prioriteret support (48t/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Indlæser...",
+        "register": "Registrer",
+        "currentPlan": "Nuværende plan",
+        "downgradeToFree": "Nedgrader til gratis",
+        "upgradeToBasic": "Opgrader til grundlæggende",
+        "upgradeToPro": "Opgrader til Pro",
+        "manageSubscription": "Administrer abonnement",
+        "contactUs": "Kontakt os"
+      },
+      "badges": {
+        "currentPlan": "Nuværende plan",
+        "comingSoon": "Kommer snart"
+      }
+    },
+    "features": {
+      "title": "Hvorfor vælge EVLink?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Forbind enhver elbil",
+          "description": "Understøtter de fleste elbil-mærker gennem Enode. Forbind dit køretøj med det samme og begynd at synkronisere data til Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Real-time indsigt",
+          "description": "Overvåg opladningsstatus, batteriniveau og rækkevidde i realtid – direkte fra dit dashboard."
+        },
+        "smartAutomation": {
+          "title": "⚡ Smart automatisering",
+          "description": "Automatiser intelligent opladning og tidsplaner ved hjælp af Home Assistant rutiner og scener."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA er open source & bygget til fællesskabet",
+      "description": "Dette projekt er en personlig hobby, bygget om aftener og weekender. Hvis du synes det er nyttigt, kan du støtte dets fremtid.",
+      "bronzeSupporter": "Som Bronze Supporter hjælper du med at holde EVLink kørende og tilgængelig for alle. Selv små bidrag gør en stor forskel—dit navn vil blive vist med stolthed i vores README.md og på Supporter-siden på evlinkha.se.",
+      "buttons": {
+        "starOnGithub": "⭐ Stjerne på GitHub",
+        "buyMeACoffee": "☕ Køb mig en kaffe"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Velkommen tilbage",
+    "noVehicles": "Ingen køretøjer forbundet",
+    "addVehicle": "Tilføj køretøj",
+    "vehicleStatus": "Køretøjsstatus",
+    "batteryLevel": "Batteriniveau",
+    "range": "Rækkevidde",
+    "charging": "Oplader",
+    "connected": "Forbundet",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profil",
+    "personalInfo": "Personlige oplysninger",
+    "accountSettings": "Kontoindstillinger",
+    "preferences": "Præferencer",
+    "apiKeys": "API-nøgler",
+    "subscriptions": "Abonnementer",
+    "language": "Sprog",
+    "theme": "Tema"
+  },
+  "auth": {
+    "signIn": "Log ind",
+    "signUp": "Registrer",
+    "signOut": "Log ud",
+    "email": "E-mail",
+    "password": "Adgangskode",
+    "forgotPassword": "Glemt adgangskode?",
+    "rememberMe": "Husk mig",
+    "createAccount": "Opret konto",
+    "alreadyHaveAccount": "Har du allerede en konto?",
+    "dontHaveAccount": "Har du ikke en konto?"
+  },
+  "errors": {
+    "generic": "Noget gik galt",
+    "notFound": "Siden blev ikke fundet",
+    "unauthorized": "Uautoriseret",
+    "forbidden": "Forbudt",
+    "serverError": "Serverfejl",
+    "networkError": "Netværksfejl",
+    "validationError": "Valideringsfejl",
+    "tryAgain": "Prøv igen"
+  }
+}

@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { US, SE } from 'country-flag-icons/react/3x2';
+import { US, SE, DK, NO, NL, DE, IT, FR, ES } from 'country-flag-icons/react/3x2';
 
 const FlagIcon = ({ code }: { code: string }) => {
   const flagProps = { className: "w-4 h-3 rounded-sm" };
@@ -20,6 +20,20 @@ const FlagIcon = ({ code }: { code: string }) => {
       return <US {...flagProps} />;
     case 'sv':
       return <SE {...flagProps} />;
+    case 'da':
+      return <DK {...flagProps} />;
+    case 'no':
+      return <NO {...flagProps} />;
+    case 'nl':
+      return <NL {...flagProps} />;
+    case 'de':
+      return <DE {...flagProps} />;
+    case 'it':
+      return <IT {...flagProps} />;
+    case 'fr':
+      return <FR {...flagProps} />;
+    case 'es':
+      return <ES {...flagProps} />;
     default:
       return <Globe className="w-4 h-4" />;
   }
@@ -37,7 +51,7 @@ export default function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9">
+        <Button variant="ghost" size="sm" className="h-9 text-white hover:bg-white/10 hover:text-white border-white/20">
           <FlagIcon code={currentLanguage.code} />
           <span className="hidden sm:inline ml-2 mr-2">{currentLanguage.nativeName}</span>
           <ChevronDown className="h-4 w-4" />

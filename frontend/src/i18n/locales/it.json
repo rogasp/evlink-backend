@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Caricamento...",
+    "error": "Errore",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "close": "Chiudi",
+    "submit": "Invia",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "create": "Crea",
+    "update": "Aggiorna",
+    "refresh": "Aggiorna"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profilo",
+    "settings": "Impostazioni",
+    "billing": "Fatturazione",
+    "vehicles": "Veicoli",
+    "logout": "Esci",
+    "login": "Accedi",
+    "register": "Registrati",
+    "home": "Home",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Collega il tuo veicolo elettrico a Home Assistant",
+    "description": "EVLinkHA è un ponte open source tra Home Assistant ed Enode che consente l'integrazione perfetta di veicoli elettrici e gestione intelligente dell'energia nella tua casa.",
+    "getStarted": "Inizia",
+    "learnMore": "Scopri di più",
+    "features": "Funzionalità",
+    "pricing": "Prezzi",
+    "contact": "Contatto",
+    "hero": {
+      "badge": "Gratis per iniziare",
+      "title": "Collega il tuo veicolo elettrico.",
+      "subtitle": "EVLinkHA collega il tuo veicolo elettrico a Home Assistant tramite Enode. È privato, scalabile e pronto per utenti avanzati."
+    },
+    "pricing": {
+      "title": "Scegli il tuo piano",
+      "plans": {
+        "free": {
+          "title": "Gratuito",
+          "price": "0 EUR",
+          "features": [
+            "1 dispositivo connesso",
+            "300 chiamate API al mese",
+            "1 giorno di conservazione log",
+            "Nessun webhook",
+            "Nessun supporto prioritario",
+            "30 giorni: periodo di prova accesso completo"
+          ]
+        },
+        "basic": {
+          "title": "Base",
+          "price": "1.99 EUR",
+          "features": [
+            "2 dispositivi connessi",
+            "2 500 chiamate API al mese",
+            "7 giorni di conservazione log",
+            "Nessun webhook",
+            "Nessun supporto prioritario"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 dispositivi connessi",
+            "10 000 chiamate API al mese",
+            "365 giorni di conservazione log",
+            "Webhook (HA + generico)",
+            "Supporto prioritario (48h/SLA)"
+          ]
+        },
+        "custom": {
+          "title": "Personalizzato",
+          "price": "Prezzo personalizzato",
+          "features": [
+            "Dispositivi illimitati",
+            "Utilizzo API personalizzato",
+            "Conservazione log personalizzata",
+            "Webhook avanzati",
+            "Supporto prioritario (48h/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Caricamento...",
+        "register": "Registrati",
+        "currentPlan": "Piano attuale",
+        "downgradeToFree": "Downgrade a gratuito",
+        "upgradeToBasic": "Upgrade a base",
+        "upgradeToPro": "Upgrade a Pro",
+        "manageSubscription": "Gestisci abbonamento",
+        "contactUs": "Contattaci"
+      },
+      "badges": {
+        "currentPlan": "Piano attuale",
+        "comingSoon": "Prossimamente"
+      }
+    },
+    "features": {
+      "title": "Perché scegliere EVLink?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Collega qualsiasi veicolo elettrico",
+          "description": "Supporta la maggior parte dei marchi EV tramite Enode. Collega il tuo veicolo istantaneamente e inizia a sincronizzare i dati con Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Informazioni in tempo reale",
+          "description": "Monitora stato di ricarica, livello della batteria e autonomia in tempo reale – direttamente dal tuo dashboard."
+        },
+        "smartAutomation": {
+          "title": "⚡ Automazione intelligente",
+          "description": "Automatizza ricarica intelligente e programmi utilizzando routine e scene di Home Assistant."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA è open source & costruito per la comunità",
+      "description": "Questo progetto è un hobby personale, costruito nelle serate e nei weekend. Se lo trovi utile, puoi supportare il suo futuro.",
+      "bronzeSupporter": "Come Bronze Supporter aiuti a mantenere EVLink funzionante e accessibile a tutti. Anche piccoli contributi fanno una grande differenza—il tuo nome sarà mostrato con orgoglio nel nostro README.md e nella pagina Supporters su evlinkha.se.",
+      "buttons": {
+        "starOnGithub": "⭐ Stella su GitHub",
+        "buyMeACoffee": "☕ Comprami un caffè"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bentornato",
+    "noVehicles": "Nessun veicolo connesso",
+    "addVehicle": "Aggiungi veicolo",
+    "vehicleStatus": "Stato veicolo",
+    "batteryLevel": "Livello batteria",
+    "range": "Autonomia",
+    "charging": "In carica",
+    "connected": "Connesso",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profilo",
+    "personalInfo": "Informazioni personali",
+    "accountSettings": "Impostazioni account",
+    "preferences": "Preferenze",
+    "apiKeys": "Chiavi API",
+    "subscriptions": "Abbonamenti",
+    "language": "Lingua",
+    "theme": "Tema"
+  },
+  "auth": {
+    "signIn": "Accedi",
+    "signUp": "Registrati",
+    "signOut": "Esci",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Password dimenticata?",
+    "rememberMe": "Ricordami",
+    "createAccount": "Crea account",
+    "alreadyHaveAccount": "Hai già un account?",
+    "dontHaveAccount": "Non hai un account?"
+  },
+  "errors": {
+    "generic": "Qualcosa è andato storto",
+    "notFound": "Pagina non trovata",
+    "unauthorized": "Non autorizzato",
+    "forbidden": "Vietato",
+    "serverError": "Errore del server",
+    "networkError": "Errore di rete",
+    "validationError": "Errore di validazione",
+    "tryAgain": "Riprova"
+  }
+}

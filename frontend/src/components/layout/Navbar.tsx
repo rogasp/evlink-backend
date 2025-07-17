@@ -7,6 +7,7 @@ import { useUserInfo } from '@/hooks/useUserInfo'
 import { usePathname } from 'next/navigation'
 import NavUser from '../NavUser'
 import { OnlineStatusIcon } from './OnlineStatusIcon'
+import LanguageSwitcher from '../LanguageSwitcher'
 
 export default function Navbar() {
   const { isLoggedIn } = useUserInfo()
@@ -28,6 +29,7 @@ export default function Navbar() {
       </div>
       {/* Höger: Exempelknappar */}
       <div className="flex items-center gap-4">
+        <LanguageSwitcher />
         {!isLoggedIn && (
         <>
           <Link

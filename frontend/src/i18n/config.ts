@@ -5,6 +5,13 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 // Import translation files
 import en from './locales/en.json';
 import sv from './locales/sv.json';
+import da from './locales/da.json';
+import no from './locales/no.json';
+import nl from './locales/nl.json';
+import de from './locales/de.json';
+import it from './locales/it.json';
+import fr from './locales/fr.json';
+import es from './locales/es.json';
 
 const resources = {
   en: {
@@ -12,6 +19,27 @@ const resources = {
   },
   sv: {
     translation: sv,
+  },
+  da: {
+    translation: da,
+  },
+  no: {
+    translation: no,
+  },
+  nl: {
+    translation: nl,
+  },
+  de: {
+    translation: de,
+  },
+  it: {
+    translation: it,
+  },
+  fr: {
+    translation: fr,
+  },
+  es: {
+    translation: es,
   },
 };
 

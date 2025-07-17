@@ -13,6 +13,48 @@ export const supportedLanguages: Language[] = [
     nativeName: 'English'
   },
   {
+    code: 'da',
+    name: 'Danish',
+    flag: '🇩🇰',
+    nativeName: 'Dansk'
+  },
+  {
+    code: 'de',
+    name: 'German',
+    flag: '🇩🇪',
+    nativeName: 'Deutsch'
+  },
+  {
+    code: 'es',
+    name: 'Spanish',
+    flag: '🇪🇸',
+    nativeName: 'Español'
+  },
+  {
+    code: 'fr',
+    name: 'French',
+    flag: '🇫🇷',
+    nativeName: 'Français'
+  },
+  {
+    code: 'it',
+    name: 'Italian',
+    flag: '🇮🇹',
+    nativeName: 'Italiano'
+  },
+  {
+    code: 'nl',
+    name: 'Dutch',
+    flag: '🇳🇱',
+    nativeName: 'Nederlands'
+  },
+  {
+    code: 'no',
+    name: 'Norwegian',
+    flag: '🇳🇴',
+    nativeName: 'Norsk'
+  },
+  {
     code: 'sv',
     name: 'Swedish',
     flag: '🇸🇪',
@@ -21,29 +63,3 @@ export const supportedLanguages: Language[] = [
 ];
 
 export const defaultLanguage = 'en';
-
-// Future languages to add:
-// {
-//   code: 'no',
-//   name: 'Norwegian',
-//   flag: '🇳🇴',
-//   nativeName: 'Norsk'
-// },
-// {
-//   code: 'da',
-//   name: 'Danish',
-//   flag: '🇩🇰',
-//   nativeName: 'Dansk'
-// },
-// {
-//   code: 'de',
-//   name: 'German',
-//   flag: '🇩🇪',
-//   nativeName: 'Deutsch'
-// },
-// {
-//   code: 'fr',
-//   name: 'French',
-//   flag: '🇫🇷',
-//   nativeName: 'Français'
-// }

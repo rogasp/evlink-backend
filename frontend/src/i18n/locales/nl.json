@@ -1,0 +1,177 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Fout",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen",
+    "close": "Sluiten",
+    "submit": "Versturen",
+    "edit": "Bewerken",
+    "delete": "Verwijderen",
+    "create": "Maken",
+    "update": "Bijwerken",
+    "refresh": "Vernieuwen"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profiel",
+    "settings": "Instellingen",
+    "billing": "Facturering",
+    "vehicles": "Voertuigen",
+    "logout": "Uitloggen",
+    "login": "Inloggen",
+    "register": "Registreren",
+    "home": "Home",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "EVLinkHA",
+    "subtitle": "Verbind je elektrische auto met Home Assistant",
+    "description": "EVLinkHA is een open source brug tussen Home Assistant en Enode die naadloze integratie van elektrische voertuigen en slimme energiebeheer in je huis mogelijk maakt.",
+    "getStarted": "Aan de slag",
+    "learnMore": "Meer informatie",
+    "features": "Functies",
+    "pricing": "Prijzen",
+    "contact": "Contact",
+    "hero": {
+      "badge": "Gratis om te beginnen",
+      "title": "Verbind je elektrische auto.",
+      "subtitle": "EVLinkHA verbindt je elektrische voertuig met Home Assistant via Enode. Het is privé, schaalbaar en klaar voor gevorderde gebruikers."
+    },
+    "pricing": {
+      "title": "Kies je abonnement",
+      "plans": {
+        "free": {
+          "title": "Gratis",
+          "price": "0 EUR",
+          "features": [
+            "1 verbonden apparaat",
+            "300 API-calls per maand",
+            "1 dag log bewaring",
+            "Geen webhooks",
+            "Geen prioriteitsondersteuning",
+            "30 dagen: volledige toegang proefperiode"
+          ]
+        },
+        "basic": {
+          "title": "Basis",
+          "price": "1.99 EUR",
+          "features": [
+            "2 verbonden apparaten",
+            "2 500 API-calls per maand",
+            "7 dagen log bewaring",
+            "Geen webhooks",
+            "Geen prioriteitsondersteuning"
+          ]
+        },
+        "pro": {
+          "title": "Pro",
+          "price": "4.99 EUR",
+          "features": [
+            "5 verbonden apparaten",
+            "10 000 API-calls per maand",
+            "365 dagen log bewaring",
+            "Webhooks (HA + generiek)",
+            "Prioriteitsondersteuning (48u/SLA)"
+          ]
+        },
+        "custom": {
+          "title": "Aangepast",
+          "price": "Aangepaste prijzen",
+          "features": [
+            "Onbeperkte apparaten",
+            "Aangepast API-gebruik",
+            "Aangepaste log bewaring",
+            "Geavanceerde webhooks",
+            "Prioriteitsondersteuning (48u/SLA)"
+          ]
+        }
+      },
+      "buttons": {
+        "loading": "Laden...",
+        "register": "Registreren",
+        "currentPlan": "Huidige abonnement",
+        "downgradeToFree": "Downgraden naar gratis",
+        "upgradeToBasic": "Upgraden naar basis",
+        "upgradeToPro": "Upgraden naar Pro",
+        "manageSubscription": "Abonnement beheren",
+        "contactUs": "Contact opnemen"
+      },
+      "badges": {
+        "currentPlan": "Huidige abonnement",
+        "comingSoon": "Binnenkort beschikbaar"
+      }
+    },
+    "features": {
+      "title": "Waarom EVLink kiezen?",
+      "items": {
+        "connectEV": {
+          "title": "🔌 Verbind elke elektrische auto",
+          "description": "Ondersteunt de meeste EV-merken via Enode. Verbind je voertuig direct en begin met het synchroniseren van data naar Home Assistant."
+        },
+        "realTimeInsights": {
+          "title": "📊 Real-time inzichten",
+          "description": "Monitor laadstatus, batterijniveau en bereik in real-time – direct vanuit je dashboard."
+        },
+        "smartAutomation": {
+          "title": "⚡ Slimme automatisering",
+          "description": "Automatiseer slim laden en schema's met behulp van Home Assistant routines en scènes."
+        }
+      }
+    },
+    "support": {
+      "title": "EVLinkHA is open source & gebouwd voor de gemeenschap",
+      "description": "Dit project is een persoonlijke hobby, gebouwd in de avonden en weekends. Als je het nuttig vindt, kun je de toekomst ervan steunen.",
+      "bronzeSupporter": "Als Bronze Supporter help je EVLink draaiende te houden en toegankelijk voor iedereen. Zelfs kleine bijdragen maken een groot verschil—je naam wordt met trots getoond in onze README.md en op de Supporters-pagina op evlinkha.se.",
+      "buttons": {
+        "starOnGithub": "⭐ Ster op GitHub",
+        "buyMeACoffee": "☕ Koop me een koffie"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welkom terug",
+    "noVehicles": "Geen voertuigen verbonden",
+    "addVehicle": "Voertuig toevoegen",
+    "vehicleStatus": "Voertuigstatus",
+    "batteryLevel": "Batterijniveau",
+    "range": "Bereik",
+    "charging": "Laden",
+    "connected": "Verbonden",
+    "offline": "Offline"
+  },
+  "profile": {
+    "title": "Profiel",
+    "personalInfo": "Persoonlijke informatie",
+    "accountSettings": "Accountinstellingen",
+    "preferences": "Voorkeuren",
+    "apiKeys": "API-sleutels",
+    "subscriptions": "Abonnementen",
+    "language": "Taal",
+    "theme": "Thema"
+  },
+  "auth": {
+    "signIn": "Inloggen",
+    "signUp": "Registreren",
+    "signOut": "Uitloggen",
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "rememberMe": "Onthoud mij",
+    "createAccount": "Account aanmaken",
+    "alreadyHaveAccount": "Heb je al een account?",
+    "dontHaveAccount": "Heb je geen account?"
+  },
+  "errors": {
+    "generic": "Er ging iets mis",
+    "notFound": "Pagina niet gevonden",
+    "unauthorized": "Ongeautoriseerd",
+    "forbidden": "Verboden",
+    "serverError": "Serverfout",
+    "networkError": "Netwerkfout",
+    "validationError": "Validatiefout",
+    "tryAgain": "Probeer opnieuw"
+  }
+}
