@@ -68,12 +68,12 @@ export default function DashboardPage() {
 
   const handleCopyID = useCallback(
     async (vehicle: Vehicle) => {
-      if (!accessToken || !vehicle.id) {
+      if (!accessToken || !vehicle.db_id) {
         toast.error("Missing access token or vehicle ID"); /* Hardcoded string */
         return;
       }
       try {
-        await navigator.clipboard.writeText(vehicle.id);
+        await navigator.clipboard.writeText(vehicle.db_id);
         toast.success("Vehicle ID copied to clipboard!"); /* Hardcoded string */
       } catch {
         toast.error("Failed to copy vehicle ID"); /* Hardcoded string */
