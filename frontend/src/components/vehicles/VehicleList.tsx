@@ -110,7 +110,7 @@ export default function VehicleList({
                   [vehicle.information?.brand, vehicle.information?.model]
                     .filter(Boolean)
                     .join(" ") ||
-                  vehicle.id;
+                  vehicle.db_id;
 
                 const battery =
                   vehicle.chargeState?.batteryLevel != null
@@ -132,7 +132,7 @@ export default function VehicleList({
                     <td className="px-6 py-4">
                       <div className="font-semibold text-gray-900">{displayName}</div>
                       <div className="text-xs text-gray-400">
-                        Vehicle id: {vehicle.id}
+                        Vehicle id: {vehicle.db_id}
                       </div>
                     </td>
                     <td className="px-6 py-4">{battery}</td>
@@ -184,7 +184,7 @@ export default function VehicleList({
             [vehicle.information?.brand, vehicle.information?.model]
               .filter(Boolean)
               .join(" ") ||
-            vehicle.id;
+            vehicle.db_id;
 
           const battery =
             vehicle.chargeState?.batteryLevel != null
@@ -207,7 +207,7 @@ export default function VehicleList({
               className="rounded-xl border bg-white p-4 flex flex-col gap-2 shadow-sm"
             >
               <div className="font-semibold text-lg text-gray-900">{displayName}</div>
-              <div className="text-xs text-gray-400 mb-1">Vehicle id: {vehicle.id}</div>
+              <div className="text-xs text-gray-400 mb-1">Vehicle id: {vehicle.db_id}</div>
               <div className="text-sm text-gray-600 mb-1">
                 Battery: <span className="font-medium">{battery}</span>
                 {" · "}
