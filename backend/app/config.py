@@ -24,7 +24,8 @@ IS_PROD = os.getenv("ENV", "prod") == "prod"
 CACHE_EXPIRATION_MINUTES = int(os.getenv("CACHE_EXPIRATION_MINUTES", 5))
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-FROM_EMAIL = "roger@evlinkha.se"
+FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@evlinkha.se")
+FROM_NAME = os.getenv("FROM_NAME", "EVLinkHA")
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 BREVO_CUSTOMERS_LIST_ID = int(os.getenv("BREVO_CUSTOMERS_LIST_ID", "4"))
@@ -36,6 +37,8 @@ STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 STRIPE_WEBHOOK_SECRET= os.getenv("STRIPE_WEBHOOK_SECRET", "whc")
 SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL", "https://evlinkha.se/success")
 CANCEL_URL = os.getenv("STRIPE_CANCEL_URL", "https://evlinkha.se/cancel")
+
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
 
 ENDPOINT_COST = {
     "/api/ha/status/": 1,
