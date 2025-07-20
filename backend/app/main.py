@@ -180,8 +180,12 @@ app.include_router(me.router, prefix="/api")
 app.include_router(ha.router, prefix="/api")
 app.include_router(newsletter.router, prefix="/api")
 app.include_router(payments.router, prefix="/api/payments")
+
+from app.api.internal import router as internal_router
+
 for router in admin_routers:
     app.include_router(router, prefix="/api")
+app.include_router(internal_router, prefix="/api/v1")
 
 # -------------------------
 # Swagger / OpenAPI JWT support

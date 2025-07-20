@@ -1,16 +1,24 @@
 # app/dependencies/auth.py
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
 from app.storage.api_key import get_user_by_api_key
 from app.models.user import User
 from app.lib.supabase import get_supabase_admin_client
 from supabase import SupabaseAuthClient
+from app.config import INTERNAL_API_KEY
 
 # 1) Setup for Bearer token (auto_error=False so we can raise our own exceptions)
 bearer_scheme = HTTPBearer(auto_error=False)
 
+internal_api_key_header = APIKeyHeader(name="X-Internal-API-Key", auto_error=False)
+
 # 2) Get the Supabase admin client
 supabase_admin: SupabaseAuthClient = get_supabase_admin_client()
+
+async def get_internal_api_key(api_key: str = Security(internal_api_key_header)) -> str:
+    if not INTERNAL_API_KEY or api_key != INTERNAL_API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid internal API key")
+    return api_key
 
 async def get_current_user(
     creds: HTTPAuthorizationCredentials = Depends(bearer_scheme),
@@ -37,3 +45,6 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid JWT or API key")
 
     return user
+
+
+

@@ -9,6 +9,7 @@ from .interest import router as interest_router
 from .subscription import router as subscription_router
 from .insights import router as insights_router
 from .finance import router as finance_router
+from .email import router as email_router
 
 routers = [
     # admin_router,
@@ -20,4 +21,5 @@ routers = [
     subscription_router,
     insights_router,
     finance_router,
+    email_router,
 ]
