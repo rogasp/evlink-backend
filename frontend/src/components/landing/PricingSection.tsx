@@ -102,12 +102,12 @@ export default function PricingSection() {
               className={`relative border shadow-md bg-white ${key === 'custom' ? 'bg-muted/50 opacity-60' : ''}`}
             >
               {btn.badge && (
-                <Badge variant="secondary" className="absolute top-4 right-4 z-10">
+                <Badge variant="secondary" className="absolute top-2 right-2 z-10 text-xs">
                   {btn.badge}
                 </Badge>
               )}
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold">{cfg.title}</CardTitle>
+              <CardHeader className="pt-6">
+                <CardTitle className={`text-xl font-semibold uppercase ${btn.badge ? 'mt-1' : ''}`}>{cfg.title}</CardTitle>
                 <div className="mt-2 text-lg text-blue-800 font-bold">{cfg.price}</div>
               </CardHeader>
               <CardContent className="space-y-3">
