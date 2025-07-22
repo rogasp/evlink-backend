@@ -7,6 +7,7 @@ import { authFetch } from "@/lib/authFetch";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 type PersonalStats = {
   total_sessions: number;
@@ -21,6 +22,7 @@ type PersonalStats = {
 export default function PersonalStatsCard() {
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { i18n } = useTranslation();
 
   const formatMinutesToDuration = (totalMinutes: number | null): string => {
     if (totalMinutes === null) return "N/A";
@@ -125,7 +127,7 @@ export default function PersonalStatsCard() {
   const startDate = stats.min_start_time ? new Date(stats.min_start_time) : null;
   const endDate = stats.max_end_time ? new Date(stats.max_end_time) : null;
 
-  const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

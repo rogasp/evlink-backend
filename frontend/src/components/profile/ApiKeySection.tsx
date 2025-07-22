@@ -89,7 +89,7 @@ export default function ApiKeySection({ userId, accessToken }: ApiKeySectionProp
                   Keep it secret!
                 </>
               }
-              className="ml-[-8px]"
+              className="ml-1"
             />
           </div>
           <p className="text-xs text-muted-foreground">
