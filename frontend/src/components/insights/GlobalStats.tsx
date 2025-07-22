@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Car, BatteryCharging, Zap } from "lucide-react";
 import { authFetch } from "@/lib/authFetch";
 import { supabase } from "@/lib/supabaseClient";
+import { useTranslation } from "react-i18next";
 
 type GlobalStats = {
   unique_users: number;
@@ -21,6 +22,7 @@ type GlobalStats = {
 
 export default function GlobalStats() {
   const [stats, setStats] = useState<GlobalStats | null>(null);
+  const { i18n } = useTranslation();
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -96,7 +98,7 @@ export default function GlobalStats() {
   const startDate = new Date(stats.min_start_time);
   const endDate = new Date(stats.max_end_time);
 
-  const dateFormatter = new Intl.DateTimeFormat('sv-SE', {
+  const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

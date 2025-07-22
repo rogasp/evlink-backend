@@ -24,7 +24,7 @@ export default function TooltipInfo({
             ml-1
             ${className}
           `}
-          style={{ position: "relative", top: "-2px" }}
+          style={{ position: "relative", top: "-1px" }}
           tabIndex={0}
         >
           <HelpCircle size={size} className="text-gray-300" />

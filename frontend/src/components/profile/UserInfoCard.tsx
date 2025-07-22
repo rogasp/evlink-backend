@@ -45,20 +45,22 @@ export default function UserInfoCard({
 }: Props) {
   return (
     <Card className="mb-6">
-      <CardContent className="flex items-center gap-4 py-6">
-        {/* Avatar */}
-        <Avatar className="h-14 w-14">
-          {avatarUrl ? (
-            <AvatarImage src={avatarUrl} alt={name || "User avatar"} />
-          ) : (
-            <AvatarFallback>
-              {name?.[0]?.toUpperCase() ?? "U"}
-            </AvatarFallback>
-          )}
-        </Avatar>
+      <CardContent className="pb-6 px-6 pt-1">
+        {/* Avatar positioned at top-left with minimal spacing */}
+        <div className="flex justify-start mb-2">
+          <Avatar className="h-12 w-12">
+            {avatarUrl ? (
+              <AvatarImage src={avatarUrl} alt={name || "User avatar"} />
+            ) : (
+              <AvatarFallback>
+                {name?.[0]?.toUpperCase() ?? "U"}
+              </AvatarFallback>
+            )}
+          </Avatar>
+        </div>
 
-        {/* Main info + settings */}
-        <div className="flex-1 space-y-3">
+        {/* Main info + settings - now left-aligned */}
+        <div className="space-y-3">
           <div className="font-semibold text-lg">{name}</div>
           <div className="text-xs text-gray-500 -mt-2">ID: {userId}</div>
           <div className="text-muted-foreground text-sm">
@@ -83,7 +85,7 @@ export default function UserInfoCard({
             />
           </div>
           <div className="text-muted-foreground text-xs flex items-center">
-            SMS credits: <span className="font-medium">{smsCredits}</span>
+            SMS credits:&nbsp;<span className="font-medium">{smsCredits}</span>
             <TooltipInfo
               content={
                 <>

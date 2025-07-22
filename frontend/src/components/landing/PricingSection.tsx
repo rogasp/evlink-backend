@@ -99,10 +99,10 @@ export default function PricingSection() {
           return (
             <Card
               key={key}
-              className={`border shadow-md bg-white ${key === 'custom' ? 'bg-muted/50 opacity-60 relative' : ''}`}
+              className={`relative border shadow-md bg-white ${key === 'custom' ? 'bg-muted/50 opacity-60' : ''}`}
             >
               {btn.badge && (
-                <Badge variant="secondary" className="absolute top-4 right-4">
+                <Badge variant="secondary" className="absolute top-4 right-4 z-10">
                   {btn.badge}
                 </Badge>
               )}
