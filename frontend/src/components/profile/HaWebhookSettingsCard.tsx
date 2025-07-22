@@ -66,17 +66,19 @@ export default function HaWebhookSettingsCard({ userId, accessToken }: HaWebhook
   return (
     <Card className="mb-6">
       <CardContent className="flex flex-col gap-4 py-6">
-        <span className="font-semibold">Home Assistant Webhook</span>
-        <TooltipInfo
-          content={
-            <>
-              <strong>Home Assistant Webhook Settings</strong>
-              <br />
-              Configure the URL and ID for your Home Assistant webhook to receive real-time updates.
-            </>
-          }
-          className="ml-[-8px]"
-        />
+        <div className="flex items-center gap-2 mb-2">
+          <span className="font-semibold">Home Assistant Webhook</span>
+          <TooltipInfo
+            content={
+              <>
+                <strong>Home Assistant Webhook Settings</strong>
+                <br />
+                Configure the URL and ID for your Home Assistant webhook to receive real-time updates.
+              </>
+            }
+            className="ml-1"
+          />
+        </div>
         <WebhookInput
           id="webhook-url"
           label="Webhook URL"

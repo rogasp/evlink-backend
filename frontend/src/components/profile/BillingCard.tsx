@@ -40,17 +40,19 @@ export default function BillingCard({
         <TrialButton />
         <div>
           <div className="flex items-center justify-between">
-            <span className="font-semibold">Current Plan</span>
-            <TooltipInfo
-              content={
-                <>
-                  <strong>Current Subscription Plan</strong>
-                  <br />
-                  Your active plan, determining features and limits.
-                </>
-              }
-              className="ml-[-8px]"
-            />
+            <div className="flex items-center">
+              <span className="font-semibold">Current Plan</span>
+              <TooltipInfo
+                content={
+                  <>
+                    <strong>Current Subscription Plan</strong>
+                    <br />
+                    Your active plan, determining features and limits.
+                  </>
+                }
+                className="ml-1"
+              />
+            </div>
             <Button size="sm" variant="secondary" onClick={onManageClick} className="cursor-pointer">
               Manage
             </Button>

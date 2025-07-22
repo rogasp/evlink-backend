@@ -156,16 +156,16 @@ export default function VehicleList({
                           Details
                         </button>
                         <button
-                          className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
-                          onClick={() => onUnlinkVendor(vehicle.vendor)}
-                        >
-                          Unlink
-                        </button>
-                        <button
                           className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition"
                           onClick={() => onCopyIdClick(vehicle)}
                         >
                           Copy ID
+                        </button>
+                        <button
+                          className="px-3 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition text-sm"
+                          onClick={() => onUnlinkVendor(vehicle.vendor)}
+                        >
+                          Unlink
                         </button>
                       </div>
                     </td>
@@ -232,16 +232,16 @@ export default function VehicleList({
                   Details
                 </button>
                 <button
-                  className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
-                  onClick={() => onUnlinkVendor(vehicle.vendor)}
-                >
-                  Unlink
-                </button>
-                <button
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 font-semibold hover:bg-gray-50 transition"
                   onClick={() => onCopyIdClick(vehicle)}
                 >
                   Copy ID
+                </button>
+                <button
+                  className="px-3 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition text-sm"
+                  onClick={() => onUnlinkVendor(vehicle.vendor)}
+                >
+                  Unlink
                 </button>
               </div>
             </div>

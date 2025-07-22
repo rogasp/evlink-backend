@@ -93,7 +93,7 @@ export default function ApiUsageDisplay({ initialPurchasedApiTokens, userId }: P
   return (
     <>
       <div className="text-muted-foreground text-xs flex items-center">
-        API Tokens: <span className="font-medium">{purchasedApiTokens}</span>
+        API Tokens:&nbsp;<span className="font-medium">{purchasedApiTokens}</span>
         <TooltipInfo
           content={
             <>
@@ -107,7 +107,7 @@ export default function ApiUsageDisplay({ initialPurchasedApiTokens, userId }: P
       </div>
       {apiUsage && (
         <div className="text-muted-foreground text-xs flex items-center">
-          API Calls: <span className="font-medium">{apiUsage.current_calls}</span> / <span className="font-medium">{apiUsage.max_calls}</span> (Used/Included Monthly)
+          API Calls:&nbsp;<span className="font-medium">{apiUsage.current_calls}/{apiUsage.max_calls}</span>&nbsp;(Used/Included Monthly)
           <TooltipInfo
             content={
               <>
@@ -122,7 +122,7 @@ export default function ApiUsageDisplay({ initialPurchasedApiTokens, userId }: P
       )}
       {apiUsage && (
         <div className="text-muted-foreground text-xs flex items-center">
-          Linked Vehicles: <span className="font-medium">{apiUsage.linked_vehicle_count}</span> / <span className="font-medium">{apiUsage.max_linked_vehicles}</span> (Used/Included)
+          Linked Vehicles:&nbsp;<span className="font-medium">{apiUsage.linked_vehicle_count}/{apiUsage.max_linked_vehicles}</span>&nbsp;(Used/Included)
           <TooltipInfo
             content={
               <>
