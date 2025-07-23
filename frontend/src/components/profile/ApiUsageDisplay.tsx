@@ -48,8 +48,6 @@ export default function ApiUsageDisplay({ initialPurchasedApiTokens, userId }: P
   useEffect(() => {
     if (!userId) return;
 
-    console.log('[ApiUsageDisplay] Subscribing to Realtime channels for user:', userId);
-
     const channel = supabase
       .channel(`api-usage-${userId}`) // Unique channel name
       .on(
@@ -60,8 +58,7 @@ export default function ApiUsageDisplay({ initialPurchasedApiTokens, userId }: P
           table: 'poll_logs',
           filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
-          console.log('[ApiUsageDisplay] Realtime INSERT event received for poll_logs table:', payload);
+        () => {
           fetchApiUsage(); // Refetch API usage data
         }
       )
@@ -74,18 +71,15 @@ export default function ApiUsageDisplay({ initialPurchasedApiTokens, userId }: P
           filter: `id=eq.${userId}`,
         },
         (payload) => {
-          console.log('[ApiUsageDisplay] Realtime UPDATE event received for users table:', payload);
           if (payload.new && payload.new.purchased_api_tokens !== undefined) {
             setPurchasedApiTokens(payload.new.purchased_api_tokens);
           }
         }
       )
-      .subscribe((status) => {
-        console.log('[ApiUsageDisplay] Channel subscription status:', status);
+      .subscribe(() => {
       });
 
     return () => {
-      console.log('[ApiUsageDisplay] Unsubscribing from Realtime channels.');
       supabase.removeChannel(channel);
     };
   }, [userId, fetchApiUsage]);

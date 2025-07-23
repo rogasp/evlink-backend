@@ -1,4 +1,5 @@
 # app/dependencies/auth.py
+import secrets
 from fastapi import Depends, HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
 from app.storage.api_key import get_user_by_api_key
@@ -16,7 +17,7 @@ internal_api_key_header = APIKeyHeader(name="X-Internal-API-Key", auto_error=Fal
 supabase_admin: SupabaseAuthClient = get_supabase_admin_client()
 
 async def get_internal_api_key(api_key: str = Security(internal_api_key_header)) -> str:
-    if not INTERNAL_API_KEY or api_key != INTERNAL_API_KEY:
+    if not INTERNAL_API_KEY or not api_key or not secrets.compare_digest(api_key, INTERNAL_API_KEY):
         raise HTTPException(status_code=401, detail="Invalid internal API key")
     return api_key
 

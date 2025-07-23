@@ -56,7 +56,7 @@ export default function Footer() {
         size="icon"
         className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
       >
-        <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer">
+        <a href="https://www.facebook.com/evlinkha/" target="_blank" rel="noopener noreferrer">
           <Facebook className="h-5 w-5" />
         </a>
       </Button>
@@ -123,7 +123,7 @@ export default function Footer() {
       size="icon"
       className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
     >
-      <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer">
+      <a href="https://www.facebook.com/evlinkha/" target="_blank" rel="noopener noreferrer">
         <Facebook className="h-5 w-5" />
       </a>
     </Button>
@@ -204,7 +204,7 @@ export default function Footer() {
       size="icon"
       className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
     >
-      <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer">
+      <a href="https://www.facebook.com/evlinkha/" target="_blank" rel="noopener noreferrer">
         <Facebook className="h-5 w-5" />
       </a>
     </Button>
@@ -289,7 +289,7 @@ export default function Footer() {
             size="icon"
             className="text-gray-300 hover:text-white hover:bg-[#0A2245]"
             >
-            <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.facebook.com/evlinkha/" target="_blank" rel="noopener noreferrer">
                 <Facebook className="h-5 w-5" />
             </a>
             </Button>
