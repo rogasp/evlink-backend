@@ -27,7 +27,6 @@ export function OnlineStatusIcon() {
 
       if (res.data?.online_status) {
         setStatus(res.data.online_status);
-        console.log('[🟢 OnlineStatusIcon] Initial status:', res.data.online_status);
       }
     };
 
@@ -54,14 +53,12 @@ export function OnlineStatusIcon() {
             filter: `user_id=eq.${session.user.id}`,
           },
           async () => {
-            console.log('[🔁 OnlineStatusIcon] Vehicle update → refetching /me');
             const res = await authFetch('/me', {
               method: 'GET',
               accessToken: session.access_token,
             });
             if (res.data?.online_status) {
               setStatus(res.data.online_status);
-              console.log('[🟢 OnlineStatusIcon] Updated status:', res.data.online_status);
             }
           }
         )
