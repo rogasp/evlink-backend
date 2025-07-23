@@ -55,6 +55,12 @@ sudo rm -rf .venv
 sudo -u fastapiserver python3 -m venv .venv
 sudo -u fastapiserver .venv/bin/pip install --upgrade pip
 sudo -u fastapiserver .venv/bin/pip install -r requirements.txt
+
+# Copy .env file to backend directory for PM2
+echo "📝 Setting up backend environment file..."
+sudo cp "$CONFIG_DIR/.env" .env
+sudo chown fastapiserver:fastapiserver .env
+sudo chmod 600 .env
 echo "✅ Backend Python environment completed"
 
 # 5. Set up frontend Node.js environment
