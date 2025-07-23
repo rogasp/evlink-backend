@@ -59,7 +59,6 @@ export function useUserInfo() {
     if (error) {
       console.error('[🔴 Logout error]', error.message); /* Hardcoded string */
     } else {
-      console.log('[✅ Logout successful]'); /* Hardcoded string */
       router.push('/login') /* Hardcoded string */
     }
   }

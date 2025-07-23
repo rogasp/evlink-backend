@@ -29,7 +29,7 @@ export default function SupportSection() {
       {/* Call-to-action buttons */}
       <div className="flex justify-center gap-3 flex-wrap">
         <a
-          href="https://github.com/rogasp/evlink"
+          href="https://github.com/rogasp/evlink-backend"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center px-5 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white hover:bg-gray-50"

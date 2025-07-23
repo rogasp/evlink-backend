@@ -15,7 +15,6 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('[📥 callback] Starting auth callback handler...');
 
       const {
         data: { session },
@@ -30,22 +29,18 @@ export default function AuthCallback() {
 
       const user = session.user;
       setUserId(user.id);
-      console.log('[✅ callback] User signed in:', user.id, user.email);
 
       // 🧪 Backup access_code logic
       const accessCode = sessionStorage.getItem('access_code');
-      console.log('[📦 callback] Found access code in sessionStorage:', accessCode);
 
       if (accessCode) {
         try {
-          const res = await fetch('/api/public/access-code/use', {
+          await fetch('/api/public/access-code/use', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: accessCode, user_id: user.id }),
           });
 
-          const json = await res.json();
-          console.log('[📤 callback] Access code used:', res.status, json);
         } catch (err) {
           console.error('[❌ callback] Failed to use access code:', err);
         } finally {
