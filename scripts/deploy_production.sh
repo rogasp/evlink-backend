@@ -62,6 +62,17 @@ echo "✅ Backend Python environment completed"
 echo "📦 Setting up frontend Node.js environment..."
 cd "$PRODUCTION_DIR/frontend"
 sudo rm -rf node_modules package-lock.json .next
+
+# Create .env.local for frontend from shared config
+echo "📝 Creating frontend environment configuration..."
+# Source the main config and extract needed values
+source "$CONFIG_DIR/.env"
+sudo -u fastapiserver tee .env.local << EOF
+# Supabase Configuration (from shared config)
+NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+EOF
+
 sudo -u fastapiserver npm install
 sudo -u fastapiserver npm run build
 echo "✅ Frontend Node.js environment and build completed"
