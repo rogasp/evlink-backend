@@ -1,5 +1,6 @@
 # backend/app/services/email/brevo_service.py
 
+import asyncio
 import logging
 from brevo_python import Configuration, ApiClient, TransactionalEmailsApi
 from brevo_python.rest import ApiException
@@ -53,7 +54,7 @@ class BrevoEmailService:
         )
 
         try:
-            self.api_instance.send_transac_email(smtp_email)
+            await asyncio.to_thread(self.api_instance.send_transac_email, smtp_email)
             logger.info(f"Successfully sent email to {recipient_email} with subject '{subject}'.")
             return True
         except ApiException as e:
