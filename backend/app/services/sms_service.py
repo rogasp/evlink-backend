@@ -16,6 +16,7 @@ except ImportError:
     TWILIO_AVAILABLE = False
     TwilioClient = None
 
+
 from ..config import (
     TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN,
@@ -134,7 +135,7 @@ class SMSService:
                 lookup = self.client.lookups.v2.phone_numbers(phone_number).fetch()
                 
                 # DEBUG: Log the full lookup response
-                logger.info(f"🔍 Twilio Lookup response for {phone_number}:")
+                logger.info(f"🔍 Twilio Lookup response for {self._mask_phone_number(phone_number)}:")
                 logger.info(f"  valid: {lookup.valid}")
                 logger.info(f"  phone_number: {getattr(lookup, 'phone_number', 'N/A')}")
                 logger.info(f"  validation_errors: {getattr(lookup, 'validation_errors', [])}")
@@ -273,6 +274,14 @@ class SMSService:
                     "message": "Failed to send verification code. Please try again."
                 }
     
+    def _mask_phone_number(self, phone_number: str) -> str:
+        """Mask all but the last 2 digits of a phone number for logging."""
+        if not phone_number or len(phone_number) < 4:
+            return "***"
+        # Keep plus sign if present, mask all but last 2 digits
+        masked = re.sub(r'\d(?=\d{2})', '*', phone_number)
+        return masked
+
     async def verify_code(self, user_id: str, code: str) -> Dict[str, Any]:
         """Verify the SMS verification code"""
         try:
