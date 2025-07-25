@@ -1,7 +1,6 @@
 """
 SMS Service - Handles SMS verification and notifications using Twilio
 """
-
 import logging
 import random
 import re
@@ -233,7 +232,8 @@ class SMSService:
             sms_result = self.client.messages.create(
                 body=message,
                 from_=TWILIO_FROM_NUMBER,
-                to=phone_number
+                to=phone_number,
+                risk_check='disable'  # Disable SMS pumping protection for legitimate verification codes
             )
             
             logger.info(f"✅ SMS sent: {sms_result.sid}")
@@ -403,7 +403,8 @@ class SMSService:
             sms_result = self.client.messages.create(
                 body=message,
                 from_=TWILIO_FROM_NUMBER,
-                to=phone_number
+                to=phone_number,
+                risk_check='disable'  # Disable SMS pumping protection for legitimate verification codes
             )
             
             logger.info(f"✅ Resent SMS: {sms_result.sid}")
