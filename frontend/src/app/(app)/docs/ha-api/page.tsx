@@ -294,18 +294,18 @@ export default function HAApiPage() {
           <ol className='list-decimal ml-6 space-y-2 mt-4'>
             <li>Open Home Assistant</li>
             <li>Go to <strong>HACS → Integrations</strong></li>
-            <li>Search for <strong>"EVLinkHA"</strong></li>
+            <li>Search for <strong>&quot;EVLinkHA&quot;</strong></li>
             <li>If not found, add custom repository:</li>
             <ul className='list-disc ml-6'>
               <li>Click the three dots in top right of HACS</li>
-              <li>Select <strong>"Custom repositories"</strong></li>
+              <li>Select <strong>&quot;Custom repositories&quot;</strong></li>
               <li>Enter: <code>https://github.com/rogasp/evlinkha-homeassistant</code></li>
               <li>Category: <strong>Integration</strong></li>
             </ul>
             <li>Install the integration</li>
             <li>Restart Home Assistant</li>
             <li>Go to <strong>Settings → Devices & Services</strong></li>
-            <li>Add integration & search for <strong>"EVLinkHA"</strong></li>
+            <li>Add integration & search for <strong>&quot;EVLinkHA&quot;</strong></li>
             <li>Enter your API key and Vehicle ID</li>
           </ol>
 

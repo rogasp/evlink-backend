@@ -178,7 +178,7 @@ export function useNotificationSettings() {
     } finally {
       setVerifying(false)
     }
-  }, [])
+  }, [fetchSettings])
 
   // Resend verification code
   const resendVerificationCode = useCallback(async () => {

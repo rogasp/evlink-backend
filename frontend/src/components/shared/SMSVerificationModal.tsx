@@ -42,7 +42,7 @@ export function SMSVerificationModal({
         setCode("")
         onOpenChange(false)
       }
-    } catch (error) {
+    } catch {
       // Error is already handled by useNotificationSettings - no need to log here
       // Just ensure the UI doesn't close on error
     } finally {

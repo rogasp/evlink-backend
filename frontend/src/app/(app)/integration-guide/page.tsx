@@ -60,18 +60,18 @@ export default function IntegrationGuidePage() {
           <ol className='list-decimal ml-6 space-y-2 mt-4'>
             <li>Open Home Assistant</li>
             <li>Go to <strong>HACS → Integrations</strong></li>
-            <li>Search for <strong>"EVLinkHA"</strong></li>
+            <li>Search for <strong>&quot;EVLinkHA&quot;</strong></li>
             <li>If not found, add custom repository:</li>
             <ul className='list-disc ml-6'>
               <li>Click the three dots in top right of HACS</li>
-              <li>Select <strong>"Custom repositories"</strong></li>
+              <li>Select <strong>&quot;Custom repositories&quot;</strong></li>
               <li>Enter: <code>https://github.com/rogasp/evlinkha-homeassistant</code></li>
               <li>Category: <strong>Integration</strong></li>
             </ul>
             <li>Install the integration</li>
             <li>Restart Home Assistant</li>
             <li>Go to <strong>Settings → Devices & Services</strong></li>
-            <li>Add integration & search for <strong>"EVLinkHA"</strong></li>
+            <li>Add integration & search for <strong>&quot;EVLinkHA&quot;</strong></li>
             <li>Enter your API key and Vehicle ID</li>
           </ol>
 
@@ -113,7 +113,7 @@ export default function IntegrationGuidePage() {
         <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-4 rounded mb-6">
           <strong>🚀 Pro Tier Webhook Feature:</strong>
           <p className="mt-1">
-            Pro tier users can receive real-time webhook notifications directly to their Home Assistant instance. This eliminates the need for polling and provides instant updates when your vehicle's state changes.
+            Pro tier users can receive real-time webhook notifications directly to their Home Assistant instance. This eliminates the need for polling and provides instant updates when your vehicle&apos;s state changes.
           </p>
           <p className="mt-2">
             <strong>Setup:</strong> Configure webhook URL in your EVLinkHA profile settings. The HACS integration handles this automatically.
