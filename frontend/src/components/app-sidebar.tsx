@@ -29,6 +29,32 @@ export function AppSidebar() {
                 <SidebarGroup>
                     <SidebarGroupLabel asChild>
                         <CollapsibleTrigger>
+                            <span className="text-white">General</span>
+                            <ChevronDown className="text-white ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                        </CollapsibleTrigger>
+                    </SidebarGroupLabel>
+                    <CollapsibleContent>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {navigation[0].items.map((item) => (
+                                    <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild>
+                                        <NavLinkButton href={item.href}>
+                                            <item.icon />
+                                            <span className="ml-2">{item.title}</span>
+                                        </NavLinkButton>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </CollapsibleContent>
+                </SidebarGroup>
+            </Collapsible>
+            <Collapsible defaultOpen className="group/collapsible">
+                <SidebarGroup>
+                    <SidebarGroupLabel asChild>
+                        <CollapsibleTrigger>
                             <span className="text-white">Guides</span>
                             <ChevronDown className="text-white ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
                         </CollapsibleTrigger>

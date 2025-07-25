@@ -32,9 +32,8 @@ echo "⏹️  Stopping existing PM2 services..."
 sudo pm2 stop evlink-backend 2>/dev/null || echo "ℹ️  Backend service was not running"
 sudo pm2 stop evlink-frontend 2>/dev/null || echo "ℹ️  Frontend service was not running"
 
-# Stop old systemd services if they exist (migration from systemd to PM2)
-sudo systemctl stop evlink-backend 2>/dev/null || echo "ℹ️  No systemd evlink-backend service to stop"
-sudo systemctl stop evlink-frontend 2>/dev/null || echo "ℹ️  No systemd evlink-frontend service to stop"
+# Note: Systemd services are left running during test migration
+# They will be stopped manually during final cutover to production ports
 
 # 3. Update code from GitHub
 echo "📥 Updating code from GitHub..."
@@ -56,6 +55,12 @@ sudo rm -rf .venv
 sudo -u fastapiserver python3 -m venv .venv
 sudo -u fastapiserver .venv/bin/pip install --upgrade pip
 sudo -u fastapiserver .venv/bin/pip install -r requirements.txt
+
+# Copy .env file to backend directory for PM2
+echo "📝 Setting up backend environment file..."
+sudo cp "$CONFIG_DIR/.env" .env
+sudo chown fastapiserver:fastapiserver .env
+sudo chmod 600 .env
 echo "✅ Backend Python environment completed"
 
 # 5. Set up frontend Node.js environment

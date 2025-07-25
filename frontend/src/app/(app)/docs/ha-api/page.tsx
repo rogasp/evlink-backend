@@ -21,23 +21,26 @@ export default function HAApiPage() {
         </p>
 
         {/* Hardcoded string */}
+        <div className='bg-red-100 border-l-4 border-red-500 text-red-800 p-4 rounded mb-4'>
+          <strong>⚠️ Migration Notice:</strong> The old API endpoint <code>api.evlinkha.se</code> will stop working on <strong>August 1st, 2025</strong>. Please migrate to <code>api.evlinkha.cloud</code> immediately.
+        </div>
+
         <h2 className='text-2xl font-semibold mt-6'>Endpoint</h2>
-        <CodeBlock code='GET https://api.evlinkha.se/api/ha/status/{vehicle_id}' language='http' />
+        <CodeBlock code='GET https://api.evlinkha.cloud/api/v1/ha/status/{vehicle_id}' language='http' />
 
         {/* Hardcoded string */}
         <h2 className='text-2xl font-semibold mt-6'>Authentication</h2>
         {/* Hardcoded string */}
         <p>
-          Requires a valid API key. Provide it in the <code>Authorization</code> header as:
+          Requires a valid API key. Provide it in the <code>X-API-Key</code> header as:
         </p>
-        <CodeBlock code={'Authorization: Bearer <your-api-key>'} language='http' />
+        <CodeBlock code={'X-API-Key: <your-api-key>'} language='http' />
 
         {/* Hardcoded string */}
         <h2 className='text-2xl font-semibold mt-6'>Response Format</h2>
         {/* Hardcoded string */}
         <p>
-          The response contains basic vehicle status along with a detailed{' '}
-          <code>chargeState</code> object.
+          The response contains comprehensive vehicle status with real-time data from your EV.
         </p>
 
         <details className='bg-gray-100 p-4 rounded border border-gray-300 text-sm leading-relaxed'>
@@ -48,15 +51,11 @@ export default function HAApiPage() {
           <pre className='mt-2 overflow-auto'>
             <code>
 {`{
-  "batteryLevel": 18,
-  "range": 98.28,
-  "isCharging": false,
-  "isPluggedIn": false,
-  "chargingState": "UNPLUGGED",
-  "vehicleName": "XPENG G6",
-  "latitude": 59.1438402,
-  "longitude": 18.1394997,
-  "lastSeen": "2025-05-20T15:48:12.933Z",
+  "vehicleId": "331c054f-b583-4284-b7b0-ce348c0a66fc",
+  "enodeVehicleId": "9801efc6-2d23-4fc5-bdc6-ba40b4e25e55",
+  "latitude": null,
+  "longitude": null,
+  "lastSeen": "2025-07-25T08:16:52.043000Z",
   "isReachable": true,
   "chargeState": {
     "chargeRate": null,
@@ -64,13 +63,70 @@ export default function HAApiPage() {
     "isFullyCharged": false,
     "isPluggedIn": false,
     "isCharging": false,
-    "batteryLevel": 18,
-    "range": 98.28,
-    "batteryCapacity": 91,
-    "chargeLimit": null,
-    "lastUpdated": "2025-05-13T14:15:29.717Z",
+    "batteryLevel": 25,
+    "range": 136.5,
+    "batteryCapacity": 91.0,
+    "chargeLimit": 90,
+    "lastUpdated": "2025-07-21T20:58:02.419000Z",
     "powerDeliveryState": "UNPLUGGED",
     "maxCurrent": null
+  },
+  "information": {
+    "displayName": null,
+    "vin": "6X3AJP0L7TVE11501",
+    "brand": "XPENG",
+    "model": "G6",
+    "year": 2025
+  },
+  "location": {
+    "id": null,
+    "latitude": 59.1438402,
+    "longitude": 18.1394997,
+    "lastUpdated": "2025-05-13T14:48:17.812000Z"
+  },
+  "odometer": {
+    "distance": 897.0,
+    "lastUpdated": "2025-06-13T16:13:34.068000Z"
+  },
+  "vendor": "XPENG",
+  "smartChargingPolicy": {
+    "deadline": null,
+    "isEnabled": false,
+    "minimumChargeLimit": 0
+  },
+  "capabilities": {
+    "information": {
+      "interventionIds": [],
+      "isCapable": true
+    },
+    "chargeState": {
+      "interventionIds": [],
+      "isCapable": true
+    },
+    "location": {
+      "interventionIds": [],
+      "isCapable": true
+    },
+    "odometer": {
+      "interventionIds": [],
+      "isCapable": false
+    },
+    "setMaxCurrent": {
+      "interventionIds": [],
+      "isCapable": true
+    },
+    "startCharging": {
+      "interventionIds": [],
+      "isCapable": true
+    },
+    "stopCharging": {
+      "interventionIds": [],
+      "isCapable": true
+    },
+    "smartCharging": {
+      "isCapable": true,
+      "interventionIds": []
+    }
   }
 }`}
             </code>
@@ -226,6 +282,46 @@ export default function HAApiPage() {
         </ul>
 
         {/* ------------------------------------------------------------------ */}
+        {/* HACS Installation Guide */}
+        {/* ------------------------------------------------------------------ */}
+
+        <div className='mt-16 border-t pt-6'>
+          <h2 className='text-2xl font-semibold'>HACS Installation (Recommended)</h2>
+          <p className='mt-2'>
+            For the easiest integration, install EVLinkHA directly through Home Assistant Community Store (HACS):
+          </p>
+          
+          <ol className='list-decimal ml-6 space-y-2 mt-4'>
+            <li>Open Home Assistant</li>
+            <li>Go to <strong>HACS → Integrations</strong></li>
+            <li>Search for <strong>&quot;EVLinkHA&quot;</strong></li>
+            <li>If not found, add custom repository:</li>
+            <ul className='list-disc ml-6'>
+              <li>Click the three dots in top right of HACS</li>
+              <li>Select <strong>&quot;Custom repositories&quot;</strong></li>
+              <li>Enter: <code>https://github.com/rogasp/evlinkha-homeassistant</code></li>
+              <li>Category: <strong>Integration</strong></li>
+            </ul>
+            <li>Install the integration</li>
+            <li>Restart Home Assistant</li>
+            <li>Go to <strong>Settings → Devices & Services</strong></li>
+            <li>Add integration & search for <strong>&quot;EVLinkHA&quot;</strong></li>
+            <li>Enter your API key and Vehicle ID</li>
+          </ol>
+
+          <div className='bg-green-100 border-l-4 border-green-500 text-green-800 p-4 rounded mt-4'>
+            <strong>✅ Benefits of HACS Installation:</strong>
+            <ul className='list-disc ml-6 mt-2'>
+              <li>No manual YAML configuration required</li>
+              <li>Easy setup through UI</li>
+              <li>Automatic updates</li>
+              <li>Built-in error handling</li>
+              <li>Webhook support for real-time updates (Pro tier)</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* ------------------------------------------------------------------ */}
         {/* New Charging Control Endpoint Documentation */}
         {/* ------------------------------------------------------------------ */}
 
@@ -248,7 +344,7 @@ export default function HAApiPage() {
 
           {/* Hardcoded string */}
           <h3 className='text-xl font-semibold mt-6'>Endpoint</h3>
-          <CodeBlock code='POST https://api.evlinkha.se/api/ha/charging/{vehicle_id}' language='http' />
+          <CodeBlock code='POST https://api.evlinkha.cloud/api/v1/ha/charging/{vehicle_id}' language='http' />
 
           {/* Hardcoded string */}
           <h3 className='text-xl font-semibold mt-6'>Request Body</h3>
@@ -301,7 +397,7 @@ export default function HAApiPage() {
               Check Enode’s error message for details (e.g., “Vehicle controlled by schedule”).
             </li>
             {/* Hardcoded string */}
-            <li><code>429 Too Many Requests</code>: Rate limit exceeded (see rate limit recommendations in the integration guide).</li>
+            <li><code>429 Too Many Requests</code>: Rate limit exceeded. Free tier: 300 calls per 30 days, Pro tier: 60 calls per minute.</li>
             {/* Hardcoded string */}
             <li><code>500 Internal Server Error</code>: Vehicle record missing Enode ID or unexpected server error.</li>
           </ul>

@@ -16,6 +16,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.api import ha, me, newsletter, payments, private, public, webhook
+from app.api.phone_verification import router as phone_router
 from app.api.admin import routers as admin_routers
 from app.config import ENDPOINT_COST, IS_PROD, SENTRY_DSN
 from app.dependencies.auth import get_current_user
@@ -180,6 +181,7 @@ app.include_router(me.router, prefix="/api")
 app.include_router(ha.router, prefix="/api")
 app.include_router(newsletter.router, prefix="/api")
 app.include_router(payments.router, prefix="/api/payments")
+app.include_router(phone_router, prefix="/api")
 
 from app.api.internal import router as internal_router
 
