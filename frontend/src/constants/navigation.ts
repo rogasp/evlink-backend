@@ -10,6 +10,7 @@ import {
   Network,
   FileText,
   BarChart2,
+  Bell,
 } from 'lucide-react';
 
 export type NavigationItem = {
@@ -29,6 +30,9 @@ export const navigation: NavigationGroup[] = [
     title: 'General', /* Hardcoded string */
     items: [
       { title: 'Status', href: '/status', icon: Activity }, /* Hardcoded string */
+      { title: 'Notifications', href: '/settings/notifications', icon: Bell }, /* Hardcoded string */
+      { title: 'Insights', href: '/insights', icon: BarChart2 }, /* Hardcoded string */
+      { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }, /* Hardcoded string */
     ],
   },
   {
@@ -36,8 +40,6 @@ export const navigation: NavigationGroup[] = [
     items: [
       { title: 'Integration Guide', href: '/integration-guide', icon: BookOpen }, /* Hardcoded string */
       { title: 'HA API', href: '/docs/ha-api', icon: Terminal }, /* Hardcoded string */
-      { title: 'Insights', href: '/insights', icon: BarChart2 }, /* Hardcoded string */
-      { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }, /* Hardcoded string */
     ],
   },
   {
