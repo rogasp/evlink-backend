@@ -36,12 +36,10 @@ export function SMSVerificationModal({
 
     setIsVerifying(true)
     try {
-      const result = await onVerify(code)
-      if (result) {
-        // Success toast is handled by useNotificationSettings
-        setCode("")
-        onOpenChange(false)
-      }
+      await onVerify(code)
+      // Success toast is handled by useNotificationSettings
+      setCode("")
+      onOpenChange(false)
     } catch {
       // Error is already handled by useNotificationSettings - no need to log here
       // Just ensure the UI doesn't close on error
