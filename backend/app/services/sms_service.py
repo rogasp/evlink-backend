@@ -4,6 +4,7 @@ SMS Service - Handles SMS verification and notifications using Twilio
 
 import logging
 import random
+import re
 import redis.asyncio as redis
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
