@@ -40,6 +40,14 @@ CANCEL_URL = os.getenv("STRIPE_CANCEL_URL", "https://evlinkha.se/cancel")
 
 INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
 
+# Twilio SMS Configuration
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")
+
+# Redis Configuration
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
 ENDPOINT_COST = {
     "/api/ha/status/": 1,
     "/api/ha/charging/":1,
