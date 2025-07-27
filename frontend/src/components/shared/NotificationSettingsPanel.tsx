@@ -9,32 +9,70 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Bell, BellOff, Mail, Smartphone, AlertCircle } from "lucide-react"
 
-const DEFAULT_PREFERENCES: NotificationPreferences = {
-  email: {
-    chargingComplete: true,
-    offlineAlert: true,
-    maintenanceReminder: true,
-    weeklySummary: false,
-  },
-  sms: {
-    chargingComplete: false,
-    offlineAlert: false,
-    maintenanceReminder: false,
-  },
+interface NotificationPreferences {
+  notification_types: {
+    trial_reminder_20_days: boolean
+    trial_reminder_10_days: boolean
+    trial_reminder_3_days: boolean
+    critical_token: boolean
+    monthly_allowance_80_percent: boolean
+    purchased_tokens_low: boolean
+    sms_credit_low: boolean
+    offline_alert: boolean
+    maintenance_reminder: boolean
+    weekly_summary: boolean
+    welcome: boolean
+    trial_expired: boolean
+    status_update: boolean
+  }
+  transport_preferences: {
+    trial_reminder_20_days: string[]
+    trial_reminder_10_days: string[]
+    trial_reminder_3_days: string[]
+    critical_token: string[]
+    monthly_allowance_80_percent: string[]
+    purchased_tokens_low: string[]
+    sms_credit_low: string[]
+    offline_alert: string[]
+    maintenance_reminder: string[]
+    weekly_summary: string[]
+    welcome: string[]
+    trial_expired: string[]
+    status_update: string[]
+  }
 }
 
-interface NotificationPreferences {
-  email: {
-    chargingComplete: boolean
-    offlineAlert: boolean
-    maintenanceReminder: boolean
-    weeklySummary: boolean
-  }
-  sms: {
-    chargingComplete: boolean
-    offlineAlert: boolean
-    maintenanceReminder: boolean
-  }
+const DEFAULT_PREFERENCES: NotificationPreferences = {
+  notification_types: {
+    trial_reminder_20_days: false,
+    trial_reminder_10_days: false,
+    trial_reminder_3_days: false,
+    critical_token: false,
+    monthly_allowance_80_percent: false,
+    purchased_tokens_low: false,
+    sms_credit_low: false,
+    offline_alert: false,
+    maintenance_reminder: false,
+    weekly_summary: false,
+    welcome: true,
+    trial_expired: true,
+    status_update: false,
+  },
+  transport_preferences: {
+    trial_reminder_20_days: ['email'],
+    trial_reminder_10_days: ['email'],
+    trial_reminder_3_days: ['email'],
+    critical_token: ['email'],
+    monthly_allowance_80_percent: ['email'],
+    purchased_tokens_low: ['email'],
+    sms_credit_low: ['email'],
+    offline_alert: ['email'],
+    maintenance_reminder: ['email'],
+    weekly_summary: ['email'],
+    welcome: ['email'],
+    trial_expired: ['email'],
+    status_update: ['email'],
+  },
 }
 
 interface NotificationSettingsPanelProps {
@@ -64,12 +102,12 @@ export function NotificationSettingsPanel({
     setLocalPreferences(preferences || DEFAULT_PREFERENCES)
   }, [preferences])
 
-  const handlePreferenceChange = (channel: keyof NotificationPreferences, type: string, value: boolean) => {
+  const handlePreferenceChange = (type: string, value: boolean) => {
     const safePreferences = localPreferences || DEFAULT_PREFERENCES
     const updated = {
       ...safePreferences,
-      [channel]: {
-        ...safePreferences[channel],
+      notification_types: {
+        ...safePreferences.notification_types,
         [type]: value
       }
     }
@@ -117,6 +155,47 @@ export function NotificationSettingsPanel({
           <Separator />
 
           <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Critical Token Low</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert when your API tokens are critically low
+                </p>
+              </div>
+              <Switch
+                checked={localPreferences?.notification_types?.critical_token ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('critical_token', checked)}
+                disabled={!isPhoneVerified}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">SMS Credit Low</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert when your SMS credits are running low
+                </p>
+              </div>
+              <Switch
+                checked={localPreferences?.notification_types?.sms_credit_low ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('sms_credit_low', checked)}
+                disabled={!isPhoneVerified}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Purchased Tokens Low</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert when your purchased tokens are low
+                </p>
+              </div>
+              <Switch
+                checked={localPreferences?.notification_types?.purchased_tokens_low ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('purchased_tokens_low', checked)}
+                disabled={!isPhoneVerified}
+              />
+            </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -126,8 +205,8 @@ export function NotificationSettingsPanel({
                 </p>
               </div>
               <Switch
-                checked={localPreferences?.sms?.offlineAlert ?? false}
-                onCheckedChange={(checked) => handlePreferenceChange('sms', 'offlineAlert', checked)}
+                checked={localPreferences?.notification_types?.offline_alert ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('offline_alert', checked)}
                 disabled={!isPhoneVerified}
               />
             </div>
@@ -140,8 +219,8 @@ export function NotificationSettingsPanel({
                 </p>
               </div>
               <Switch
-                checked={localPreferences?.sms?.maintenanceReminder ?? false}
-                onCheckedChange={(checked) => handlePreferenceChange('sms', 'maintenanceReminder', checked)}
+                checked={localPreferences?.notification_types?.maintenance_reminder ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('maintenance_reminder', checked)}
                 disabled={!isPhoneVerified}
               />
             </div>
@@ -171,14 +250,66 @@ export function NotificationSettingsPanel({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-base">Charging Complete</Label>
+                <Label className="text-base">Trial Reminders</Label>
                 <p className="text-sm text-muted-foreground">
-                  Email when charging is finished
+                  Reminders 20, 10, and 3 days before trial ends
                 </p>
               </div>
               <Switch
-                checked={localPreferences?.email?.chargingComplete ?? false}
-                onCheckedChange={(checked) => handlePreferenceChange('email', 'chargingComplete', checked)}
+                checked={localPreferences?.notification_types?.trial_reminder_20_days ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('trial_reminder_20_days', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Critical Token Low</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert when your API tokens are critically low
+                </p>
+              </div>
+              <Switch
+                checked={localPreferences?.notification_types?.critical_token ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('critical_token', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Monthly Allowance 80%</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert when 80% of monthly allowance is used
+                </p>
+              </div>
+              <Switch
+                checked={localPreferences?.notification_types?.monthly_allowance_80_percent ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('monthly_allowance_80_percent', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Purchased Tokens Low</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert when your purchased tokens are low
+                </p>
+              </div>
+              <Switch
+                checked={localPreferences?.notification_types?.purchased_tokens_low ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('purchased_tokens_low', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">SMS Credit Low</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert when your SMS credits are running low
+                </p>
+              </div>
+              <Switch
+                checked={localPreferences?.notification_types?.sms_credit_low ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('sms_credit_low', checked)}
               />
             </div>
 
@@ -186,12 +317,12 @@ export function NotificationSettingsPanel({
               <div className="space-y-0.5">
                 <Label className="text-base">Offline Alert</Label>
                 <p className="text-sm text-muted-foreground">
-                  Email when vehicle goes offline
+                  Alert when your vehicle goes offline
                 </p>
               </div>
               <Switch
-                checked={localPreferences?.email?.offlineAlert ?? false}
-                onCheckedChange={(checked) => handlePreferenceChange('email', 'offlineAlert', checked)}
+                checked={localPreferences?.notification_types?.offline_alert ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('offline_alert', checked)}
               />
             </div>
 
@@ -199,12 +330,12 @@ export function NotificationSettingsPanel({
               <div className="space-y-0.5">
                 <Label className="text-base">Maintenance Reminder</Label>
                 <p className="text-sm text-muted-foreground">
-                  Scheduled maintenance reminders
+                  Reminders for scheduled maintenance
                 </p>
               </div>
               <Switch
-                checked={localPreferences?.email?.maintenanceReminder ?? false}
-                onCheckedChange={(checked) => handlePreferenceChange('email', 'maintenanceReminder', checked)}
+                checked={localPreferences?.notification_types?.maintenance_reminder ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('maintenance_reminder', checked)}
               />
             </div>
 
@@ -212,13 +343,38 @@ export function NotificationSettingsPanel({
               <div className="space-y-0.5">
                 <Label className="text-base">Weekly Summary</Label>
                 <p className="text-sm text-muted-foreground">
-                  Weekly summary of charging and usage
+                  Weekly summary of your account activity
                 </p>
               </div>
               <Switch
-                checked={localPreferences?.email?.weeklySummary ?? false}
-                onCheckedChange={(checked) => handlePreferenceChange('email', 'weeklySummary', checked)}
+                checked={localPreferences?.notification_types?.weekly_summary ?? false}
+                onCheckedChange={(checked) => handlePreferenceChange('weekly_summary', checked)}
               />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Mandatory Notifications Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            Mandatory Notifications
+          </CardTitle>
+          <CardDescription>
+            These notifications are always enabled and cannot be disabled
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span>Welcome Email</span>
+              <span className="text-green-600 font-medium">Always Enabled</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Trial Expired</span>
+              <span className="text-green-600 font-medium">Always Enabled</span>
             </div>
           </div>
         </CardContent>
@@ -227,7 +383,7 @@ export function NotificationSettingsPanel({
       {/* Summary */}
       <div className="flex items-center justify-between p-4 border rounded-lg">
         <div className="flex items-center gap-2">
-          {(Object.values(localPreferences?.email || {}).some(Boolean) || Object.values(localPreferences?.sms || {}).some(Boolean)) ? (
+          {(Object.values(localPreferences?.notification_types || {}).some(Boolean)) ? (
             <>
               <Bell className="h-4 w-4 text-green-600" />
               <span className="text-sm text-green-600">
@@ -238,7 +394,7 @@ export function NotificationSettingsPanel({
             <>
               <BellOff className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                All notifications are disabled
+                All optional notifications are disabled
               </span>
             </>
           )}
