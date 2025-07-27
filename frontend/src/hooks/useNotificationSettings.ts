@@ -6,16 +6,35 @@ import { toast } from "sonner"
 import { authFetch } from "@/lib/authFetch"
 
 interface NotificationPreferences {
-  email: {
-    chargingComplete: boolean
-    offlineAlert: boolean
-    maintenanceReminder: boolean
-    weeklySummary: boolean
+  notification_types: {
+    trial_reminder_20_days: boolean
+    trial_reminder_10_days: boolean
+    trial_reminder_3_days: boolean
+    critical_token: boolean
+    monthly_allowance_80_percent: boolean
+    purchased_tokens_low: boolean
+    sms_credit_low: boolean
+    offline_alert: boolean
+    maintenance_reminder: boolean
+    weekly_summary: boolean
+    welcome: boolean
+    trial_expired: boolean
+    status_update: boolean
   }
-  sms: {
-    chargingComplete: boolean
-    offlineAlert: boolean
-    maintenanceReminder: boolean
+  transport_preferences: {
+    trial_reminder_20_days: string[]
+    trial_reminder_10_days: string[]
+    trial_reminder_3_days: string[]
+    critical_token: string[]
+    monthly_allowance_80_percent: string[]
+    purchased_tokens_low: string[]
+    sms_credit_low: string[]
+    offline_alert: string[]
+    maintenance_reminder: string[]
+    weekly_summary: string[]
+    welcome: string[]
+    trial_expired: string[]
+    status_update: string[]
   }
 }
 
@@ -26,16 +45,35 @@ interface UserNotificationSettings {
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
-  email: {
-    chargingComplete: true,
-    offlineAlert: true,
-    maintenanceReminder: true,
-    weeklySummary: false,
+  notification_types: {
+    trial_reminder_20_days: false,
+    trial_reminder_10_days: false,
+    trial_reminder_3_days: false,
+    critical_token: false,
+    monthly_allowance_80_percent: false,
+    purchased_tokens_low: false,
+    sms_credit_low: false,
+    offline_alert: false,
+    maintenance_reminder: false,
+    weekly_summary: false,
+    welcome: true,
+    trial_expired: true,
+    status_update: false,
   },
-  sms: {
-    chargingComplete: false,
-    offlineAlert: false,
-    maintenanceReminder: false,
+  transport_preferences: {
+    trial_reminder_20_days: ['email'],
+    trial_reminder_10_days: ['email'],
+    trial_reminder_3_days: ['email'],
+    critical_token: ['email'],
+    monthly_allowance_80_percent: ['email'],
+    purchased_tokens_low: ['email'],
+    sms_credit_low: ['email'],
+    offline_alert: ['email'],
+    maintenance_reminder: ['email'],
+    weekly_summary: ['email'],
+    welcome: ['email'],
+    trial_expired: ['email'],
+    status_update: ['email'],
   },
 }
 
