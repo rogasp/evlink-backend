@@ -160,6 +160,7 @@ export default function NotificationSettingsPage() {
         onPreferencesChange={handlePreferencesChange}
         onSave={() => updatePreferences(settings?.notification_preferences ?? DEFAULT_PREFERENCES)}
         isSaving={saving}
+        smsCredits={settings?.sms_credits || 0}
       />
 
       <SMSVerificationModal

@@ -10,6 +10,9 @@ class User(BaseModel):
     role: str
     name: Optional[str] = None
     notify_offline: Optional[bool] = False
+    notification_preferences: Optional[dict] = None
+    phone_number: Optional[str] = None
+    phone_verified: Optional[bool] = False
     tier: str
     sms_credits: int = 0
     purchased_api_tokens: int = 0 # NEW: User's balance of purchased API tokens
