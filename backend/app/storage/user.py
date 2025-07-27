@@ -102,7 +102,7 @@ async def get_user_by_id(user_id: str) -> User | None:
     """
     try:
         response = supabase.table("users") \
-            .select("id, email, role, name, notify_offline, stripe_customer_id, tier, sms_credits, purchased_api_tokens, is_on_trial, trial_ends_at") \
+            .select("id, email, role, name, notify_offline, notification_preferences, phone_number, phone_verified, stripe_customer_id, tier, sms_credits, purchased_api_tokens, is_on_trial, trial_ends_at") \
             .eq("id", user_id) \
             .maybe_single() \
             .execute()
