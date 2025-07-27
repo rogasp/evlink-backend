@@ -40,7 +40,10 @@ class MeResponse(BaseModel):
     name: str
     accepted_terms: bool
     online_status: str  # "red", "yellow", "green", "grey"
-    notify_offline: bool
+    notify_offline: bool  # Kept for backward compatibility
+    notification_preferences: dict  # Full notification preferences structure
+    phone_number: Optional[str] = None
+    phone_verified: Optional[bool] = False
     tier: str
     sms_credits: int = 0
     purchased_api_tokens: int = 0 # NEW: User's balance of purchased API tokens
@@ -247,7 +250,12 @@ async def get_me(user=Depends(get_supabase_user)):
         # 8) Determine is_subscribed using helper
         is_subscribed = await is_subscriber(user_id)
 
-        # 9) Return the assembled response
+        # 9) Get notification preferences (fallback to empty dict)
+        notification_preferences = (
+            getattr(local_user, "notification_preferences", {}) if local_user else {}
+        )
+
+        # 10) Return the assembled response
         return MeResponse(
             id=user_id,
             email=email,
@@ -257,6 +265,9 @@ async def get_me(user=Depends(get_supabase_user)):
             accepted_terms=terms,
             online_status=online_status,
             notify_offline=notify_offline,
+            notification_preferences=notification_preferences,
+            phone_number=local_user.phone_number if local_user else None,
+            phone_verified=local_user.phone_verified if local_user else False,
             tier=local_user.tier if local_user else "free",
             sms_credits=local_user.sms_credits if local_user else 0,
             purchased_api_tokens=local_user.purchased_api_tokens if local_user else 0, # NEW field

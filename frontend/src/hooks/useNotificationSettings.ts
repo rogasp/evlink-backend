@@ -42,6 +42,7 @@ interface UserNotificationSettings {
   phone_number?: string
   phone_verified?: boolean
   notification_preferences: NotificationPreferences
+  sms_credits?: number
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
@@ -86,21 +87,21 @@ export function useNotificationSettings() {
   // Fetch user settings
   const fetchSettings = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("No user logged in")
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error("No user logged in")
 
-      const { data, error } = await supabase
-        .from("users")
-        .select("phone_number, phone_verified, notification_preferences")
-        .eq("id", user.id)
-        .single()
+      const response = await authFetch("/api/me", {
+        accessToken: session.access_token,
+      })
 
-      if (error) throw error
+      if (response.error) throw response.error
 
+      const data = response.data || response
       setSettings({
         phone_number: data.phone_number || "",
         phone_verified: data.phone_verified || false,
         notification_preferences: data.notification_preferences || DEFAULT_PREFERENCES,
+        sms_credits: data.sms_credits || 0,
       })
     } catch (error) {
       console.error("Failed to fetch notification settings:", error)
