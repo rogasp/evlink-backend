@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(npm install)",
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npm run lint)",
+      "Bash(gh issue create:*)"
+    ],
+    "deny": []
+  }
+}
