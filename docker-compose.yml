@@ -1,0 +1,136 @@
+services:
+  # PostgreSQL Database (replaces Supabase for local development)
+  postgres:
+    image: postgres:15-alpine
+    container_name: evlink-postgres
+    environment:
+      POSTGRES_DB: evlink
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./supabase/sql_definitions:/docker-entrypoint-initdb.d
+    networks:
+      - evlink-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and SMS verification
+  redis:
+    image: redis:7-alpine
+    container_name: evlink-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - evlink-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend FastAPI service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: evlink-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Database configuration
+      SUPABASE_URL: http://postgres:5432
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-your_service_role_key}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-your_anon_key}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-your_jwt_secret}
+      
+      # Redis configuration
+      REDIS_URL: redis://redis:6379/0
+      
+      # Enode configuration
+      ENODE_CLIENT_ID: ${ENODE_CLIENT_ID:-your_enode_client_id}
+      ENODE_CLIENT_SECRET: ${ENODE_CLIENT_SECRET:-your_enode_client_secret}
+      ENODE_BASE_URL: ${ENODE_BASE_URL:-https://enode-api.sandbox.enode.io}
+      ENODE_AUTH_URL: ${ENODE_AUTH_URL:-https://oauth.sandbox.enode.io/oauth2/token}
+      REDIRECT_URI: ${REDIRECT_URI:-http://localhost:8000/api/link/callback}
+      ENODE_WEBHOOK_SECRET: ${ENODE_WEBHOOK_SECRET:-}
+      
+      # Environment
+      ENV: development
+      MOCK_LINK_RESULT: "true"
+      CACHE_EXPIRATION_MINUTES: 5
+      
+      # External services (optional for local development)
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_CUSTOMERS_LIST_ID: ${BREVO_CUSTOMERS_LIST_ID:-4}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whc}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER:-}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev_internal_key}
+      
+      # URLs
+      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:8000/webhook}
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost:3000/success}
+      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost:3000/cancel}
+      
+      # Email configuration
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@evlinkha.se}
+      FROM_NAME: ${FROM_NAME:-EVLinkHA}
+    volumes:
+      - ./backend:/app
+    networks:
+      - evlink-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
+
+  # Frontend Next.js service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: evlink-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-http://localhost:5432}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-your_anon_key}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL:-http://localhost:3000}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - evlink-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+    command: npm run dev
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  evlink-network:
+    driver: bridge

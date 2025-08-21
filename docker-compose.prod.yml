@@ -1,0 +1,43 @@
+# docker-compose.prod.yml
+# Production overrides for docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  backend:
+    # Override for production
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    environment:
+      ENV: production
+      MOCK_LINK_RESULT: "false"
+    # Remove volume mount for production
+    volumes: []
+    restart: always
+
+  frontend:
+    # Build for production
+    command: npm start
+    environment:
+      NODE_ENV: production
+    # Remove volume mount for production  
+    volumes: []
+    restart: always
+    depends_on:
+      - backend
+
+  postgres:
+    # Production postgres settings
+    environment:
+      POSTGRES_DB: evlink_prod
+      # Use stronger password from environment
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Remove init scripts for production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    # Production redis settings
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    restart: always

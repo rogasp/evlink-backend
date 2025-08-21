@@ -42,11 +42,15 @@ Full documentation is available in the `docs/` folder:
 
 ```
 .
-├── backend/        # FastAPI backend
-├── frontend/       # Next.js frontend
-├── supabase/       # Supabase local dev setup
-├── docs/           # Project documentation
-└── .github/        # GitHub Actions, templates etc
+├── backend/         # FastAPI backend
+├── frontend/        # Next.js frontend
+├── supabase/        # Supabase local dev setup
+├── docs/            # Project documentation
+├── .github/         # GitHub Actions, templates etc
+├── docker-compose.yml    # Docker development environment
+├── docker-compose.prod.yml  # Docker production overrides
+├── DOCKER.md        # Docker setup guide
+└── Makefile         # Docker convenience commands
 ```
 
 ---
@@ -54,6 +58,15 @@ Full documentation is available in the `docs/` folder:
 ## Getting Started
 
 Start here if you want to run EVLinkHA locally:
+
+### 🐳 Docker (Recommended)
+For the easiest setup with all services in containers:
+
+* [Docker Setup Guide](DOCKER.md) - Complete guide for running with Docker
+* Quick start: `cp .env.docker .env && docker compose up -d`
+
+### 🛠️ Manual Setup
+For traditional development setup:
 
 * [Quickstart for Developers](docs/guides/QUICKSTART.md)
 * [Architecture Overview](docs/ARCHITECTURE.md)
