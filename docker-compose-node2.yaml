@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      FROM_EMAIL: ${FROM_EMAIL}
+      FROM_NAME: ${FROM_NAME}
+      TZ: ${TZ:-Europe/Stockholm}
+
+      # Enode
+      ENODE_BASE_URL: ${ENODE_BASE_URL}
+      ENODE_AUTH_URL: ${ENODE_AUTH_URL}
+      ENODE_LINK_UI_URL: ${ENODE_LINK_UI_URL}
+      ENODE_CLIENT_ID: ${ENODE_CLIENT_ID}
+      ENODE_CLIENT_SECRET: ${ENODE_CLIENT_SECRET}
+      ENODE_WEBHOOK_SECRET: ${ENODE_WEBHOOK_SECRET}
+      REDIRECT_URI: ${REDIRECT_URI}
+      WEBHOOK_URL: ${WEBHOOK_URL}
+
+      # Övrigt
+      JWT_SECRET: ${JWT_SECRET}
+      CACHE_EXPIRATION_MINUTES: ${CACHE_EXPIRATION_MINUTES:-5}
+      SERVER_ORIGIN: ${SERVER_ORIGIN}
+      ENDPOINT_COSTS: ${ENDPOINT_COSTS:-{}}
+
+      # E-post/SMS/Stripe (server)
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_CUSTOMERS_LIST_ID: ${BREVO_CUSTOMERS_LIST_ID}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID}
+      TWilio_secret: ${TWILIO_SECRET}
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER}
+      SMS_ALERT_RECIPIENTS: ${SMS_ALERT_RECIPIENTS}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL}
+      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL}
+
+    ports:
+      - "9100:8000"
+    
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import sys, urllib.request; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/healthz').getcode() in [200, 204] else sys.exit(1)\""]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+      NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+      NEXT_PUBLIC_BREVO_CLIENT_KEY: ${NEXT_PUBLIC_BREVO_CLIENT_KEY}
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3010:3000"
