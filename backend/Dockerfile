@@ -4,22 +4,17 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-# Liten bas: bara certs & curl för health/debug
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl && \
-    rm -rf /var/lib/apt/lists/*
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_RETRIES=5
 
 WORKDIR /app
 
-# För handskak med wheels
 COPY requirements.txt .
 RUN python -m pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 COPY . .
-# Kör som icke-root om möjligt
 RUN useradd --create-home --shell /bin/bash appuser && chown -R appuser:appuser /app
 USER appuser
 
