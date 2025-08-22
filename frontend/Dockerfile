@@ -2,9 +2,9 @@
 FROM node:20-bookworm-slim
 
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1   # lämna NODE_ENV tills efter build
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Installera deps (inkl. dev) via lockfil
+# Installera deps via lockfil (npm)
 COPY package*.json ./
 RUN npm ci --no-audit --no-fund
 
