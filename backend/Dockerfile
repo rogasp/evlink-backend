@@ -6,19 +6,21 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Liten bas: bara certs & curl för health/debug
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl ca-certificates && \
+    ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
-RUN useradd --create-home --shell /bin/bash appuser
 WORKDIR /app
 
-# ⬇️ Viktigt: context är ./backend, så filerna ligger i context-root
-COPY requirements.txt ./requirements.txt
-RUN pip install -r requirements.txt
+# För handskak med wheels
+COPY requirements.txt .
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 COPY . .
-RUN mkdir -p /app/logs && chown -R appuser:appuser /app
+# Kör som icke-root om möjligt
+RUN useradd --create-home --shell /bin/bash appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
