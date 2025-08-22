@@ -9,7 +9,6 @@ import logging
 import time
 from typing import AsyncIterator
 
-import sentry_sdk
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -23,14 +22,6 @@ from app.dependencies.auth import get_current_user
 from app.logger import logger
 from app.storage.telemetry import log_api_telemetry
 
-# Initialize Sentry
-sentry_sdk.init(
-    dsn=SENTRY_DSN,
-    # Add data like request headers and IP for users,
-    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
-    send_default_pii=True,
-)
-
 logger.info("🚀 Starting EVLink Backend...")
 
 app = FastAPI(
@@ -41,6 +32,10 @@ app = FastAPI(
     redoc_url=None if IS_PROD else "/redoc",
     openapi_url=None if IS_PROD else "/openapi.json",
 )
+
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
 
 # -------------------------
 # Telemetry middleware

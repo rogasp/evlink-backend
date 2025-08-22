@@ -7,23 +7,24 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      # Lägg dessa i Coolify (per nod)
-      # - SUPABASE_URL=...
-      # - SUPABASE_SERVICE_ROLE_KEY=...
-      # - INTERNAL_API_KEY=...
-      # - BREVO_API_KEY=...
-      # - FROM_EMAIL=...
-      # - FROM_NAME=...
-      # - PYTHONUNBUFFERED=1
-      # - TZ=Europe/Stockholm
+      - PORT=8001
+      - SUPABASE_URL
+      - SUPABASE_SERVICE_ROLE_KEY
+      - INTERNAL_API_KEY
+      - BREVO_API_KEY
+      - FROM_EMAIL
+      - FROM_NAME
+      - ENODE_WEBHOOK_SECRET
+      - ENODE_CLIENT_ID
+      - ENODE_CLIENT_SECRET
     ports:
       - "9100:8000"   # <- publik host-port på noden
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/docs || exit 1"]
-      start_period: 20s
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/healthz || exit 1"]
+      start_period: 30s
       interval: 10s
       timeout: 3s
-      retries: 5
+      retries: 10
 
   frontend:
     build:
