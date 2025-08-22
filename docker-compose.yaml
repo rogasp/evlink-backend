@@ -50,9 +50,9 @@ services:
     ports:
       - "9100:8000"
     
-    #healthcheck:
-    #  test: ["CMD-SHELL", "curl -f http://localhost:8000/healthz || exit 1"]
-    #  start_period: 30s
-    #  interval: 10s
-    #  timeout: 5s
-    #  retries: 5
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import sys, urllib.request; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/healthz').getcode() in [200, 204] else sys.exit(1)\""]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
