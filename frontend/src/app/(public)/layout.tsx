@@ -14,7 +14,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <>
       {/* Umami script injected for public layout */}
       <Script
-        src="https://cloud.umami.is/script.js"
+        src="https://umami.theswed.dev/script.js"
         data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
         strategy="afterInteractive"
       />
