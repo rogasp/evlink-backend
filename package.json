@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "supabase": "^2.22.6"
+    "supabase": "^2.72.8"
   },
   "scripts": {
     "supabase": "supabase"
